@@ -485,6 +485,18 @@ fn prompt_shortcut_(
     }
 }
 
+fn hide_osd_(ContextData(host_defined): ContextData<HostData>, context: &mut Context) -> JsPromise {
+    let app = host_defined.app_mut();
+    app.platform_mut().core_manager_mut().hide_osd();
+    JsPromise::resolve(JsValue::undefined(), context)
+}
+
+fn show_osd_(ContextData(host_defined): ContextData<HostData>, context: &mut Context) -> JsPromise {
+    let app = host_defined.app_mut();
+    app.platform_mut().core_manager_mut().show_osd();
+    JsPromise::resolve(JsValue::undefined(), context)
+}
+
 pub fn create_module(context: &mut Context) -> JsResult<(JsString, Module)> {
     Ok((
         js_string!("osd"),
@@ -518,6 +530,14 @@ pub fn create_module(context: &mut Context) -> JsResult<(JsString, Module)> {
             (
                 js_string!("promptShortcut"),
                 prompt_shortcut_.into_js_function_copied(context),
+            ),
+            (
+                js_string!("hideOsd"),
+                hide_osd_.into_js_function_copied(context),
+            ),
+            (
+                js_string!("showOsd"),
+                show_osd_.into_js_function_copied(context),
             ),
         ]
         .into_js_module(context),

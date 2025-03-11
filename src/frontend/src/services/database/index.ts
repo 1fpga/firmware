@@ -5,3 +5,5 @@ export * from "./games";
 export * from "./games_database";
 export * from "./commands";
 export * from "./system";
+
+export * from "./screenshot";

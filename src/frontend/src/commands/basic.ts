@@ -2,6 +2,7 @@ import * as core from "1fpga:core";
 import { coreOsdMenu } from "$/ui/menus/core_osd";
 import { Commands, CoreCommandImpl } from "$/services/database/commands";
 import { Core } from "$/services/database/core";
+import { Games, Screenshot, User } from "$/services";
 
 export class ShowCoreMenuCommand extends CoreCommandImpl {
   key = "showCoreMenu";
@@ -58,8 +59,31 @@ export class ShowDebugLogCommand extends CoreCommandImpl {
   }
 }
 
+export class ScreenshotCommand extends CoreCommandImpl {
+  key = "screenshot";
+  label = "Take a screenshot";
+  category = "Core";
+  default = "'SysReq'";
+
+  async execute(core: core.OneFpgaCore) {
+    const user = User.loggedInUser(true);
+    const game = Games.getRunning();
+    if (!game) {
+      console.error("No game running.");
+      return;
+    }
+    try {
+      await Screenshot.create(game, core.screenshot());
+      console.log("Saved screenshot");
+    } catch (e) {
+      console.error("Failed to take a screenshot.", e);
+    }
+  }
+}
+
 export async function init() {
   await Commands.register(ShowCoreMenuCommand);
   await Commands.register(QuitCoreCommand);
   await Commands.register(ShowDebugLogCommand);
+  await Commands.register(ScreenshotCommand);
 }

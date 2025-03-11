@@ -18,6 +18,13 @@ declare module "1fpga:fs" {
 
   export function isFile(path: string): Promise<boolean>;
 
+  /**
+   * Create a directory.
+   * @param path The path to the directory.
+   * @param all Whether to create all directories in the path.
+   */
+  export function mkdir(path: string, all?: boolean): Promise<void>;
+
   export function isDir(path: string): Promise<boolean>;
 
   export function findAllFiles(

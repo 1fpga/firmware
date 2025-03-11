@@ -9,6 +9,7 @@ import {
   Core,
   Games,
   GlobalSettings,
+  Screenshot,
   StartOnKind,
   StartOnSetting,
   User,
@@ -19,6 +20,7 @@ import { StartGameAction } from "$/actions/start_game";
 import { MainMenuAction } from "$/actions/main_menu";
 import { gamesMenu } from "$/ui/games";
 import { coresMenu } from "$/ui/cores"; // Import the basic commands.
+import { screenshotsMenu } from "$/ui/screenshots";
 import { settingsMenu } from "$/ui/settings";
 import { login } from "$/ui/login";
 import { downloadCenterMenu } from "$/ui/downloads";
@@ -93,9 +95,11 @@ async function mainMenu(
   while (!(quit || logout)) {
     const nbGames = await Games.count({ mergeByGameId: true });
     const nbCores = await Core.count();
+    const nbScreenshots = await Screenshot.count();
 
     const gamesMarker = nbGames > 0 ? `(${nbGames})` : "";
     const coresMarker = nbCores > 0 ? `(${nbCores})` : "";
+    const screenshotsMarker = nbScreenshots > 0 ? `(${nbScreenshots})` : "";
     const downloadMarker = (await Catalog.count(true)) > 0 ? "!" : "";
 
     await osd.textMenu({
@@ -110,6 +114,11 @@ async function mainMenu(
           label: "Cores",
           select: async () => await coresMenu(),
           marker: coresMarker,
+        },
+        {
+          label: "Screenshots",
+          select: async () => await screenshotsMenu(),
+          marker: screenshotsMarker,
         },
         "---",
         {

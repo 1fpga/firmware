@@ -24,9 +24,10 @@ debug = false
 [profile.dev]
 
 [profile.release-debug]
+opt-level = 3
+debug = 0
 inherits = "dev"
 overflow-checks = false
-debug = 0
 panic = "abort"
 
 [workspace.metadata.cross]

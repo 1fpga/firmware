@@ -171,4 +171,18 @@ declare module "1fpga:osd" {
     title?: string,
     message?: string,
   ): Promise<string | undefined>;
+
+  /**
+   * Hide the OSD. This does not change the execution of the event loop,
+   * it is the responsibility of the caller to re-show the OSD later and
+   * manage events while hidden.
+   */
+  export function hideOsd(): Promise<void>;
+
+  /**
+   * Show the OSD. This does not change the execution of the event loop,
+   * it is the responsibility of the caller to re-hide the OSD later and
+   * manage events while shown.
+   */
+  export function showOsd(): Promise<void>;
 }

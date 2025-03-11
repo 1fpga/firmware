@@ -182,10 +182,9 @@ declare module "1fpga:core" {
     loop(options?: LoopOptions): void;
 
     /**
-     * Take a screenshot. Output the screenshot to the given path.
-     * This is a blocking operation.
+     * Take a screenshot and returns it.
      */
-    screenshot(path: string): void;
+    screenshot(): Image;
 
     /**
      * Show the menu for the core. This is different from just the OSD.
@@ -245,7 +244,7 @@ declare module "1fpga:core" {
      * @param event The event name.
      * @param listener The event listener.
      */
-    on(event: "quit", listener: SaveStateListener): void;
+    on(event: "quit", listener: QuitListener): void;
   }
 
   /**

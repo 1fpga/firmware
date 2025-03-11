@@ -135,6 +135,12 @@ export class SaveState {
 }
 
 export class Games {
+  private static runningGame: Games | null = null;
+
+  public static getRunning(): Games | null {
+    return Games.runningGame;
+  }
+
   private static fromGamesCoreRow(row: GamesCoreRow): Games {
     return new Games(row);
   }
@@ -254,6 +260,7 @@ export class Games {
 
     try {
       Core.setRunning(await Core.getById(this.row_.cores_id));
+      Games.runningGame = this;
       const core = oneFpgaCore.load({
         core: { type: "Path", path: this.row_.rbf_path },
         ...(this.row_.rom_path
@@ -274,6 +281,7 @@ export class Games {
         core.loop();
       }
     } finally {
+      Games.runningGame = null;
       Core.setRunning(null);
     }
   }

@@ -137,11 +137,32 @@ fn is_file(file: JsString, context: &mut Context) -> JsPromise {
                 Ok(metadata) => metadata.is_file(),
                 Err(_) => false,
             };
-            resolvers.resolve.call(
-                &JsValue::undefined(),
-                &[JsValue::from(is_file)],
-                context,
-            )
+            resolvers
+                .resolve
+                .call(&JsValue::undefined(), &[JsValue::from(is_file)], context)
+        },
+        context,
+    )
+}
+
+fn mkdir(dir: JsString, all: Option<bool>, context: &mut Context) -> JsPromise {
+    let path = PathBuf::from(dir.to_std_string_escaped());
+
+    JsPromise::new(
+        |resolvers, context| {
+            let result = if all.unwrap_or(false) {
+                std::fs::create_dir_all(&path)
+            } else {
+                std::fs::create_dir(&path)
+            };
+
+            match result {
+                Ok(_) => resolvers.resolve.call(&JsValue::undefined(), &[], context),
+                Err(e) => {
+                    let v: JsValue = js_error!("{}", e).to_opaque(context);
+                    resolvers.reject.call(&JsValue::undefined(), &[v], context)
+                }
+            }
         },
         context,
     )
@@ -156,11 +177,9 @@ fn is_dir(file: JsString, context: &mut Context) -> JsPromise {
                 Ok(metadata) => metadata.is_dir(),
                 Err(_) => false,
             };
-            resolvers.resolve.call(
-                &JsValue::undefined(),
-                &[JsValue::from(is_dir)],
-                context,
-            )
+            resolvers
+                .resolve
+                .call(&JsValue::undefined(), &[JsValue::from(is_dir)], context)
         },
         context,
     )
@@ -310,6 +329,7 @@ pub fn create_module(context: &mut Context) -> JsResult<(JsString, Module)> {
             js_string!("isFile"),
             is_file.into_js_function_copied(context),
         ),
+        (js_string!("mkdir"), mkdir.into_js_function_copied(context)),
         (js_string!("isDir"), is_dir.into_js_function_copied(context)),
         (
             js_string!("findAllFiles"),

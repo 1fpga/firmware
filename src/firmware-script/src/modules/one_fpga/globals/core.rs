@@ -259,6 +259,12 @@ js_class! {
             this.clone_inner().show_osd(data.0.app_mut(), handler, context)
         }
 
+        fn screenshot(this: JsClass<JsCore>, context: &mut Context) -> JsResult<JsValue> {
+            let screenshot = this.borrow().core.screenshot().map_err(JsError::from_rust)?;
+            let image = JsImage::new(screenshot).into_object(context)?;
+            Ok(JsValue::from(image))
+        }
+
         fn file_select as "fileSelect"(
             this: JsClass<JsCore>,
             id: u32,
