@@ -1,3 +1,0 @@
-[target.armv7-unknown-linux-gnueabihf]
-#rustflags = ["-C", "target-cpu=native"]
-#rustflags = ["-C", "target-feature=+neon"]

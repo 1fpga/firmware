@@ -1031,7 +1031,7 @@ impl Config {
                     "player_6_controller",
                     "controller_unique_mapping",
                 ]
-                .contains(&name)
+                    .contains(&name)
             },
             |name: &str| -> Option<&str> {
                 if name == "ypbpr" {

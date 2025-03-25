@@ -1,5 +1,4 @@
 NPM := $(shell command -v npm 2> /dev/null)
-CROSS := $(shell command -v cross 2> /dev/null)
 OPENSSL := $(shell command -v openssl 2> /dev/null)
 MISTER_IP := 192.168.1.79
 
@@ -12,16 +11,9 @@ endif
 build-frontend: src/frontend/dist/main.js
 
 .PHONY: target/armv7-unknown-linux-gnueabihf/release/one_fpga
-target/armv7-unknown-linux-gnueabihf/release/one_fpga: $(wildcard src/**/*.rs) src/frontend/dist/main.js
-ifndef CROSS
-	$(error "No `cross` in PATH, please install Node.js and npm, or pass NPM variable with path to npm binary")
-endif
-	$(CROSS) build \
-		--target armv7-unknown-linux-gnueabihf \
-		--bin one_fpga \
-		--no-default-features \
-		--features=platform_de10 \
-		--release
+target/armv7-unknown-linux-gnueabihf/release/one_fpga: $(wildcard src/**/*.rs) $(wildcard src/frontend/dist/*.js)
+	docker build -f ./build/armv7/Dockerfile . -t 1fpga:armv7
+	docker run -i -v "$(PWD)/target/rustup-cache":/home/rustup -v "$(PWD)/target/cargo-cache":/home/cargo -v "$(PWD)":/app 1fpga:armv7
 
 build-1fpga: target/armv7-unknown-linux-gnueabihf/release/one_fpga
 
