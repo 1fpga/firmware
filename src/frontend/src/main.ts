@@ -251,7 +251,6 @@ async function mainInner(): Promise<boolean> {
       action = undefined;
       startOn = { kind: StartOnKind.MainMenu };
       if (e instanceof StartGameAction) {
-        console.log("123");
         // Set the action for the next round.
         action = e;
       } else if (e instanceof MainMenuAction) {
