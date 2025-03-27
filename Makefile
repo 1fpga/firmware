@@ -11,9 +11,11 @@ endif
 build-frontend: src/frontend/dist/main.js
 
 .PHONY: target/armv7-unknown-linux-gnueabihf/release/one_fpga
-target/armv7-unknown-linux-gnueabihf/release/one_fpga: $(wildcard src/**/*.rs) $(wildcard src/frontend/dist/*.js)
-	docker build -f ./build/armv7/Dockerfile . -t 1fpga:armv7
-	docker run -i -v "$(PWD)/target/rustup-cache":/home/rustup -v "$(PWD)/target/cargo-cache":/home/cargo -v "$(PWD)":/app 1fpga:armv7
+
+# Do not replace the main.js with a different file or wildcard.
+target/armv7-unknown-linux-gnueabihf/release/one_fpga: $(wildcard src/**/*.rs) src/frontend/dist/main.js
+	docker build -f ./build/armv7/de10nano.Dockerfile . -t 1fpga:armv7
+	docker run -i -e "TERM=xterm-256color" -v "$(PWD)":/app 1fpga:armv7
 
 build-1fpga: target/armv7-unknown-linux-gnueabihf/release/one_fpga
 

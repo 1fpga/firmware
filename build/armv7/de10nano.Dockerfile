@@ -7,11 +7,12 @@ WORKDIR /app
 
 FROM chef AS planner
 
-RUN --mount=type=bind,target=/docker-context \
+RUN --mount=type=bind,src=src,target=/docker-context/src \
     cd /docker-context/; \
-    find . -name "Cargo.toml" -mindepth 0 -maxdepth 4 -exec cp --parents "{}" /app/ \;
+    find src -name "Cargo.toml" -mindepth 0 -maxdepth 4 -exec cp --parents "{}" /app/ \;
 
 RUN find . -type d -maxdepth 4 -exec mkdir "{}"/src \; -exec touch "{}"/src/lib.rs \;
+COPY Cargo.toml .
 COPY Cargo.lock .
 
 RUN cargo chef prepare --recipe-path recipe.json
