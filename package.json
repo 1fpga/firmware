@@ -2,6 +2,7 @@
   "name": "one-fpga",
   "workspaces": [
     "src/frontend",
+    "src/frontend-react",
     "scripts/patreon"
   ],
   "devDependencies": {

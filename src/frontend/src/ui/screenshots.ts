@@ -1,5 +1,5 @@
 import * as osd from "1fpga:osd";
-import { Screenshot } from "$/services";
+import { Screenshot } from "@/services";
 import * as video from "1fpga:video";
 
 export async function screenshotsMenu() {

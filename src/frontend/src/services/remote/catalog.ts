@@ -1,19 +1,19 @@
 import * as osd from "1fpga:osd";
-import type { Catalog as CatalogSchema } from "$schemas:catalog/catalog";
-import type { System as SystemSchema } from "$schemas:catalog/system";
+import type { Catalog as CatalogSchema } from "schemas:catalog/catalog";
+import type { System as SystemSchema } from "schemas:catalog/system";
 import type {
   Core as CoresCoreSchema,
   Cores as CoresSchema,
-} from "$schemas:catalog/cores";
+} from "schemas:catalog/cores";
 import type {
   System as SystemsSystemSchema,
   Systems as SystemsSchema,
-} from "$schemas:catalog/systems";
-import type { Core as CoreSchema } from "$schemas:catalog/core";
-import { RemoteGamesDb } from "$/services/remote/games_database";
-import { fetchJsonAndValidate, ValidationError } from "$/utils";
-import { RemoteBinary, RemoteReleases } from "$/services/remote/release";
-import { compareVersions } from "$/utils/versions";
+} from "schemas:catalog/systems";
+import type { Core as CoreSchema } from "schemas:catalog/core";
+import { RemoteGamesDb } from "@/services/remote/games_database";
+import { fetchJsonAndValidate, ValidationError } from "@/utils";
+import { RemoteBinary, RemoteReleases } from "@/services/remote/release";
+import { compareVersions } from "@/utils/versions";
 
 export enum WellKnownCatalogs {
   // The basic stable 1FPGA catalog.
@@ -47,7 +47,7 @@ export class RemoteSystems {
     const systemsUrl = new URL(url, catalog.url).toString();
     const systems = await fetchJsonAndValidate(
       systemsUrl,
-      (await import("$schemas:catalog/systems")).validate,
+      (await import("schemas:catalog/systems")).validate,
     );
     return new RemoteSystems(systemsUrl, systems, catalog);
   }
@@ -56,7 +56,8 @@ export class RemoteSystems {
     public readonly url: string,
     public readonly schema: SystemsSchema,
     public readonly catalog: RemoteCatalog,
-  ) {}
+  ) {
+  }
 
   public async fetchSystem(key: string, deep = false) {
     if (!this.systems_[key]) {
@@ -90,7 +91,7 @@ export class RemoteCores {
     const coresUrl = new URL(url, catalog.url).toString();
     const cores = await fetchJsonAndValidate(
       coresUrl,
-      (await import("$schemas:catalog/cores")).validate,
+      (await import("schemas:catalog/cores")).validate,
     );
     return new RemoteCores(coresUrl, cores, catalog);
   }
@@ -99,7 +100,8 @@ export class RemoteCores {
     public readonly url: string,
     public readonly schema: CoresSchema,
     public readonly catalog: RemoteCatalog,
-  ) {}
+  ) {
+  }
 
   public async fetchCore(key: string, _deep = false) {
     if (!this.cores_[key]) {
@@ -129,7 +131,7 @@ export class RemoteCore {
     // Dynamic loading to allow for code splitting.
     const json = await fetchJsonAndValidate(
       u,
-      (await import("$schemas:catalog/core")).validate,
+      (await import("schemas:catalog/core")).validate,
     );
 
     if (key !== json.uniqueName) {
@@ -145,7 +147,8 @@ export class RemoteCore {
     public readonly url: string,
     public readonly schema: CoreSchema,
     public readonly cores: RemoteCores,
-  ) {}
+  ) {
+  }
 
   get catalog() {
     return this.cores.catalog;
@@ -218,7 +221,7 @@ export class RemoteSystem {
     // Dynamic loading to allow for code splitting.
     const json = await fetchJsonAndValidate(
       u,
-      (await import("$schemas:catalog/system")).validate,
+      (await import("schemas:catalog/system")).validate,
     );
 
     if (key !== json.uniqueName) {
@@ -233,7 +236,8 @@ export class RemoteSystem {
     public readonly url: string,
     public readonly schema: SystemSchema,
     private systems_: RemoteSystems,
-  ) {}
+  ) {
+  }
 
   get catalog(): RemoteCatalog {
     return this.systems_.catalog;
@@ -313,7 +317,7 @@ export class RemoteCatalog {
       // since we're already in a retry loop.
       const json = await fetchJsonAndValidate(
         url,
-        (await import("$schemas:catalog/catalog")).validate,
+        (await import("schemas:catalog/catalog")).validate,
         { allowRetry: false },
       );
       const catalog = new RemoteCatalog(url, json);
@@ -345,7 +349,8 @@ export class RemoteCatalog {
   private constructor(
     public readonly url: string,
     public readonly schema: CatalogSchema,
-  ) {}
+  ) {
+  }
 
   public get name(): string {
     return this.schema.name;

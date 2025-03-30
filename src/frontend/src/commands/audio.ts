@@ -1,6 +1,6 @@
 import * as core from "1fpga:core";
-import { Commands, GeneralCommandImpl } from "$/services/database/commands";
-import { UserSettings } from "$/services";
+import { Commands, GeneralCommandImpl } from "@/services/database/commands";
+import { UserSettings } from "@/services";
 
 /**
  * A command to set the volume to 0.

@@ -1,9 +1,9 @@
 import * as osd from "1fpga:osd";
 import { type Row } from "1fpga:db";
-import { sql } from "$/utils";
+import { sql } from "@/utils";
 import { RemoteCatalog, RemoteSystem } from "../remote";
 import type { Catalog } from "./catalog";
-import { GamesIdentification } from "$/services/database/games_database";
+import { GamesIdentification } from "@/services/database/games_database";
 
 export interface SystemRow extends Row {
   id: number;
@@ -75,7 +75,8 @@ export class System {
     public readonly name: string,
     public readonly uniqueName: string,
     public readonly description: string,
-  ) {}
+  ) {
+  }
 
   public async fetchRemote(): Promise<RemoteSystem | null> {
     const remoteCatalog = await RemoteCatalog.fetch(

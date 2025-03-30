@@ -14,18 +14,18 @@ import {
   StartOnSetting,
   User,
   UserSettings,
-} from "$/services";
+} from "@/services";
 import { stripIndents } from "common-tags";
-import { StartGameAction } from "$/actions/start_game";
-import { MainMenuAction } from "$/actions/main_menu";
-import { gamesMenu } from "$/ui/games";
-import { coresMenu } from "$/ui/cores"; // Import the basic commands.
-import { screenshotsMenu } from "$/ui/screenshots";
-import { settingsMenu } from "$/ui/settings";
-import { login } from "$/ui/login";
-import { downloadCenterMenu } from "$/ui/downloads";
-import { about } from "$/ui/about";
-import { resetDb } from "$/utils";
+import { StartGameAction } from "@/actions/start_game";
+import { MainMenuAction } from "@/actions/main_menu";
+import { gamesMenu } from "@/ui/games";
+import { coresMenu } from "@/ui/cores"; // Import the basic commands.
+import { screenshotsMenu } from "@/ui/screenshots";
+import { settingsMenu } from "@/ui/settings";
+import { login } from "@/ui/login";
+import { downloadCenterMenu } from "@/ui/downloads";
+import { about } from "@/ui/about";
+import { resetDb } from "@/utils";
 
 // Polyfill for events.
 globalThis.performance = <any>{
@@ -66,24 +66,22 @@ async function mainMenu(
     case StartOnKind.GameLibrary:
       await gamesMenu();
       break;
-    case StartOnKind.LastGamePlayed:
-      {
-        const game = await Games.lastPlayed();
-        if (game) {
-          await game.launch();
-        } else {
-          await gamesMenu();
-          break;
-        }
+    case StartOnKind.LastGamePlayed: {
+      const game = await Games.lastPlayed();
+      if (game) {
+        await game.launch();
+      } else {
+        await gamesMenu();
+        break;
       }
+    }
       break;
-    case StartOnKind.SpecificGame:
-      {
-        const game = await Games.byId(startOn.game);
-        if (game) {
-          await game.launch();
-        }
+    case StartOnKind.SpecificGame: {
+      const game = await Games.byId(startOn.game);
+      if (game) {
+        await game.launch();
       }
+    }
       break;
 
     case StartOnKind.MainMenu:
@@ -127,12 +125,12 @@ async function mainMenu(
         },
         ...(user.admin
           ? [
-              {
-                label: "Download Center...",
-                marker: downloadMarker,
-                select: async () => await downloadCenterMenu(),
-              },
-            ]
+            {
+              label: "Download Center...",
+              marker: downloadMarker,
+              select: async () => await downloadCenterMenu(),
+            },
+          ]
           : []),
         {
           label: "Controllers...",
@@ -144,12 +142,12 @@ async function mainMenu(
         { label: "About", select: about },
         ...((await settings.getDevTools())
           ? [
-              "-",
-              {
-                label: "Developer Tools",
-                select: async () => await debugMenu(),
-              },
-            ]
+            "-",
+            {
+              label: "Developer Tools",
+              select: async () => await debugMenu(),
+            },
+          ]
           : []),
         "---",
         ...((await User.canLogOut())

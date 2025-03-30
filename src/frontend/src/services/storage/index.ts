@@ -1,4 +1,4 @@
-import { sql } from "$/utils";
+import { sql } from "@/utils";
 
 interface UserStorageRow {
   value: string;
@@ -13,7 +13,8 @@ export class DbStorage {
     return new DbStorage(undefined);
   }
 
-  private constructor(private readonly userId: number | undefined) {}
+  private constructor(private readonly userId: number | undefined) {
+  }
 
   async get<T>(
     key: string,

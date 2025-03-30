@@ -1,8 +1,8 @@
 {
-  "name": "frontend",
+  "name": "onefpga/frontend",
   "version": "1.0.0",
   "description": "The 1FPGA frontend scripts in TypeScript, and the `1fpga/types` type definitions for the Host modules.",
-  "main": "index.js",
+  "main": "dist/main.js",
   "type": "module",
   "scripts": {
     "build": "rollup -c",

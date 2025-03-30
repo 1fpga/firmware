@@ -7,8 +7,8 @@ import {
   RemoteCatalog,
   User,
   WellKnownCatalogs,
-} from "$/services";
-import { selectCoresFromRemoteCatalog } from "$/ui/catalog/cores";
+} from "@/services";
+import { selectCoresFromRemoteCatalog } from "@/ui/catalog/cores";
 
 const BINARY_LABELS: { [name: string]: string } = {
   [KnownBinary.OneFpga]: "Update 1FPGA firmware...",

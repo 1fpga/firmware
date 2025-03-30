@@ -1,7 +1,7 @@
 import * as settings from "1fpga:settings";
-import { DbStorage } from "$/services/storage";
-import { getOrFail } from "$/services/settings/utils";
-import { Catalog } from "$/services/database";
+import { DbStorage } from "@/services/storage";
+import { getOrFail } from "@/services/settings/utils";
+import { Catalog } from "@/services/database";
 
 export enum FontSize {
   Small = "small",
@@ -56,7 +56,8 @@ export class GlobalSettings {
     return global;
   }
 
-  private constructor(private readonly storage_: DbStorage) {}
+  private constructor(private readonly storage_: DbStorage) {
+  }
 
   public async getFontSize(): Promise<FontSize> {
     return await getOrFail(this.storage_, FONT_SIZE_KEY, FontSize.Medium);

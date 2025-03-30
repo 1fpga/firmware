@@ -1,4 +1,4 @@
-import { DbStorage } from "$/services";
+import { DbStorage } from "@/services";
 
 export async function getOrFail<T>(
   storage: DbStorage,

@@ -1,4 +1,4 @@
-import { DEFAULT_USERNAME, User } from "$/services";
+import { DEFAULT_USERNAME, User } from "@/services";
 import * as osd from "1fpga:osd";
 import { oneLine } from "common-tags";
 

@@ -7,9 +7,9 @@ import type {
   Binary as ReleaseBinary,
   Release as ReleasesReleaseSchema,
   Releases as ReleasesSchema,
-} from "$schemas:catalog/releases";
-import { compareVersions, fetchJsonAndValidate } from "$/utils";
-import { RemoteCatalog } from "$/services";
+} from "schemas:catalog/releases";
+import { compareVersions, fetchJsonAndValidate } from "@/utils";
+import { RemoteCatalog } from "@/services";
 import { stripIndents } from "common-tags";
 
 export const enum KnownBinary {
@@ -24,7 +24,7 @@ export class RemoteReleases {
     const releasesUrl = new URL(url, catalog.url).toString();
     const releases = await fetchJsonAndValidate(
       releasesUrl,
-      (await import("$schemas:catalog/releases")).validate,
+      (await import("schemas:catalog/releases")).validate,
     );
     return new RemoteReleases(releasesUrl, releases, catalog);
   }
@@ -33,7 +33,8 @@ export class RemoteReleases {
     public readonly url: string,
     public readonly schema: ReleasesSchema,
     public readonly catalog: RemoteCatalog,
-  ) {}
+  ) {
+  }
 
   public asObject(predicate: (name: string) => boolean = () => true) {
     return Object.fromEntries(
@@ -63,7 +64,8 @@ export class RemoteBinary {
     public readonly name: string,
     private readonly schema_: ReleaseBinary,
     private readonly releases_: RemoteReleases,
-  ) {}
+  ) {
+  }
 
   public get url() {
     return this.releases_.url;
@@ -105,7 +107,8 @@ export class RemoteRelease {
   constructor(
     private readonly schema_: ReleasesReleaseSchema,
     private readonly binary_: RemoteBinary,
-  ) {}
+  ) {
+  }
 
   public get version() {
     return this.schema_.version;

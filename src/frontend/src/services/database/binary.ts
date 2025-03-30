@@ -1,6 +1,6 @@
 import { Row } from "1fpga:db";
 import { Catalog } from "./catalog";
-import { compareVersions, sql } from "$/utils";
+import { compareVersions, sql } from "@/utils";
 import { RemoteBinary } from "../remote";
 
 export interface BinaryRow extends Row {
@@ -49,10 +49,10 @@ export class Binary {
     const rows = await sql1<BinaryRow>`
             SELECT *
             FROM catalog_binaries ${
-              catalog &&
-              sql1`WHERE catalog_id =
+      catalog &&
+      sql1`WHERE catalog_id =
                     ${catalog.id}`
-            }`;
+    }`;
     return rows.map((row) => Binary.fromRow(row));
   }
 
@@ -66,11 +66,11 @@ export class Binary {
       compareVersions(remote.latestVersion()?.version, version) > 0;
     const [row] = await sql1<BinaryRow>`
             INSERT INTO catalog_binaries ${sql1.insertValues({
-              catalog_id: catalog.id,
-              name: remote.name,
-              ...(version ? { version } : {}),
-              update_pending: updatePending,
-            })}
+      catalog_id: catalog.id,
+      name: remote.name,
+      ...(version ? { version } : {}),
+      update_pending: updatePending,
+    })}
                 RETURNING *`;
     return row && Binary.fromRow(row);
   }
@@ -81,7 +81,8 @@ export class Binary {
     public readonly name: string,
     public readonly version: string,
     private updatePending_: boolean,
-  ) {}
+  ) {
+  }
 
   get updatePending() {
     return this.updatePending_;

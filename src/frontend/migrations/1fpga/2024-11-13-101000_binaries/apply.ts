@@ -1,5 +1,5 @@
 import { SqlTag } from "@sqltags/core";
-import { Binary, Catalog, RemoteCatalog } from "$/services";
+import { Binary, Catalog, RemoteCatalog } from "@/services";
 
 export async function up(sql: SqlTag<unknown, unknown>) {
   // We need to get the catalogs, download their remote versions and update the database

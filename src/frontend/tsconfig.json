@@ -15,13 +15,13 @@
     "esModuleInterop": true,
     "moduleResolution": "Bundler",
     "paths": {
-      "$/*": [
+      "@/*": [
         "src/*"
       ],
-      "$schemas:*": [
+      "schemas:*": [
         "codegen/schemas/*"
       ],
-      "$schemas-json:*": [
+      "schemas-json:*": [
         "schemas/*"
       ],
       "1fpga:*": [

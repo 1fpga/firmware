@@ -1,8 +1,8 @@
-import { compareVersions, sql } from "$/utils";
+import { compareVersions, sql } from "@/utils";
 import { Row } from "1fpga:db";
 import { RemoteCatalog, WellKnownCatalogs } from "../remote";
 import { System } from "./system";
-import { Core } from "$/services/database/core";
+import { Core } from "@/services/database/core";
 
 export interface CatalogRow extends Row {
   id: number;
@@ -81,9 +81,9 @@ export class Catalog {
     await sql`UPDATE catalogs
                   SET update_pending = true
                   WHERE ${sql.in(
-                    "id",
-                    shouldUpdate.map((c) => c.id),
-                  )}`;
+      "id",
+      shouldUpdate.map((c) => c.id),
+    )}`;
     return shouldUpdate.length > 0;
   }
 
@@ -93,16 +93,16 @@ export class Catalog {
     const rows = await sql<CatalogRow>`SELECT *
                                            FROM catalogs
                                            WHERE ${sql.and(
-                                             true,
-                                             options.url
-                                               ? sql`url =
+      true,
+      options.url
+        ? sql`url =
                                                            ${options.url}`
-                                               : undefined,
-                                             options.updatePending
-                                               ? sql`update_pending =
+        : undefined,
+      options.updatePending
+        ? sql`update_pending =
                                                            ${options.updatePending}`
-                                               : undefined,
-                                           )}
+        : undefined,
+    )}
         `;
     return rows.map(Catalog.fromRow).sort((a, b) => a.priority - b.priority);
   }
@@ -173,7 +173,8 @@ export class Catalog {
     public readonly version: string,
     public readonly priority: number,
     public readonly updatePending: boolean,
-  ) {}
+  ) {
+  }
 
   /**
    * Check for updates in the catalog.

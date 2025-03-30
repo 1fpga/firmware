@@ -9,8 +9,8 @@ import {
   StartOnKind,
   User,
   UserSettings,
-} from "$/services";
-import { accountsSettingsMenu } from "$/ui/settings/accounts";
+} from "@/services";
+import { accountsSettingsMenu } from "@/ui/settings/accounts";
 import { networkSettingsMenu } from "./settings/network";
 
 const UPDATE_FREQUENCY_LABELS = {
@@ -64,8 +64,8 @@ async function startOptionsMenu(settings: UserSettings) {
             // Cannot select specific game from this menu.
             const keys = Object.keys(labels);
             let kind = keys[
-              (keys.indexOf(startOn.kind) + 1) % keys.length
-            ] as StartOnKind;
+            (keys.indexOf(startOn.kind) + 1) % keys.length
+              ] as StartOnKind;
 
             switch (kind) {
               case StartOnKind.SpecificGame:
@@ -76,8 +76,8 @@ async function startOptionsMenu(settings: UserSettings) {
                 } else {
                   while (kind === StartOnKind.SpecificGame) {
                     kind = keys[
-                      (keys.indexOf(kind) + 1) % keys.length
-                    ] as StartOnKind;
+                    (keys.indexOf(kind) + 1) % keys.length
+                      ] as StartOnKind;
                   }
                   startOn = { kind };
                 }
@@ -95,22 +95,22 @@ async function startOptionsMenu(settings: UserSettings) {
         },
         ...(startOn.kind === StartOnKind.SpecificGame
           ? [
-              {
-                label: "  ",
-                marker: maybeGame?.name ?? "",
-                select: async (item: osd.TextMenuItem<boolean>) => {
-                  const game = await Games.select({
-                    title: "Select a game",
-                  });
-                  if (game) {
-                    maybeGame = game;
-                    startOn = { kind: StartOnKind.SpecificGame, game: game.id };
-                    await settings.setStartOn(startOn);
-                    item.marker = game.name;
-                  }
-                },
+            {
+              label: "  ",
+              marker: maybeGame?.name ?? "",
+              select: async (item: osd.TextMenuItem<boolean>) => {
+                const game = await Games.select({
+                  title: "Select a game",
+                });
+                if (game) {
+                  maybeGame = game;
+                  startOn = { kind: StartOnKind.SpecificGame, game: game.id };
+                  await settings.setStartOn(startOn);
+                  item.marker = game.name;
+                }
               },
-            ]
+            },
+          ]
           : []),
       ],
     });
@@ -444,46 +444,46 @@ export async function settingsMenu() {
     items: [
       ...(user.admin
         ? [
-            {
-              label: "Network...",
-              select: async () => {
-                await networkSettingsMenu();
-              },
+          {
+            label: "Network...",
+            select: async () => {
+              await networkSettingsMenu();
             },
-            {
-              label: "UI...",
-              select: async () => {
-                if (await uiSettingsMenu()) {
-                  reloadMainMenu = true;
-                }
-              },
+          },
+          {
+            label: "UI...",
+            select: async () => {
+              if (await uiSettingsMenu()) {
+                reloadMainMenu = true;
+              }
             },
-            {
-              label: "Date and Time...",
-              select: async () => {
-                if (await settingsMenuDateTime()) {
-                  reloadMainMenu = true;
-                }
+          },
+          {
+            label: "Date and Time...",
+            select: async () => {
+              if (await settingsMenuDateTime()) {
+                reloadMainMenu = true;
+              }
 
-                await (
-                  await GlobalSettings.create()
-                ).updateDateTimeIfNecessary();
-              },
+              await (
+                await GlobalSettings.create()
+              ).updateDateTimeIfNecessary();
             },
-            {
-              label: "Check for Updates",
-              marker:
-                UPDATE_FREQUENCY_LABELS[
-                  await globals.getCatalogCheckFrequency()
+          },
+          {
+            label: "Check for Updates",
+            marker:
+              UPDATE_FREQUENCY_LABELS[
+                await globals.getCatalogCheckFrequency()
                 ],
-              select: async (item: osd.TextMenuItem<any>) => {
-                item.marker =
-                  UPDATE_FREQUENCY_LABELS[
-                    await globals.toggleCatalogCheckFrequency()
+            select: async (item: osd.TextMenuItem<any>) => {
+              item.marker =
+                UPDATE_FREQUENCY_LABELS[
+                  await globals.toggleCatalogCheckFrequency()
                   ];
-              },
             },
-          ]
+          },
+        ]
         : []),
       {
         label: "Accounts...",

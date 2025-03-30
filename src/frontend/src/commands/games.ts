@@ -1,6 +1,6 @@
 import * as core from "1fpga:core";
-import { Commands, Games, GeneralCommandImpl } from "$/services";
-import { StartGameAction } from "$/actions/start_game";
+import { Commands, Games, GeneralCommandImpl } from "@/services";
+import { StartGameAction } from "@/actions/start_game";
 
 interface GameDef {
   gameId: number;

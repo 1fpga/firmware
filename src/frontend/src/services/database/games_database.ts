@@ -1,8 +1,8 @@
 import { System } from "./system";
 import { Catalog } from "./catalog";
 import { RemoteGameSchema } from "../remote";
-import { sql, transaction } from "$/utils";
-import { partitionAndProgress } from "$/ui/progress";
+import { sql, transaction } from "@/utils";
+import { partitionAndProgress } from "@/ui/progress";
 import { oneLine } from "common-tags";
 import * as fs from "1fpga:fs";
 
@@ -221,5 +221,6 @@ export class GamesIdentification {
     public readonly region: string | null,
     public readonly languages: string | null,
     public readonly description: string,
-  ) {}
+  ) {
+  }
 }

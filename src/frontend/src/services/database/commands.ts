@@ -13,7 +13,7 @@
  */
 import * as core from "1fpga:core";
 import * as commands from "1fpga:commands";
-import { sql } from "$/utils";
+import { sql } from "@/utils";
 import { User } from "../user";
 
 interface ShortcutRow {
@@ -136,11 +136,11 @@ class Shortcuts {
 
     const [row] = await sql<ShortcutRow>`
         INSERT INTO shortcuts ${sql.insertValues({
-          user_id: user.id,
-          key: command.key,
-          shortcut,
-          meta: JSON.stringify(meta ?? null),
-        })}
+      user_id: user.id,
+      key: command.key,
+      shortcut,
+      meta: JSON.stringify(meta ?? null),
+    })}
             RETURNING *
     `;
     return new Shortcuts(row, command, meta);
@@ -193,9 +193,10 @@ export class Command<T = unknown> {
   private constructor(
     private readonly def_: CommandImpl<T>,
     private readonly shortcuts_: Shortcuts[],
-  ) {}
+  ) {
+  }
 
-  public is(Class: { new (): CommandImpl<T> }): boolean {
+  public is(Class: { new(): CommandImpl<T> }): boolean {
     return this.def_ instanceof Class;
   }
 
@@ -281,7 +282,7 @@ export class Commands {
       throw new Error("Commands already initialized.");
     }
 
-    await (await import("$/commands")).init();
+    await (await import("@/commands")).init();
     Commands.isInit = true;
     for (const [key, def] of Commands.def) {
       Commands.commands.set(key, await Command.create(def, firstTime));
@@ -310,7 +311,7 @@ export class Commands {
    * Register a new command. Add the shortcuts to the system, if any.
    * @param Class The class of command to register.
    */
-  public static async register<Json>(Class: { new (): CommandImpl<Json> }) {
+  public static async register<Json>(Class: { new(): CommandImpl<Json> }) {
     const def = new Class();
     if (Commands.def.has(def.key)) {
       throw new Error(
@@ -333,7 +334,7 @@ export class Commands {
   }
 
   public static get<T>(Class: {
-    new (): CommandImpl<T>;
+    new(): CommandImpl<T>;
   }): Command<T> | undefined {
     return Array.from(Commands.commands.values()).find((c) => c.is(Class)) as
       | Command<T>

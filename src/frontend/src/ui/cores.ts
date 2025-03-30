@@ -1,8 +1,8 @@
 import * as core from "1fpga:core";
 import * as osd from "1fpga:osd";
-import { Core } from "$/services/database/core";
-import { ShowCoreMenuCommand } from "$/commands/basic";
-import { Commands } from "$/services";
+import { Core } from "@/services/database/core";
+import { ShowCoreMenuCommand } from "@/commands/basic";
+import { Commands } from "@/services";
 
 async function selectCoreFile() {
   let f = await osd.selectFile("Select Core", "/media/fat", {

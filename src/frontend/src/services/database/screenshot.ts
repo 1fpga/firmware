@@ -1,7 +1,7 @@
 import { Games } from "./games";
 import { User } from "../user";
 import * as fs from "1fpga:fs";
-import { sql } from "$/utils";
+import { sql } from "@/utils";
 
 interface ScreenshotRow {
   id: number;
@@ -18,11 +18,11 @@ export class Screenshot {
   public static async list(game?: Games): Promise<Screenshot[]> {
     const rows = await sql<ScreenshotRow>`SELECT *
                                           FROM screenshots ${
-                                            game
-                                              ? sql`WHERE game_id =
+      game
+        ? sql`WHERE game_id =
                                                           ${game.id}`
-                                              : undefined
-                                          }`;
+        : undefined
+    }`;
 
     return rows.map(Screenshot.fromRow);
   }
@@ -63,7 +63,8 @@ export class Screenshot {
     return count;
   }
 
-  private constructor(private readonly row_: ScreenshotRow) {}
+  private constructor(private readonly row_: ScreenshotRow) {
+  }
 
   public async getGame(): Promise<Games> {
     return await Games.byId(this.row_.game_id);

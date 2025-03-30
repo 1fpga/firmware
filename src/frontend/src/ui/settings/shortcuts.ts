@@ -1,5 +1,5 @@
 import * as osd from "1fpga:osd";
-import { Command, Commands } from "$/services";
+import { Command, Commands } from "@/services";
 
 async function shortcutCommandMenu(c: Command) {
   let done = false;

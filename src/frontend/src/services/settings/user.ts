@@ -1,8 +1,8 @@
 import { DbStorage } from "../storage";
 import { User } from "../user";
-import type { StartOn as StartOnSchema } from "$schemas:settings/start-on";
-import { getOrFail } from "$/services/settings/utils";
-import { GameSortOrder } from "$/services/database/games";
+import type { StartOn as StartOnSchema } from "schemas:settings/start-on";
+import { getOrFail } from "@/services/settings/utils";
+import { GameSortOrder } from "@/services/database/games";
 
 export type StartOnSetting = StartOnSchema;
 
@@ -34,7 +34,8 @@ export class UserSettings {
     return new UserSettings(storage);
   }
 
-  private constructor(private readonly storage_: DbStorage) {}
+  private constructor(private readonly storage_: DbStorage) {
+  }
 
   public async startOn(): Promise<StartOnSetting> {
     return await getOrFail(
@@ -43,7 +44,7 @@ export class UserSettings {
       {
         kind: StartOnKind.MainMenu,
       },
-      (await import("$schemas:settings/start-on")).validate,
+      (await import("schemas:settings/start-on")).validate,
     );
   }
 

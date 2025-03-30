@@ -9,8 +9,8 @@ import {
   GamesIdentification,
   RemoteCatalog,
   User,
-  WellKnownCatalogs
-} from "$/services";
+  WellKnownCatalogs,
+} from "@/services";
 import {
   call,
   choice,
@@ -26,10 +26,10 @@ import {
   skipIf,
   value,
   wizard,
-  WizardStep
+  WizardStep,
 } from "./wizard";
 import { oneLine, stripIndents } from "common-tags";
-import { selectCoresFromRemoteCatalog } from "$/ui/catalog/cores";
+import { selectCoresFromRemoteCatalog } from "@/ui/catalog/cores";
 
 /**
  * A wizard step that prompts the user for a password.
@@ -255,14 +255,14 @@ const catalogAddStep = repeat(
             ],
             ...(!production
               ? [
-                  [
-                    "Add a local test catalog",
-                    call(
-                      async () =>
-                        await addWellKnownCatalog(WellKnownCatalogs.LocalTest),
-                    ),
-                  ] as [string, WizardStep<null>],
-                ]
+                [
+                  "Add a local test catalog",
+                  call(
+                    async () =>
+                      await addWellKnownCatalog(WellKnownCatalogs.LocalTest),
+                  ),
+                ] as [string, WizardStep<null>],
+              ]
               : []),
             ["Add custom catalog", call(async () => await addCustomCatalog())],
             ["Skip", async () => null],

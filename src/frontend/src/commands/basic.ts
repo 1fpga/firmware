@@ -1,8 +1,8 @@
 import * as core from "1fpga:core";
-import { coreOsdMenu } from "$/ui/menus/core_osd";
-import { Commands, CoreCommandImpl } from "$/services/database/commands";
-import { Core } from "$/services/database/core";
-import { Games, Screenshot, User } from "$/services";
+import { coreOsdMenu } from "@/ui/menus/core_osd";
+import { Commands, CoreCommandImpl } from "@/services/database/commands";
+import { Core } from "@/services/database/core";
+import { Games, Screenshot, User } from "@/services";
 
 export class ShowCoreMenuCommand extends CoreCommandImpl {
   key = "showCoreMenu";

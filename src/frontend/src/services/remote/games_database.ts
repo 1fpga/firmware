@@ -1,10 +1,10 @@
 import * as oneFpgaSchema from "1fpga:schema";
 import * as osd from "1fpga:osd";
-import { fetchJsonAndValidate } from "$/utils";
+import { fetchJsonAndValidate } from "@/utils";
 import type {
   Games as GamesSchema,
   GamesDb as GamesDbSchema,
-} from "$schemas:catalog/games_db";
+} from "schemas:catalog/games_db";
 import { RemoteSystem } from "./catalog";
 
 export type RemoteGameSchema = GamesSchema[0];
@@ -22,7 +22,7 @@ export class RemoteGamesDb {
     );
 
     // Dynamic loading to allow for code splitting.
-    const schema = (await import("$schemas-json:catalog/games_db.json"))
+    const schema = (await import("schemas-json:catalog/games_db.json"))
       .default;
     const json = await fetchJsonAndValidate<GamesDbSchema>(
       u,
@@ -36,7 +36,8 @@ export class RemoteGamesDb {
     public readonly url: string,
     private readonly schema: GamesDbSchema,
     public readonly system: RemoteSystem,
-  ) {}
+  ) {
+  }
 
   get games(): GamesSchema {
     return this.schema.games ?? [];

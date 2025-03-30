@@ -1,5 +1,5 @@
 import * as osd from "1fpga:osd";
-import { sql } from "$/utils";
+import { sql } from "@/utils";
 
 let loggedInUser: User | null = null;
 
@@ -154,7 +154,8 @@ export class User {
     public readonly id: number,
     public readonly username: string,
     private admin_: boolean,
-  ) {}
+  ) {
+  }
 
   public get admin() {
     return this.admin_;

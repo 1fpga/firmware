@@ -5,7 +5,7 @@ import * as net from "1fpga:net";
 import * as osd from "1fpga:osd";
 import { Catalog } from "./catalog";
 import { System } from "./system";
-import { compareVersions, sql } from "$/utils";
+import { compareVersions, sql } from "@/utils";
 
 export interface CoreRow extends Row {
   id: number;
@@ -57,11 +57,11 @@ export class Core {
   public static async count(system?: System): Promise<number> {
     const [{ count }] = await sql<{ count: number }>`SELECT COUNT(*) as count
                                                      FROM cores ${
-                                                       system
-                                                         ? sql`WHERE system_id =
+      system
+        ? sql`WHERE system_id =
                                                                      ${system.id}`
-                                                         : undefined
-                                                     }`;
+        : undefined
+    }`;
 
     return count;
   }
@@ -77,11 +77,11 @@ export class Core {
   public static async list(system?: System): Promise<Core[]> {
     const rows = await sql<CoreRow>`SELECT *
                                     FROM cores ${
-                                      system
-                                        ? sql`WHERE system_id =
+      system
+        ? sql`WHERE system_id =
                                                     ${system.id}`
-                                        : undefined
-                                    }`;
+        : undefined
+    }`;
 
     return rows.map(Core.fromRow);
   }
@@ -167,7 +167,8 @@ export class Core {
     return Core.fromRow(row);
   }
 
-  private constructor(private readonly row: CoreRow) {}
+  private constructor(private readonly row: CoreRow) {
+  }
 
   public async getSystem(): Promise<System> {
     const { System } = await import("./system");
@@ -217,7 +218,7 @@ export class Core {
         core: { type: "Path", path: this.rbfPath },
       });
       const settings = await (
-        await import("$/services/settings/user")
+        await import("@/services/settings/user")
       ).UserSettings.forLoggedInUser();
       c.volume = await settings.defaultVolume();
       c.loop();

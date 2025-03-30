@@ -1,6 +1,6 @@
 import * as osd from "1fpga:osd";
-import { RemoteCatalog, RemoteCore, RemoteSystem } from "$/services";
-import type { Core as CoresCoreSchema } from "$schemas:catalog/cores";
+import { RemoteCatalog, RemoteCore, RemoteSystem } from "@/services";
+import type { Core as CoresCoreSchema } from "schemas:catalog/cores";
 import { filesize } from "filesize";
 
 /**
@@ -32,7 +32,7 @@ export async function selectCoresFromRemoteCatalog(
   let selected = new Set<string>();
 
   const cores = await catalog.fetchCores(predicate, true);
-  const systems = await catalog.fetchSystems((name, system) => {
+  const systems = await catalog.fetchSystems((name, _) => {
     return Object.values(cores).some((c) => c.systems.includes(name));
   });
 
@@ -105,17 +105,17 @@ export async function selectCoresFromRemoteCatalog(
     items: [
       ...(installAll
         ? [
-            {
-              label: "Install All...",
-              select: () => {
-                for (const core of Object.values(cores)) {
-                  selected.add(core.uniqueName);
-                }
-                return true;
-              },
+          {
+            label: "Install All...",
+            select: () => {
+              for (const core of Object.values(cores)) {
+                selected.add(core.uniqueName);
+              }
+              return true;
             },
-            "-",
-          ]
+          },
+          "-",
+        ]
         : []),
       ...items,
       "-",

@@ -1,10 +1,10 @@
 import * as oneFpgaCore from "1fpga:core";
 import * as fs from "1fpga:fs";
-import { sql } from "$/utils";
+import { sql } from "@/utils";
 import { oneLine } from "common-tags";
 import { User } from "../user";
-import { PickGameOptions } from "$/ui/games";
-import { Core } from "$/services/database/core";
+import { PickGameOptions } from "@/ui/games";
+import { Core } from "@/services/database/core";
 
 interface GamesCoreRow {
   id: number;
@@ -75,18 +75,18 @@ function buildSqlQuery(options: GamesListOptions) {
       SELECT ${sql.raw(GAMES_FIELDS)}
       FROM ${sql.raw(GAMES_FROM_JOIN)}
       WHERE ${sql.and(
-        true,
-        options.system
-          ? sql`systems.unique_name =
+    true,
+    options.system
+      ? sql`systems.unique_name =
                       ${options.system}`
-          : undefined,
-        (options.includeUnplayed ?? true)
-          ? undefined
-          : sql`user_games.last_played_at IS NOT NULL`,
-        (options.includeUnfavorites ?? true)
-          ? undefined
-          : sql`user_games.favorite = true`,
-      )}
+      : undefined,
+    (options.includeUnplayed ?? true)
+      ? undefined
+      : sql`user_games.last_played_at IS NOT NULL`,
+    (options.includeUnfavorites ?? true)
+      ? undefined
+      : sql`user_games.favorite = true`,
+  )}
       ORDER BY ${sql.raw(options.sort ?? GameSortOrder.NameAsc)}
       LIMIT ${options.limit ?? 100} OFFSET ${options.index ?? 0}
   `;
@@ -131,7 +131,8 @@ export class SaveState {
     return SaveState.fromRow(row);
   }
 
-  constructor(private readonly row_: SaveStateRow) {}
+  constructor(private readonly row_: SaveStateRow) {
+  }
 }
 
 export class Games {
@@ -146,7 +147,7 @@ export class Games {
   }
 
   public static async select(options?: PickGameOptions): Promise<Games | null> {
-    return await (await import("$/ui/games")).pickGame(options);
+    return await (await import("@/ui/games")).pickGame(options);
   }
 
   public static async count(options: GamesListOptions): Promise<number> {
@@ -195,7 +196,8 @@ export class Games {
     return { total, games: games.map(Games.fromGamesCoreRow) };
   }
 
-  constructor(private readonly row_: GamesCoreRow) {}
+  constructor(private readonly row_: GamesCoreRow) {
+  }
 
   get id(): number {
     return this.row_.id;
@@ -225,10 +227,10 @@ export class Games {
     if (this.row_.favorite !== favorite) {
       await sql`INSERT INTO user_games
                     ${sql.insertValues({
-                      user_id: User.loggedInUser(true).id,
-                      games_id: this.id,
-                      favorite,
-                    })}
+        user_id: User.loggedInUser(true).id,
+        games_id: this.id,
+        favorite,
+      })}
                 ON CONFLICT
       DO
       UPDATE SET favorite = excluded.favorite`;
@@ -246,16 +248,16 @@ export class Games {
     // Insert last played time at.
     await sql`INSERT INTO user_games
                   ${sql.insertValues({
-                    user_id: User.loggedInUser(true).id,
-                    games_id: this.id,
-                    last_played_at: "" + new Date(),
-                  })}
+      user_id: User.loggedInUser(true).id,
+      games_id: this.id,
+      last_played_at: "" + new Date(),
+    })}
               ON CONFLICT
     DO
     UPDATE SET last_played_at = excluded.last_played_at`;
 
     const settings = await (
-      await import("$/services/settings/user")
+      await import("@/services/settings/user")
     ).UserSettings.forLoggedInUser();
 
     try {

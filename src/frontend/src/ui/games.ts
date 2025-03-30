@@ -1,7 +1,7 @@
 import * as osd from "1fpga:osd";
-import { Games, GameSortOrder } from "$/services/database/games";
-import { Commands, UserSettings } from "$/services";
-import { StartGameCommand } from "$/commands/games";
+import { Games, GameSortOrder } from "@/services/database/games";
+import { Commands, UserSettings } from "@/services";
+import { StartGameCommand } from "@/commands/games";
 
 const PAGE_SIZE = 100;
 
@@ -101,14 +101,14 @@ export async function pickGame(
       ...gameSetItems,
       ...(total > PAGE_SIZE
         ? [
-            {
-              label: "Next page...",
-              select: async () => {
-                index += PAGE_SIZE;
-                return "next";
-              },
+          {
+            label: "Next page...",
+            select: async () => {
+              index += PAGE_SIZE;
+              return "next";
             },
-          ]
+          },
+        ]
         : []),
     ];
   }
@@ -184,55 +184,55 @@ async function showGameDetailsMenuInner(
       },
       ...(gameArray.length > 1
         ? [
-            "-",
-            "Multiple versions available:",
-            ...gameArray.map((game) => {
-              return {
-                label: "  " + ellipses(40)(game.romPath ?? "<NO PATH>"),
-                select: async () => {
-                  return game;
-                },
-              };
-            }),
-          ]
-        : [
-            {
-              label: "Launch",
+          "-",
+          "Multiple versions available:",
+          ...gameArray.map((game) => {
+            return {
+              label: "  " + ellipses(40)(game.romPath ?? "<NO PATH>"),
               select: async () => {
-                return gameArray[0];
+                return game;
               },
+            };
+          }),
+        ]
+        : [
+          {
+            label: "Launch",
+            select: async () => {
+              return gameArray[0];
             },
-          ]),
+          },
+        ]),
       "-",
       ...(shortcuts.length > 0
         ? [
-            "Remove Shortcuts:",
-            ...shortcuts.map((s, i) => ({
-              label: ` ${s.shortcut}`,
-              select: async () => {
-                const command = await Commands.get(StartGameCommand);
-                if (command) {
-                  const choice = await osd.alert({
-                    title: "Deleting shortcut",
-                    message: `Are you sure you want to delete this shortcut?\n${s.shortcut}`,
-                    choices: ["Cancel", "Delete shortcut"],
-                  });
-                  if (choice === 1) {
-                    await command.deleteShortcut(s.shortcut);
+          "Remove Shortcuts:",
+          ...shortcuts.map((s, i) => ({
+            label: ` ${s.shortcut}`,
+            select: async () => {
+              const command = await Commands.get(StartGameCommand);
+              if (command) {
+                const choice = await osd.alert({
+                  title: "Deleting shortcut",
+                  message: `Are you sure you want to delete this shortcut?\n${s.shortcut}`,
+                  choices: ["Cancel", "Delete shortcut"],
+                });
+                if (choice === 1) {
+                  await command.deleteShortcut(s.shortcut);
 
-                    // Return the new highlighted index.
-                    return (
-                      1 + // Favorite
-                      (gameArray.length > 1 ? gameArray.length + 2 : 1) + // Multiple versions
-                      1 + // Separator
-                      i + // Shortcut index
-                      1
-                    );
-                  }
+                  // Return the new highlighted index.
+                  return (
+                    1 + // Favorite
+                    (gameArray.length > 1 ? gameArray.length + 2 : 1) + // Multiple versions
+                    1 + // Separator
+                    i + // Shortcut index
+                    1
+                  );
                 }
-              },
-            })),
-          ]
+              }
+            },
+          })),
+        ]
         : []),
       {
         label: "Add new shortcut...",

@@ -1,7 +1,7 @@
 import * as osd from "1fpga:osd";
 import * as core from "1fpga:core";
 import { CoreSettingPage } from "1fpga:core";
-import type { Core } from "$/services/database/core";
+import type { Core } from "@/services/database/core";
 
 enum SettingReturn {
   Continue,
@@ -129,23 +129,23 @@ export async function coreOsdMenu(
     items: [
       ...(coreDb
         ? [
-            {
-              label: "Load Game...",
-              select: async () => {
-                // let system = await coreDb.getSystem();
-                // let game = await (
-                //   await import("$/services/database/games")
-                // ).Games.select({
-                //   title: "Load Game",
-                //   system: system.uniqueName,
-                // });
-                // if (game?.romPath) {
-                //   oneFpgaCore.fileSelect(0, game.romPath);
-                //   return false;
-                // }
-              },
+          {
+            label: "Load Game...",
+            select: async () => {
+              // let system = await coreDb.getSystem();
+              // let game = await (
+              //   await import("@/services/database/games")
+              // ).Games.select({
+              //   title: "Load Game",
+              //   system: system.uniqueName,
+              // });
+              // if (game?.romPath) {
+              //   oneFpgaCore.fileSelect(0, game.romPath);
+              //   return false;
+              // }
             },
-          ]
+          },
+        ]
         : []),
       ...(await Promise.all(
         fileMenus.map((item) => ({

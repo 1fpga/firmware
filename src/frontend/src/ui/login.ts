@@ -1,6 +1,6 @@
 import * as osd from "1fpga:osd";
-import { User } from "$/services";
-import { sql } from "$/utils";
+import { User } from "@/services";
+import { sql } from "@/utils";
 
 interface UserRow {
   username: string;
