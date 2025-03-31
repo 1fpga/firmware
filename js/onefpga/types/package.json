@@ -1,0 +1,5 @@
+{
+  "name": "@onefpga/types",
+  "module": "./index.js",
+  "types": "./globals.d.ts"
+}

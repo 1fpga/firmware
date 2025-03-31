@@ -2,18 +2,18 @@ NPM := $(shell command -v npm 2> /dev/null)
 OPENSSL := $(shell command -v openssl 2> /dev/null)
 MISTER_IP := 192.168.1.79
 
-src/frontend/dist/main.js: $(wildcard src/frontend/schemas/**/* src/frontend/migrations/**/* src/frontend/src/**/* src/frontend/src/* src/frontend/types/**/* src/frontend/*.json src/frontend/*.js src/frontend/rollup/*.js)
+js/frontend/dist/main.js: $(wildcard js/frontend/schemas/**/* js/frontend/migrations/**/* js/frontend/src/**/* js/frontend/src/* js/frontend/types/**/* js/frontend/*.json js/frontend/*.js js/frontend/rollup/*.js)
 ifndef NPM
 	$(error "No `npm` in PATH, please install Node.js and npm, or pass NPM variable with path to npm binary")
 endif
-	$(NPM) run -w src/frontend/ build
+	$(NPM) run -w js/frontend/ build
 
-build-frontend: src/frontend/dist/main.js
+build-frontend: js/frontend/dist/main.js
 
 .PHONY: target/armv7-unknown-linux-gnueabihf/release/one_fpga
 
 # Do not replace the main.js with a different file or wildcard.
-target/armv7-unknown-linux-gnueabihf/release/one_fpga: $(wildcard src/**/*.rs) src/frontend/dist/main.js
+target/armv7-unknown-linux-gnueabihf/release/one_fpga: $(wildcard src/**/*.rs) js/frontend/dist/main.js
 	docker build -f ./build/armv7/de10nano.Dockerfile . -t 1fpga:armv7
 	docker run -i -e "TERM=xterm-256color" -v "$(PWD)":/app 1fpga:armv7
 
@@ -31,8 +31,8 @@ endif
 		-rawin -in target/armv7-unknown-linux-gnueabihf/release/one_fpga
 
 deploy-frontend: build-frontend
-	rsync -raH --delete src/frontend/dist/ root@$(MISTER_IP):/root/frontend
+	rsync -raH --delete js/frontend/dist/ root@$(MISTER_IP):/root/frontend
 
 new-migration:
-	mkdir src/frontend/migrations/1fpga/$(shell date +%Y-%m-%d-%H%M%S)_$(name)
-	@echo "-- Add your migration here. Comments will be removed." >> src/frontend/migrations/1fpga/$(shell date +%Y-%m-%d-%H%M%S)_$(name)/up.sql
+	mkdir js/frontend/migrations/1fpga/$(shell date +%Y-%m-%d-%H%M%S)_$(name)
+	@echo "-- Add your migration here. Comments will be removed." >> js/frontend/migrations/1fpga/$(shell date +%Y-%m-%d-%H%M%S)_$(name)/up.sql

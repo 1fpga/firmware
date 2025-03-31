@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { main } from "onefpga/frontend";
+import { main } from "@onefpga/frontend";
 
 console.log(main);
 

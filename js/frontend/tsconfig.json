@@ -25,17 +25,17 @@
         "schemas/*"
       ],
       "1fpga:*": [
-        "types/1fpga/*"
+        "../onefpga/types/1fpga/*"
       ],
       "1fpga:consts": [
-        "types/consts"
+        "../onefpga/types/consts"
       ],
       "1fpga:migrations": [
         "types/migrations"
       ]
     },
     "types": [
-      "./types/globals.d.ts"
+      "@onefgpa/types"
     ]
   }
 }

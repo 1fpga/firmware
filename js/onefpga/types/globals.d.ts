@@ -1,4 +1,6 @@
 // Type definitions for general types and interfaces.
+import "./consts";
+import "./1fpga/db";
 
 declare interface SendToBackgroundOptions {
   /**

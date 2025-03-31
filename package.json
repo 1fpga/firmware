@@ -1,10 +1,16 @@
 {
   "name": "one-fpga",
   "workspaces": [
-    "src/frontend",
-    "src/frontend-react",
+    "js/frontend",
+    "js/frontend-react",
+    "js/onefpga/polyfill-react",
+    "js/onefpga/types",
     "scripts/patreon"
   ],
+  "scripts": {
+    "build": "npm run build:frontend",
+    "build:frontend": "npm run -w @onefpga/frontend build"
+  },
   "devDependencies": {
     "prettier": "3.3.3"
   }
