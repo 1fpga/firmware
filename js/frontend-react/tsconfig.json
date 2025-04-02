@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,9 +23,51 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "1fpga:commands": [
+        "./src/polyfills/1fpga/commands.ts"
+      ],
+      "1fpga:core": [
+        "./src/polyfills/1fpga/core.ts"
+      ],
+      "1fpga:db": [
+        "./src/polyfills/1fpga/db.ts"
+      ],
+      "1fpga:fs": [
+        "./src/polyfills/1fpga/fs.ts"
+      ],
+      "1fpga:net": [
+        "./src/polyfills/1fpga/net.ts"
+      ],
+      "1fpga:osd": [
+        "./src/polyfills/1fpga/osd.ts"
+      ],
+      "1fpga:patrons": [
+        "./src/polyfills/1fpga/patrons.ts"
+      ],
+      "1fpga:schema": [
+        "./src/polyfills/1fpga/schema.ts"
+      ],
+      "1fpga:settings": [
+        "./src/polyfills/1fpga/settings.ts"
+      ],
+      "1fpga:upgrade": [
+        "./src/polyfills/1fpga/upgrade.ts"
+      ],
+      "1fpga:video": [
+        "./src/polyfills/1fpga/video.ts"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

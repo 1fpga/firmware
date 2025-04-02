@@ -33,9 +33,6 @@
       "1fpga:migrations": [
         "types/migrations"
       ]
-    },
-    "types": [
-      "@onefgpa/types"
-    ]
+    }
   }
 }

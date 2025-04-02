@@ -8,7 +8,7 @@ import standaloneCode from "ajv/dist/standalone/index.js";
 import { capitalCase } from "change-case";
 import { source } from "common-tags";
 
-export default function(baseDir = process.cwd()) {
+export default function (baseDir = process.cwd()) {
   const root = path.resolve(`${baseDir}/codegen`);
   return {
     name: "1fpga-codegen",
@@ -84,11 +84,11 @@ export default function(baseDir = process.cwd()) {
     resolveId(source) {
       if (source.startsWith("schemas:")) {
         return path.resolve(
-          `${baseDir}/codegen/schemas/${source.substring(9)}.js`,
+          `${baseDir}/codegen/schemas/${source.substring(8)}.js`,
         );
       }
       if (source.startsWith("schemas-json:") && source.endsWith(".json")) {
-        return this.resolve(`${baseDir}/schemas/${source.substring(14)}`);
+        return this.resolve(`${baseDir}/schemas/${source.substring(13)}`);
       }
       if (source.startsWith("node:")) {
         // return path.resolve(`${baseDir}/node_modules/${source.substring(5)}`);

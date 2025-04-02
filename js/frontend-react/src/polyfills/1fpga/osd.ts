@@ -1,0 +1,11 @@
+export const alert = () => {};
+export const hideOsd = () => {};
+export const inputTester = () => {};
+export const prompt = () => {};
+export const promptPassword = () => {};
+export const promptShortcut = () => {};
+export const qrCode = () => {};
+export const selectFile = () => {};
+export const show = () => {};
+export const showOsd = () => {};
+export const textMenu = () => {};
