@@ -31,7 +31,7 @@ impl Default for OneFpgaModuleLoader {
 
         Self {
             named_modules: Rc::new(RefCell::new(HashMapModuleLoader::default())),
-            inner: Rc::new(embed_module!("../frontend/dist/")),
+            inner: Rc::new(embed_module!("../../js/frontend/dist/")),
             scripts: Rc::new(SimpleModuleLoader::new("/media/fat/1fpga/scripts/").unwrap()),
             plugins: Rc::new(SimpleModuleLoader::new("/media/fat/1fpga/plugins/").unwrap()),
         }

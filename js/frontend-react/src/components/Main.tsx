@@ -1,4 +1,6 @@
 import "@/polyfills/globals";
+import { Osd } from "./Osd";
+import { use } from "react";
 
 /**
  * Load the main function of the frontend and execute it, delayed by 1 msec
@@ -6,17 +8,16 @@ import "@/polyfills/globals";
  * @constructor
  */
 export const Main = () => {
+  const main = use(import("@onefpga/frontend").then((mod) => mod.main));
+  const result = main();
+  result.then(
+    () => console.log("done"),
+    (err) => console.error(err),
+  );
+
   return (
     <div>
-      <button
-        onClick={async () => {
-          const { main } = await import("@onefpga/frontend");
-          await main();
-          console.log("done");
-        }}
-      >
-        Click me
-      </button>
+      <Osd id="main-osd" />
     </div>
   );
 };
