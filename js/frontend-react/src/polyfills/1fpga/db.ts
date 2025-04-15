@@ -17,31 +17,79 @@ export type Row = { [field: string]: SqlValue };
  * @returns The database object.
  */
 export async function load(name: string): Promise<Db> {
-  return {
-    beginTransaction(): Promise<Transaction> {
-      throw new Error("Not implemented");
-      // return Promise.resolve(undefined);
+  async function send(body: any): Promise<any> {
+    const r = await fetch(`/api/db/${name.replace(/[^a-zA-Z0-9_.-]/g, "$")}`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+    if (r.ok) {
+      return await r.json();
+    } else {
+      throw new Error(`From server: ${await r.text()}`);
+    }
+  }
+
+  const db = {
+    async beginTransaction(): Promise<Transaction> {
+      console.log("transaction -- ");
+      await send({ query: "BEGIN TRANSACTION;", mode: "exec" });
+
+      const tx = {
+        ...db,
+        _transaction: true,
+        async rollback() {
+          console.log("rollback -- " + this._transaction);
+          if (!this._transaction) {
+            throw new Error("Not a transaction.");
+          }
+          this._transaction = false;
+          await send({ query: "ROLLBACK", mode: "exec" });
+        },
+        async commit() {
+          console.log("commit -- " + this._transaction);
+          if (!this._transaction) {
+            throw new Error("Not a transaction.");
+          }
+          this._transaction = false;
+          await send({ query: "COMMIT", mode: "exec" });
+        },
+      };
+
+      return tx;
     },
-    execute(query: string, bindings?: SqlValue[]): Promise<number> {
-      return Promise.resolve(0);
+    async execute(query: string, bindings?: SqlValue[]): Promise<number> {
+      await send({ query, bindings, mode: "run" });
+      return 0;
     },
-    executeMany(query: string, bindings: SqlValue[][]): Promise<number> {
-      return Promise.resolve(0);
+    async executeMany(query: string, bindings: SqlValue[][]): Promise<number> {
+      for (const b of bindings) {
+        await send({ query, bindings: b, mode: "run" });
+      }
+      return 0;
     },
-    executeRaw(query: string): Promise<void> {
-      return Promise.resolve(undefined);
+    async executeRaw(query: string): Promise<void> {
+      await send({ query, mode: "exec" });
     },
-    query<T = Row>(
+    async query<T = Row>(
       query: string,
       bindings?: SqlValue[],
     ): Promise<{ rows: T[] }> {
-      return Promise.resolve({ rows: [] });
+      const rows = await send({ query, bindings, mode: "query" });
+      console.log(rows);
+      return { rows };
     },
-    queryOne<T = Row>(query: string, bindings?: SqlValue[]): Promise<T | null> {
-      throw new Error("Not implemented");
-      // return Promise.resolve(undefined);
+    async queryOne<T = Row>(
+      query: string,
+      bindings?: SqlValue[],
+    ): Promise<T | null> {
+      const result = await send({ query, bindings, mode: "get" });
+      console.log(result);
+      return result[0] ?? null;
     },
   };
+
+  return db;
 }
 
 /**

@@ -3,13 +3,13 @@
   "workspaces": [
     "js/frontend",
     "js/frontend-react",
-    "js/onefpga/polyfill-react",
-    "js/onefpga/types",
+    "js/1fpga/polyfill-react",
+    "js/1fpga/types",
     "scripts/patreon"
   ],
   "scripts": {
     "build": "npm run build:frontend",
-    "build:frontend": "npm run -w @onefpga/frontend build"
+    "build:frontend": "npm run -w @1fpga/frontend build"
   },
   "devDependencies": {
     "prettier": "3.3.3"

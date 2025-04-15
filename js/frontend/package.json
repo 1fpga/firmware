@@ -1,9 +1,10 @@
 {
-  "name": "@onefpga/frontend",
+  "name": "@1fpga/frontend",
   "private": true,
   "version": "1.0.0",
   "description": "The 1FPGA frontend scripts in TypeScript, and the `1fpga/types` type definitions for the Host modules.",
   "main": "dist/main.js",
+  "module": "src/main.ts",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
@@ -14,11 +15,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@1fpga/types": "../1fpga/types",
     "@babel/generator": "^7.25.6",
     "@babel/parser": "^7.25.6",
     "@babel/traverse": "^7.25.6",
     "@jest/globals": "^29.7.0",
-    "@onefpga/types": "../onefpga/types",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",

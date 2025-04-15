@@ -26,10 +26,10 @@
         "schemas/*"
       ],
       "1fpga:*": [
-        "../onefpga/types/1fpga/*"
+        "../1fpga/types/1fpga/*"
       ],
       "1fpga:consts": [
-        "../onefpga/types/consts"
+        "../1fpga/types/consts"
       ],
       "1fpga:migrations": [
         "types/migrations"

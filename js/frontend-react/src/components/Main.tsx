@@ -1,6 +1,18 @@
 import "@/polyfills/globals";
-import { Osd } from "./Osd";
 import { use } from "react";
+
+export interface OsdProps {
+  id?: string;
+}
+
+export function Osd({ id }: OsdProps) {
+  return (
+    <div className="flex flex-col items-center spacing-">
+      <h1>OSD</h1>
+      <div id={id} className="border-amber-50 border-2 h-96 w-1/2"></div>
+    </div>
+  );
+}
 
 /**
  * Load the main function of the frontend and execute it, delayed by 1 msec
@@ -8,7 +20,7 @@ import { use } from "react";
  * @constructor
  */
 export const Main = () => {
-  const main = use(import("@onefpga/frontend").then((mod) => mod.main));
+  const main = use(import("@1fpga/frontend").then((mod) => mod.main));
   const result = main();
   result.then(
     () => console.log("done"),
