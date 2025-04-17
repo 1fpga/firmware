@@ -32,14 +32,12 @@ export async function load(name: string): Promise<Db> {
 
   const db = {
     async beginTransaction(): Promise<Transaction> {
-      console.log("transaction -- ");
       await send({ query: "BEGIN TRANSACTION;", mode: "exec" });
 
       const tx = {
         ...db,
         _transaction: true,
         async rollback() {
-          console.log("rollback -- " + this._transaction);
           if (!this._transaction) {
             throw new Error("Not a transaction.");
           }
@@ -47,7 +45,6 @@ export async function load(name: string): Promise<Db> {
           await send({ query: "ROLLBACK", mode: "exec" });
         },
         async commit() {
-          console.log("commit -- " + this._transaction);
           if (!this._transaction) {
             throw new Error("Not a transaction.");
           }
@@ -76,7 +73,6 @@ export async function load(name: string): Promise<Db> {
       bindings?: SqlValue[],
     ): Promise<{ rows: T[] }> {
       const rows = await send({ query, bindings, mode: "query" });
-      console.log(rows);
       return { rows };
     },
     async queryOne<T = Row>(
@@ -84,7 +80,7 @@ export async function load(name: string): Promise<Db> {
       bindings?: SqlValue[],
     ): Promise<T | null> {
       const result = await send({ query, bindings, mode: "get" });
-      console.log(result);
+
       return result[0] ?? null;
     },
   };
@@ -96,7 +92,16 @@ export async function load(name: string): Promise<Db> {
  * Resets the database. This will delete all tables and data in the database.
  * @param name The name of the database.
  */
-export async function reset(name: string): Promise<void> {}
+export async function reset(name: string): Promise<void> {
+  const r = await fetch(`/api/db/${name.replace(/[^a-zA-Z0-9_.-]/g, "$")}`, {
+    method: "POST",
+    body: JSON.stringify({ reset: true }),
+  });
+
+  if (!r.ok) {
+    throw new Error(`From server: ${await r.text()}`);
+  }
+}
 
 /**
  * A queryable object that can execute SQL queries.

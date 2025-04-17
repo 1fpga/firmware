@@ -33,3 +33,6 @@
     return new Image(this.name, width, height);
   }
 };
+
+// To make this file an ES module, we need to at least have one export.
+export default {};

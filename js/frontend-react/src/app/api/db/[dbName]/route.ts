@@ -1,4 +1,4 @@
-import { connect } from "@/utils";
+import { connect } from "../database";
 
 export const GET = () => {
   return new Response(null, { status: 403 });

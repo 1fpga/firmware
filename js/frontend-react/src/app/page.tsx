@@ -1,18 +1,25 @@
 "use client";
 
-import { Suspense } from "react";
-import dynamic from "next/dynamic";
+import { useOneFpga } from "@/hooks";
+import { Button } from "@/components/ui-kit/button";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const Main = dynamic(() => import("@/components/Main").then((x) => x.Main), {
-    ssr: false,
-  });
+  const { start, started } = useOneFpga();
+  const router = useRouter();
+
+  if (started) {
+    return <div>1FPGA is running...</div>;
+  }
+
+  async function doStart() {
+    await start();
+    router.push("/ui");
+  }
 
   return (
-    <>
-      <Suspense fallback={"Please wait..."}>
-        <Main />
-      </Suspense>
-    </>
+    <div>
+      <Button onClick={doStart}>Start 1FPGA</Button>
+    </div>
   );
 }

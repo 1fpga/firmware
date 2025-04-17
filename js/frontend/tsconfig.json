@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "declaration": true,
     "target": "ESNext",
     "baseUrl": ".",
     "module": "ESNext",
@@ -17,7 +16,7 @@
     "moduleResolution": "Bundler",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ],
       "schemas:*": [
         "codegen/schemas/*"

@@ -1,4 +1,4 @@
-import * as ReactDOM from "react-dom/client";
+import { createView } from "@/hooks";
 import { createOsdTextMenu } from "@/components/osd";
 
 /**
@@ -83,29 +83,7 @@ export const show = () => {};
 export const showOsd = () => {};
 
 export async function textMenu<R>(options: TextMenuOptions<R>): Promise<R> {
-  console.log("textMenu:", options);
-
-  const osd$ = document.getElementById("main-osd");
-  if (!osd$) {
-    throw new Error("No OSD element found.");
-  }
-
-  let resolve;
-  let reject;
-  const promise = new Promise<R>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  if (!resolve || !reject) {
-    throw new Error("Invalid initialization...");
-  }
-
-  const root = ReactDOM.createRoot(osd$);
-  root.render(createOsdTextMenu({ options, resolve, reject }));
-
-  return promise.then((r) => {
-    console.log("Menu done. Returned value: ", r);
-    root.unmount();
-    return r;
-  });
+  let { promise, resolve, reject } = Promise.withResolvers<R>();
+  createView("osd", () => createOsdTextMenu({ options, resolve, reject }));
+  return promise;
 }

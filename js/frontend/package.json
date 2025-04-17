@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "description": "The 1FPGA frontend scripts in TypeScript, and the `1fpga/types` type definitions for the Host modules.",
   "main": "dist/main.js",
-  "module": "src/main.ts",
+  "types": "dist/src/main.d.ts",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
+    "build:watch": "rollup -c -w",
     "build-ts": "tsc",
     "test": "jest"
   },

@@ -28,6 +28,7 @@ export default {
   output: {
     dir: "dist/",
     format: "es",
+    sourcemap: !production,
   },
   plugins: [
     del({ targets: "dist/*" }),
@@ -42,32 +43,41 @@ export default {
       revision: gitRev,
     }),
     typescript({
-      exclude: ["src/**/*.spec.ts", "src/**/*.test.ts"],
+      tsconfig: "./tsconfig.json",
+      exclude: ["src/**/*.spec.ts", "src/**/*.test.ts", "*.config.ts"],
+      compilerOptions: {
+        declaration: !production,
+      },
     }),
     json({}),
     commonjs({
       extensions: [".js", ".ts", ".cjs"],
       transformMixedEsModules: true,
     }),
-    transformTaggedTemplate({
-      tagsToProcess: [
-        "sql",
-        "sql1",
-        "sql2",
-        "sql3",
-        "sql4",
-        "sql5",
-        "sql6",
-        "sql7",
-      ],
-      transformer: (sql) => {
-        return sql.replace(/\n/g, " ").replace(/\s\s+/g, " ");
-      },
-    }),
-    transformCommonTags("oneLine"),
-    transformCommonTags("source"),
-    transformCommonTags("stripIndent"),
-    transformCommonTags("stripIndents"),
+    // Remove tagged template in production only.
+    ...(production
+      ? [
+          transformTaggedTemplate({
+            tagsToProcess: [
+              "sql",
+              "sql1",
+              "sql2",
+              "sql3",
+              "sql4",
+              "sql5",
+              "sql6",
+              "sql7",
+            ],
+            transformer: (sql) => {
+              return sql.replace(/\n/g, " ").replace(/\s\s+/g, " ");
+            },
+          }),
+          transformCommonTags("oneLine"),
+          transformCommonTags("source"),
+          transformCommonTags("stripIndent"),
+          transformCommonTags("stripIndents"),
+        ]
+      : []),
     [
       ...(production
         ? [

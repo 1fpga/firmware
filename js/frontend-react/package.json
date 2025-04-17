@@ -11,6 +11,9 @@
   "dependencies": {
     "@1fpga/frontend": "../frontend",
     "@1fpga/types": "../1fpga/types",
+    "@headlessui/react": "^2.2.1",
+    "@heroicons/react": "^2.2.0",
+    "framer-motion": "^12.7.3",
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
