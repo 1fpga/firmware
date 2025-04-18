@@ -71,19 +71,37 @@ export interface TextMenuOptions<R> {
   selected?: string | number;
 }
 
-export const alert = () => {};
-export const hideOsd = () => {};
-export const inputTester = () => {};
-export const prompt = () => {};
-export const promptPassword = () => {};
-export const promptShortcut = () => {};
-export const qrCode = () => {};
-export const selectFile = () => {};
-export const show = () => {};
-export const showOsd = () => {};
+export const alert = () => {
+};
+export const hideOsd = () => {
+};
+export const inputTester = () => {
+};
+export const prompt = () => {
+};
+export const promptPassword = () => {
+};
+export const promptShortcut = () => {
+};
+export const qrCode = () => {
+};
+export const selectFile = () => {
+};
+export const show = () => {
+};
+export const showOsd = () => {
+};
 
 export async function textMenu<R>(options: TextMenuOptions<R>): Promise<R> {
-  let { promise, resolve, reject } = Promise.withResolvers<R>();
-  createView("osd", () => createOsdTextMenu({ options, resolve, reject }));
-  return promise;
+  while (true) {
+    let { promise, resolve, reject } = Promise.withResolvers<R | void | undefined>();
+    createView("osd", () => createOsdTextMenu({ options, resolve, reject }));
+
+    console.log("awaiting");
+    const result = await promise;
+    console.log("result:", result);
+    if (result !== undefined) {
+      return result;
+    }
+  }
 }

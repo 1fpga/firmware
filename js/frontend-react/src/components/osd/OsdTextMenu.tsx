@@ -12,7 +12,7 @@ import { Button } from "@/components/ui-kit/button";
 import { Divider } from "@/components/ui-kit/divider";
 
 export interface OsdTextMenuProps<R> {
-  resolve: (value: R) => void;
+  resolve: (value: R | void | undefined) => void;
   reject: (reject: any) => void;
   options: TextMenuOptions<R>;
 }
@@ -21,7 +21,7 @@ export interface OsdTextMenuItemProps<R> {
   item: string | TextMenuItem<R>;
   i: number;
   options: TextMenuOptions<R>;
-  resolve: (value: R) => void;
+  resolve: (value: R | void | undefined) => void;
   reject: (error: any) => void;
 }
 
@@ -30,9 +30,9 @@ function Separator() {
 }
 
 function OsdTextMenuLabel({
-  label,
-  marker,
-}: {
+                            label,
+                            marker,
+                          }: {
   label: string;
   marker?: string;
 }) {
@@ -59,13 +59,18 @@ function OsdTextMenuItem<R>({ item, i, resolve }: OsdTextMenuItemProps<R>) {
 
   const select = async () => {
     if (item.select instanceof Function) {
-      const v = await item.select(item, i);
-      if (v === undefined) {
-        return;
-      }
-      resolve(v);
-    } else if (item.select !== undefined) {
+      resolve(await item.select(item, i));
+    } else {
       resolve(item.select);
+    }
+  };
+
+  const details = async () => {
+    if (item.details instanceof Function) {
+      const v = await item.details(item, i);
+      resolve(v);
+    } else {
+      resolve(item.details);
     }
   };
 
@@ -81,24 +86,21 @@ function OsdTextMenuItem<R>({ item, i, resolve }: OsdTextMenuItemProps<R>) {
       <TableCell className="text-zinc-500">{item.marker}</TableCell>
       <TableCell className="text-right">
         <Button onClick={select}>Select</Button>
+        {item.details && <Button onClick={details}>Details</Button>}
       </TableCell>
     </TableRow>
   );
 }
 
 export function OsdTextMenu<R>({
-  options,
-  resolve,
-  reject,
-}: OsdTextMenuProps<R>) {
+                                 options,
+                                 resolve,
+                                 reject,
+                               }: OsdTextMenuProps<R>) {
   async function back() {
-    if (options.back) {
+    if (options.back !== undefined) {
       if (options.back instanceof Function) {
         const v = await options.back();
-        if (v === undefined) {
-          return;
-        }
-
         resolve(v);
       } else {
         resolve(options.back);
@@ -110,9 +112,12 @@ export function OsdTextMenu<R>({
     <>
       <Heading>Text Menu</Heading>
       <Divider />
-      <Subheading>
-        Title: <code>{options.title}</code>
-      </Subheading>
+      {options.title && (<Subheading>
+        Title: <code>{JSON.stringify(options.title)}</code>
+      </Subheading>)
+      }
+
+      {options.}
 
       <Table className="mt-8 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
         <TableHead>
@@ -126,6 +131,7 @@ export function OsdTextMenu<R>({
           {options.items.map((item, i) => (
             <OsdTextMenuItem
               key={`item-${i}`}
+              i={i}
               item={item}
               options={options}
               resolve={resolve}
