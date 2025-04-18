@@ -42,7 +42,7 @@
         "./src/polyfills/1fpga/net.ts"
       ],
       "1fpga:osd": [
-        "./src/polyfills/1fpga/osd.ts"
+        "./src/polyfills/1fpga/osd.tsx"
       ],
       "1fpga:patrons": [
         "./src/polyfills/1fpga/patrons.ts"

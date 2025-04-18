@@ -13,6 +13,7 @@
     "@1fpga/types": "../1fpga/types",
     "@headlessui/react": "^2.2.1",
     "@heroicons/react": "^2.2.0",
+    "ajv": "^8.17.1",
     "framer-motion": "^12.7.3",
     "next": "15.2.4",
     "react": "^19.0.0",

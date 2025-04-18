@@ -1,5 +1,5 @@
 import { createView } from "@/hooks";
-import { createOsdTextMenu } from "@/components/osd";
+import { OsdAlert, OsdTextMenu } from "@/components/osd";
 
 /**
  * Represents a textual menu item.
@@ -71,35 +71,74 @@ export interface TextMenuOptions<R> {
   selected?: string | number;
 }
 
-export const alert = () => {
-};
-export const hideOsd = () => {
-};
-export const inputTester = () => {
-};
-export const prompt = () => {
-};
-export const promptPassword = () => {
-};
-export const promptShortcut = () => {
-};
-export const qrCode = () => {
-};
-export const selectFile = () => {
-};
-export const show = () => {
-};
-export const showOsd = () => {
-};
+export async function alert(
+  messageOrOptions:
+    | string
+    | {
+        title?: string;
+        message: string;
+        choices?: string[];
+      },
+  orMessage: string,
+): Promise<void | null | number> {
+  // Resolve which version of alert was called.
+  const { message, title, choices } =
+    typeof messageOrOptions !== "string"
+      ? messageOrOptions
+      : {
+          message: orMessage ?? messageOrOptions,
+          title: orMessage === undefined ? undefined : orMessage,
+        };
+
+  let { promise, resolve } = Promise.withResolvers<number | null>();
+  createView("osd", () => (
+    <OsdAlert
+      message={message}
+      title={title}
+      choices={choices}
+      resolve={resolve}
+    />
+  ));
+
+  const result = await promise;
+  return result ?? null;
+}
+
+export interface SelectFileOptions {
+  allowBack?: boolean;
+  dirFirst?: boolean;
+  showHidden?: boolean;
+  showExtensions?: boolean;
+  directory?: boolean;
+  filterPattern?: string;
+  extensions?: string[];
+}
+
+export async function selectFile(
+  title: string,
+  initialDir: string,
+  options: SelectFileOptions,
+): Promise<string | undefined> {
+  return undefined;
+}
+
+export const hideOsd = () => {};
+export const inputTester = () => {};
+export const prompt = () => {};
+export const promptPassword = () => {};
+export const promptShortcut = () => {};
+export const qrCode = () => {};
+export const show = () => {};
+export const showOsd = () => {};
 
 export async function textMenu<R>(options: TextMenuOptions<R>): Promise<R> {
   while (true) {
-    let { promise, resolve, reject } = Promise.withResolvers<R | void | undefined>();
-    createView("osd", () => createOsdTextMenu({ options, resolve, reject }));
+    let { promise, resolve, reject } = Promise.withResolvers<R | void>();
+    createView("osd", () => (
+      <OsdTextMenu options={options} resolve={resolve} reject={reject} />
+    ));
 
-    console.log("awaiting");
     const result = await promise;
-    console.log("result:", result);
     if (result !== undefined) {
       return result;
     }

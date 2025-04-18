@@ -14,11 +14,16 @@ export default function Home() {
 
   async function doStart() {
     await start();
-    router.push("/ui");
+    router.push("/");
+  }
+
+  async function doReset() {
+    await fetch("/api/db/resetAll", { method: "POST" });
   }
 
   return (
     <div>
+      <Button onClick={doReset}>Reset DB</Button>
       <Button onClick={doStart}>Start 1FPGA</Button>
     </div>
   );

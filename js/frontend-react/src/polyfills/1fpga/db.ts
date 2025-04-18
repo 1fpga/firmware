@@ -93,10 +93,12 @@ export async function load(name: string): Promise<Db> {
  * @param name The name of the database.
  */
 export async function reset(name: string): Promise<void> {
-  const r = await fetch(`/api/db/${name.replace(/[^a-zA-Z0-9_.-]/g, "$")}`, {
-    method: "POST",
-    body: JSON.stringify({ reset: true }),
-  });
+  const r = await fetch(
+    `/api/db/${name.replace(/[^a-zA-Z0-9_.-]/g, "$")}/reset`,
+    {
+      method: "POST",
+    },
+  );
 
   if (!r.ok) {
     throw new Error(`From server: ${await r.text()}`);

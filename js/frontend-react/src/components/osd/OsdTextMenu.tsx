@@ -1,15 +1,17 @@
 import { TextMenuItem, TextMenuOptions } from "1fpga:osd";
 import { Heading, Subheading } from "@/components/ui-kit/heading";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui-kit/table";
 import { Button } from "@/components/ui-kit/button";
 import { Divider } from "@/components/ui-kit/divider";
+import {
+  Sidebar,
+  SidebarDivider,
+  SidebarHeader,
+  SidebarItem,
+  SidebarLabel,
+} from "@/components/ui-kit/sidebar";
+import { Badge } from "@/components/ui-kit/badge";
+import { Link } from "@/components/ui-kit/link";
+import { PropertyList } from "@/components";
 
 export interface OsdTextMenuProps<R> {
   resolve: (value: R | void | undefined) => void;
@@ -26,22 +28,23 @@ export interface OsdTextMenuItemProps<R> {
 }
 
 function Separator() {
-  return <TableRow />;
+  return <SidebarDivider className="my-1! mx-0!" />;
 }
 
 function OsdTextMenuLabel({
-                            label,
-                            marker,
-                          }: {
+  label,
+  marker,
+}: {
   label: string;
   marker?: string;
 }) {
   return (
-    <TableRow>
-      <TableCell>{label}</TableCell>
-      <TableCell>{marker}</TableCell>
-      <TableCell />
-    </TableRow>
+    <SidebarHeader className="w-full p-2! border-0! font-bold bg-white/5">
+      <SidebarLabel className="w-80">
+        {label}
+        {marker && <Badge>{marker}</Badge>}
+      </SidebarLabel>
+    </SidebarHeader>
   );
 }
 
@@ -77,26 +80,23 @@ function OsdTextMenuItem<R>({ item, i, resolve }: OsdTextMenuItemProps<R>) {
   const selectable = item.select !== undefined;
 
   return (
-    <TableRow
-      className="cursor-pointer has-[[data-row-link][data-focus]]:outline-2 has-[[data-row-link][data-focus]]:-outline-offset-2 has-[[data-row-link][data-focus]]:outline-blue-500 dark:focus-within:bg-white/[2.5%]"
-      title={`Row ${i} with label "${item.label}"`}
-      onClick={select}
-    >
-      <TableCell>{item.label}</TableCell>
-      <TableCell className="text-zinc-500">{item.marker}</TableCell>
-      <TableCell className="text-right">
-        <Button onClick={select}>Select</Button>
-        {item.details && <Button onClick={details}>Details</Button>}
-      </TableCell>
-    </TableRow>
+    <SidebarItem className="cursor-pointer w-full" onClick={select}>
+      <SidebarLabel className="w-80">{item.label}</SidebarLabel>
+      <div className="w-80">{item.marker && <Badge>{item.marker}</Badge>}</div>
+      {item.details && (
+        <Link href="" onClick={details}>
+          Details
+        </Link>
+      )}
+    </SidebarItem>
   );
 }
 
 export function OsdTextMenu<R>({
-                                 options,
-                                 resolve,
-                                 reject,
-                               }: OsdTextMenuProps<R>) {
+  options,
+  resolve,
+  reject,
+}: OsdTextMenuProps<R>) {
   async function back() {
     if (options.back !== undefined) {
       if (options.back instanceof Function) {
@@ -111,48 +111,33 @@ export function OsdTextMenu<R>({
   return (
     <>
       <Heading>Text Menu</Heading>
-      <Divider />
-      {options.title && (<Subheading>
-        Title: <code>{JSON.stringify(options.title)}</code>
-      </Subheading>)
-      }
+      <Divider className="mt-4" />
 
-      {options.}
+      <PropertyList
+        properties={{
+          Title: options.title,
+        }}
+      />
 
-      <Table className="mt-8 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Label</TableHeader>
-            <TableHeader>Marker</TableHeader>
-            <TableHeader>Actions</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {options.items.map((item, i) => (
-            <OsdTextMenuItem
-              key={`item-${i}`}
-              i={i}
-              item={item}
-              options={options}
-              resolve={resolve}
-              reject={reject}
-            />
-          ))}
-        </TableBody>
-      </Table>
+      <Subheading className="mt-8 text-xl!">Menu Items</Subheading>
+      <Sidebar className="min-h-5 mt-4 pl-1 border-l-2 border-white/5 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
+        {options.items.map((item, i) => (
+          <OsdTextMenuItem
+            key={`item-${i}`}
+            i={i}
+            item={item}
+            options={options}
+            resolve={resolve}
+            reject={reject}
+          />
+        ))}
+      </Sidebar>
 
-      <Divider />
+      <Divider className="py-2 mt-8" />
 
       <Button onClick={back} disabled={options.back === undefined}>
         Back
       </Button>
     </>
   );
-}
-
-/**
- * To facilitate creating this component in the adapter 1fpga layer.
- */
-export function createOsdTextMenu<R>(props: OsdTextMenuProps<R>) {
-  return <OsdTextMenu {...props} />;
 }

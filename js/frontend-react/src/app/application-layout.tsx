@@ -13,6 +13,7 @@ import {
 import {
   Sidebar,
   SidebarBody,
+  SidebarDivider,
   SidebarHeader,
   SidebarHeading,
   SidebarItem,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui-kit/sidebar";
 import { usePathname, useRouter } from "next/navigation";
 import { useOneFpga } from "@/hooks";
+import GearIcon from "next/dist/client/components/react-dev-overlay/ui/icons/gear-icon";
 
 function IsOneFpgaRunning({ children }: { children: ReactNode }) {
   const { started } = useOneFpga();
@@ -67,6 +69,15 @@ export function ApplicationLayout({ children }: { children: ReactNode }) {
                   <SidebarLabel>OSD</SidebarLabel>
                 </SidebarItem>
               </IsOneFpgaRunning>
+
+              <SidebarDivider />
+              <SidebarItem
+                current={pathname.startsWith("/settings")}
+                onClick={() => router.push("/settings")}
+              >
+                <GearIcon />
+                <SidebarLabel>Settings</SidebarLabel>
+              </SidebarItem>
             </SidebarSection>
 
             <SidebarSpacer />
