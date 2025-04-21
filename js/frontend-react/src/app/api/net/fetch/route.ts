@@ -6,7 +6,7 @@ export const GET = () => {
 export async function POST(req: Request) {
   const { url } = await req.json();
   if (!url) {
-    throw new Error(`${url} invalid URL`);
+    throw new Error(`Invalid URL provided: ${JSON.stringify(url)}`);
   }
 
   const response = await fetch(url);

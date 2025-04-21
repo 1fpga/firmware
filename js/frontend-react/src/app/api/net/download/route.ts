@@ -20,7 +20,8 @@ export async function POST(req: Request) {
 
   // Save the file.
   const dst =
-    destination ?? `/downloads/${Date.now()}-${Math.random() % 10000}`;
+    destination ??
+    `/downloads/${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const canonDest = await pathOf(dst);
   const bytes = await response.arrayBuffer();
   await fs.mkdir(path.dirname(canonDest), { recursive: true });

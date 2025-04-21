@@ -11,7 +11,7 @@ export const POST = async (
 ) => {
   const dbName = (await params).dbName;
   if (!dbName) {
-    throw new Error(`${dbName} invalid DB name`);
+    throw new Error(`Invalid database name: ${dbName}`);
   }
 
   try {
