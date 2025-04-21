@@ -1,16 +1,16 @@
-import * as osd from "1fpga:osd";
-import { Games, GameSortOrder } from "@/services/database/games";
-import { Commands, UserSettings } from "@/services";
-import { StartGameCommand } from "@/commands/games";
+import * as osd from '1fpga:osd';
+
+import { StartGameCommand } from '@/commands/games';
+import * as services from '@/services';
 
 const PAGE_SIZE = 100;
 
 const SORT_LABEL = {
-  [GameSortOrder.NameAsc]: "Name (A-Z)",
-  [GameSortOrder.NameDesc]: "Name (Z-A)",
-  [GameSortOrder.SystemAsc]: "System (A-Z)",
-  [GameSortOrder.LastPlayed]: "Last Played",
-  [GameSortOrder.Favorites]: "Favorites",
+  [services.db.games.GameSortOrder.NameAsc]: 'Name (A-Z)',
+  [services.db.games.GameSortOrder.NameDesc]: 'Name (Z-A)',
+  [services.db.games.GameSortOrder.SystemAsc]: 'System (A-Z)',
+  [services.db.games.GameSortOrder.LastPlayed]: 'Last Played',
+  [services.db.games.GameSortOrder.Favorites]: 'Favorites',
 };
 
 export interface PickGameOptions {
@@ -42,9 +42,9 @@ export interface PickGameOptions {
 
 function ellipses(max: number, end = false) {
   if (end) {
-    return (s: string) => (s.length > max ? s.slice(0, max - 3) + "..." : s);
+    return (s: string) => (s.length > max ? s.slice(0, max - 3) + '...' : s);
   } else {
-    return (s: string) => (s.length > max ? "..." + s.slice(-max + 3) : s);
+    return (s: string) => (s.length > max ? '...' + s.slice(-max + 3) : s);
   }
 }
 
@@ -55,9 +55,9 @@ function ellipses(max: number, end = false) {
  */
 export async function pickGame(
   options: PickGameOptions = {},
-): Promise<Games | null> {
-  const settings = await UserSettings.forLoggedInUser();
-  const sort = await settings.getGameSort();
+): Promise<services.db.games.ExtendedGamesRow | null> {
+  const userSettings = await services.settings.UserSettings.forLoggedInUser();
+  const sort = await userSettings.getGameSort();
 
   let currentSort = Object.keys(SORT_LABEL).indexOf(sort);
   if (currentSort === -1) {
@@ -67,15 +67,17 @@ export async function pickGame(
   let includeUnplayed = options.includeUnplayed ?? true;
   let index = 0;
 
-  async function buildItems(): Promise<osd.TextMenuItem<Games | string>[]> {
-    const { total, games } = await Games.list({
+  async function buildItems(): Promise<
+    osd.TextMenuItem<services.db.games.ExtendedGamesRow | string>[]
+  > {
+    const { total, games } = await services.db.games.listExtended({
       system: options.system,
       includeUnplayed,
-      sort: Object.keys(SORT_LABEL)[currentSort] as GameSortOrder,
+      sort: Object.keys(SORT_LABEL)[currentSort] as services.db.games.GameSortOrder,
       limit: PAGE_SIZE,
     });
 
-    const gameSet: Map<String, Games[]> = games.reduce((acc, game) => {
+    const gameSet: Map<String, services.db.games.ExtendedGamesRow[]> = games.reduce((acc, game) => {
       if (!acc.has(game.name)) {
         acc.set(game.name, []);
       }
@@ -84,70 +86,70 @@ export async function pickGame(
     }, new Map());
 
     const gameSetItems = [...gameSet.entries()].map(([name, gameArray]) => ({
-      label: "" + name,
+      label: '' + name,
       select: async () => {
         return gameArray[0];
       },
       details: async () => {
-        const result = await showGameDetailsMenu("" + name, gameArray);
+        const result = await showGameDetailsMenu('' + name, gameArray);
         if (result) {
           return result;
         }
       },
-      marker: gameArray[0]?.systemName ?? "",
+      marker: gameArray[0]?.systemName ?? '',
     }));
 
     return [
       ...gameSetItems,
       ...(total > PAGE_SIZE
         ? [
-          {
-            label: "Next page...",
-            select: async () => {
-              index += PAGE_SIZE;
-              return "next";
+            {
+              label: 'Next page...',
+              select: async () => {
+                index += PAGE_SIZE;
+                return 'next';
+              },
             },
-          },
-        ]
+          ]
         : []),
     ];
   }
 
-  let selected: string | Games = "next";
+  let selected: string | services.db.games.ExtendedGamesRow = 'next';
 
-  while (selected === "next") {
+  while (selected === 'next') {
     const items = await buildItems();
-    selected = await osd.textMenu<string | Games>({
-      title: options.title ?? "",
-      back: "back",
+    selected = await osd.textMenu<string | services.db.games.ExtendedGamesRow>({
+      title: options.title ?? '',
+      back: 'back',
       sort_label: Object.values(SORT_LABEL)[currentSort],
       sort: async () => {
         currentSort = (currentSort + 1) % Object.keys(SORT_LABEL).length;
         index = 0;
-        const order = Object.keys(SORT_LABEL)[currentSort] as GameSortOrder;
-        await settings.setGameSort(order);
+        const order = Object.keys(SORT_LABEL)[currentSort] as services.db.games.GameSortOrder;
+        await userSettings.setGameSort(order);
 
         return {
-          sort_label: Object.keys(SORT_LABEL)[currentSort],
+          sort_label: Object.values(SORT_LABEL)[currentSort],
           items: await buildItems(),
         };
       },
-      details: "Details",
+      details: 'Details',
       items,
     });
   }
-  return typeof selected == "string" ? null : selected;
+  return typeof selected == 'string' ? null : selected;
 }
 
 async function showGameDetailsMenu(
   name: string,
-  gameArray: Games[],
-): Promise<Games | null> {
+  gameArray: services.db.games.ExtendedGamesRow[],
+): Promise<services.db.games.ExtendedGamesRow | null> {
   let highlighted: number | undefined = undefined;
 
   while (true) {
     const result = await showGameDetailsMenuInner(name, gameArray, highlighted);
-    if (typeof result === "number") {
+    if (typeof result === 'number') {
       highlighted = result;
       continue;
     }
@@ -161,103 +163,98 @@ async function showGameDetailsMenu(
 
 async function showGameDetailsMenuInner(
   name: string,
-  gameArray: Games[],
+  gameArray: services.db.games.ExtendedGamesRow[],
   highlighted: number | undefined,
-): Promise<Games | false | number> {
+): Promise<services.db.games.ExtendedGamesRow | false | number> {
   const shortcuts =
-    (await Commands.get(StartGameCommand))?.shortcutsWithMeta.filter((s) => {
-      return gameArray.some((ga) => ga.id === s.meta.gameId);
+    services.db.Commands.get(StartGameCommand)?.shortcutsWithMeta.filter(s => {
+      return gameArray.some(ga => ga.id === s.meta.gameId);
     }) ?? [];
 
-  const result = await osd.textMenu<Games | false | number>({
+  const result = await osd.textMenu<services.db.games.ExtendedGamesRow | false | number>({
     title: name,
     back: false,
     highlighted,
     items: [
       {
-        label: "Favorite",
-        marker: gameArray[0].favorite ? "Yes" : "No",
-        select: async (item) => {
-          await gameArray[0].setFavorite(!gameArray[0].favorite);
-          item.marker = gameArray[0].favorite ? "Yes" : "No";
+        label: 'Favorite',
+        marker: gameArray[0].favorite ? 'Yes' : 'No',
+        select: async item => {
+          await services.db.games.setFavorite(gameArray[0], !gameArray[0].favorite);
+          item.marker = gameArray[0].favorite ? 'Yes' : 'No';
         },
       },
       ...(gameArray.length > 1
         ? [
-          "-",
-          "Multiple versions available:",
-          ...gameArray.map((game) => {
-            return {
-              label: "  " + ellipses(40)(game.romPath ?? "<NO PATH>"),
-              select: async () => {
-                return game;
-              },
-            };
-          }),
-        ]
+            '-',
+            'Multiple versions available:',
+            ...gameArray.map(game => {
+              return {
+                label: '  ' + ellipses(40)(game.romPath ?? '<NO PATH>'),
+                select: async () => {
+                  return game;
+                },
+              };
+            }),
+          ]
         : [
-          {
-            label: "Launch",
-            select: async () => {
-              return gameArray[0];
+            {
+              label: 'Launch',
+              select: async () => {
+                return gameArray[0];
+              },
             },
-          },
-        ]),
-      "-",
+          ]),
+      '-',
       ...(shortcuts.length > 0
         ? [
-          "Remove Shortcuts:",
-          ...shortcuts.map((s, i) => ({
-            label: ` ${s.shortcut}`,
-            select: async () => {
-              const command = await Commands.get(StartGameCommand);
-              if (command) {
-                const choice = await osd.alert({
-                  title: "Deleting shortcut",
-                  message: `Are you sure you want to delete this shortcut?\n${s.shortcut}`,
-                  choices: ["Cancel", "Delete shortcut"],
-                });
-                if (choice === 1) {
-                  await command.deleteShortcut(s.shortcut);
+            'Remove Shortcuts:',
+            ...shortcuts.map((s, i) => ({
+              label: ` ${s.shortcut}`,
+              select: async () => {
+                const command = await services.db.Commands.get(StartGameCommand);
+                if (command) {
+                  const choice = await osd.alert({
+                    title: 'Deleting shortcut',
+                    message: `Are you sure you want to delete this shortcut?\n${s.shortcut}`,
+                    choices: ['Cancel', 'Delete shortcut'],
+                  });
+                  if (choice === 1) {
+                    await command.deleteShortcut(s.shortcut);
 
-                  // Return the new highlighted index.
-                  return (
-                    1 + // Favorite
-                    (gameArray.length > 1 ? gameArray.length + 2 : 1) + // Multiple versions
-                    1 + // Separator
-                    i + // Shortcut index
-                    1
-                  );
+                    // Return the new highlighted index.
+                    return (
+                      1 + // Favorite
+                      (gameArray.length > 1 ? gameArray.length + 2 : 1) + // Multiple versions
+                      1 + // Separator
+                      i + // Shortcut index
+                      1
+                    );
+                  }
                 }
-              }
-            },
-          })),
-        ]
+              },
+            })),
+          ]
         : []),
       {
-        label: "Add new shortcut...",
+        label: 'Add new shortcut...',
         select: async () => {
-          const newShortcut = await osd.promptShortcut(
-            name,
-            "Enter the shortcut:",
-          );
+          const newShortcut = await osd.promptShortcut(name, 'Enter the shortcut:');
           if (!newShortcut) {
             return;
           }
-          const command = await Commands.get(StartGameCommand);
+          const command = services.db.Commands.get(StartGameCommand);
           if (command) {
-            const maybeCommand = await Commands.find(newShortcut);
+            const maybeCommand = await services.db.Commands.find(newShortcut);
             if (maybeCommand) {
               // Find the type if necessary.
-              const meta = maybeCommand.shortcutsWithMeta.find(
-                ({ shortcut }) => {
-                  return shortcut === newShortcut;
-                },
-              );
+              const meta = maybeCommand.shortcutsWithMeta.find(({ shortcut }) => {
+                return shortcut === newShortcut;
+              });
 
               const labelOf = await maybeCommand.labelOf(meta?.meta);
               await osd.alert({
-                title: "Shortcut already exists",
+                title: 'Shortcut already exists',
                 message: `The selected shortcut:\n${newShortcut}\nIs already in use by the command:\n${labelOf}`,
               });
 
@@ -282,9 +279,9 @@ async function showGameDetailsMenuInner(
 
 export async function gamesMenu() {
   while (true) {
-    const game = await pickGame({ title: "Game Library", allowFile: true });
+    const game = await pickGame({ title: 'Game Library', allowFile: true });
     if (game) {
-      await game.launch();
+      await services.launch.game(game);
     } else {
       return;
     }

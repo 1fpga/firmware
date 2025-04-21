@@ -1,22 +1,23 @@
 let started = false;
 
 async function main(): Promise<void> {
-  await import("@/polyfills/globals");
+  await import('@/polyfills/globals');
 
-  const { main } = await import("@1fpga/frontend");
+  const { main } = await import('@1fpga/frontend');
 
-  queueMicrotask(() => postMessage({ kind: "started" }));
+  queueMicrotask(() => postMessage({ kind: 'started' }));
   await main();
-  console.log(":: done");
+  console.log(':: done');
+  postMessage({ kind: 'stopped' });
 }
 
-addEventListener("message", (event: MessageEvent) => {
-  if (event.data.kind === "start") {
+addEventListener('message', (event: MessageEvent) => {
+  if (event.data.kind === 'start') {
     if (started) {
-      throw new Error("Already started.");
+      throw new Error('Already started.');
     }
-    (global as any)["__startupWorkerMessage"] = event.data;
+    (global as any)['__startupWorkerMessage'] = event.data;
 
-    main().catch((e) => console.error(e));
+    main().catch(e => console.error(e));
   }
 });

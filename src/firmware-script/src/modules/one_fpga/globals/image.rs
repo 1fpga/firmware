@@ -9,7 +9,7 @@ use firmware_ui::application::OneFpgaApp;
 use image::DynamicImage;
 use mister_fpga::core::AsMisterCore;
 use std::rc::Rc;
-use tracing::error;
+use tracing::{debug, error};
 
 /// Position of the image.
 #[derive(Debug, Default, Clone, Copy)]
@@ -163,9 +163,7 @@ impl JsImage {
         };
 
         let image = self.inner.as_ref();
-        let position = options
-            .and_then(|o| o.position)
-            .unwrap_or_default();
+        let position = options.and_then(|o| o.position).unwrap_or_default();
         let clear = options.and_then(|o| o.clear).unwrap_or(false);
 
         let (width, height) = (image.width() as i64, image.height() as i64);
@@ -187,6 +185,7 @@ impl JsImage {
 
     /// Save the image
     pub fn save(&self, path: String, context: &mut Context) -> JsResult<JsPromise> {
+        debug!("Save image to {}", path);
         let inner = self.inner.clone();
         let promise = JsPromise::new(
             |fns, context| match inner.save(path) {

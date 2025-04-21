@@ -4,14 +4,14 @@
  * This module provides functions for accessing the internet. It can download
  * JSON data or files from URLs.
  */
-declare module "1fpga:net" {
+declare module '1fpga:net' {
   export interface NetworkInterface {
-    status: "Loopback" | "Up" | "Down";
+    status: 'Loopback' | 'Up' | 'Down';
     flags: string[];
     name: string;
     address?: string;
     netmask?: string;
-    family?: "IPv4" | "IPv6";
+    family?: 'IPv4' | 'IPv6';
   }
 
   /**

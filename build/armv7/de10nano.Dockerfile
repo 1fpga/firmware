@@ -41,4 +41,4 @@ RUN cargo chef cook --release --target armv7-unknown-linux-gnueabihf --recipe-pa
 RUN rustup component add --target armv7-unknown-linux-gnueabihf --toolchain nightly rust-std
 RUN rustup component add --toolchain nightly rustfmt rustc rust-std clippy
 
-CMD ["cargo", "build", "--target", "armv7-unknown-linux-gnueabihf", "--release", "--bin", "one_fpga", "--no-default-features", "--features=platform_de10"]
+CMD ["cargo", "build", "--target", "armv7-unknown-linux-gnueabihf", "--release", "--bin", "one_fpga_bin", "--no-default-features", "--features=platform_de10"]

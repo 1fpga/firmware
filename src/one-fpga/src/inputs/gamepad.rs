@@ -165,7 +165,7 @@ impl std::fmt::Debug for ButtonSet {
     }
 }
 
-/// Gamepad axes. We reuse the SDL3 type for simplicity, as it is well maintained and complete.
+/// Gamepad axes. We reuse the SDL3 type for simplicity, as it is well-maintained and complete.
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Axis(sdl3::gamepad::Axis);

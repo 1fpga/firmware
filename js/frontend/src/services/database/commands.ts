@@ -11,14 +11,16 @@
  * They do not hold any value. The value is stored in the `Shortcut` class, which isn't
  * public.
  */
-import * as core from "1fpga:core";
-import * as commands from "1fpga:commands";
-import { sql } from "@/utils";
-import { User } from "../user";
+import * as commands from '1fpga:commands';
+import * as core from '1fpga:core';
+
+import { assert, sql } from '@/utils';
+
+import { User } from '../user';
 
 interface ShortcutRow {
   id: number;
-  user_id: number;
+  usersId: number;
   key: string;
   shortcut: string;
   meta: string;
@@ -29,10 +31,7 @@ export type GeneralCommandHandler<T> = (
   meta: T,
 ) => void | Promise<void>;
 
-export type CoreCommandHandler<T> = (
-  core: core.OneFpgaCore,
-  meta: T,
-) => void | Promise<void>;
+export type CoreCommandHandler<T> = (core: core.OneFpgaCore, meta: T) => void | Promise<void>;
 
 /**
  * The implementation of a command handler. This will only be created
@@ -68,9 +67,7 @@ export abstract class CommandImpl<T> {
   }
 
   async labelOf(v: T): Promise<string> {
-    if (this.label === undefined) {
-      throw new Error("Label not set for command.");
-    }
+    assert.not.null_(this.label, "Label isn't set for command.");
     return this.label;
   }
 
@@ -79,10 +76,7 @@ export abstract class CommandImpl<T> {
    * @param core
    * @param v
    */
-  abstract execute_(
-    core: core.OneFpgaCore | undefined,
-    v: T,
-  ): void | Promise<void>;
+  abstract execute_(core: core.OneFpgaCore | undefined, v: T): void | Promise<void>;
 }
 
 export abstract class CoreCommandImpl<T = undefined> extends CommandImpl<T> {
@@ -101,24 +95,19 @@ export abstract class GeneralCommandImpl<T = undefined> extends CommandImpl<T> {
     return this.execute(core, v);
   }
 
-  abstract execute(
-    core: core.OneFpgaCore | undefined,
-    v: T,
-  ): void | Promise<void>;
+  abstract execute(core: core.OneFpgaCore | undefined, v: T): void | Promise<void>;
 }
 
 class Shortcuts {
-  public static async listForCommand<Json>(
-    command: CommandImpl<Json>,
-  ): Promise<Shortcuts[]> {
+  public static async listForCommand<Json>(command: CommandImpl<Json>): Promise<Shortcuts[]> {
     const user = User.loggedInUser(true);
     const rows = await sql<ShortcutRow>`
-        SELECT *
-        FROM shortcuts
-        WHERE user_id = ${user.id}
-          AND key = ${command.key}
+      SELECT *
+      FROM shortcuts
+      WHERE usersId = ${user.id}
+        AND key = ${command.key}
     `;
-    return rows.map((row) => new Shortcuts(row, command, JSON.parse(row.meta)));
+    return rows.map(row => new Shortcuts(row, command, JSON.parse(row.meta)));
   }
 
   public static async create<Json>(
@@ -128,20 +117,19 @@ class Shortcuts {
     meta: unknown,
   ) {
     // First, verify that meta fits the validator.
-    if (!command.validate(meta)) {
-      throw new Error(
-        `${JSON.stringify(meta)} does not match the command schema.`,
-      );
-    }
+    assert.isTrue(
+      command.validate(meta),
+      () => `${JSON.stringify(meta)} does not match the command schema.`,
+    );
 
     const [row] = await sql<ShortcutRow>`
-        INSERT INTO shortcuts ${sql.insertValues({
-      user_id: user.id,
-      key: command.key,
-      shortcut,
-      meta: JSON.stringify(meta ?? null),
-    })}
-            RETURNING *
+      INSERT INTO shortcuts ${sql.insertValues({
+        usersId: user.id,
+        key: command.key,
+        shortcut,
+        meta: JSON.stringify(meta ?? null),
+      })}
+        RETURNING *
     `;
     return new Shortcuts(row, command, meta);
   }
@@ -151,7 +139,7 @@ class Shortcuts {
     public readonly command: CommandImpl<unknown>,
     public readonly meta: unknown,
   ) {
-    commands.createShortcut(row_.shortcut, (c) => command.execute_(c, meta));
+    commands.createShortcut(row_.shortcut, c => command.execute_(c, meta));
   }
 
   public get shortcut(): string {
@@ -160,9 +148,9 @@ class Shortcuts {
 
   async delete() {
     await sql`
-        DELETE
-        FROM shortcuts
-        WHERE id = ${this.row_.id}
+      DELETE
+      FROM shortcuts
+      WHERE id = ${this.row_.id}
     `;
     commands.removeShortcut(this.row_.shortcut);
   }
@@ -172,10 +160,7 @@ class Shortcuts {
  * A command that links shortcuts to a command implementation.
  */
 export class Command<T = unknown> {
-  public static async create<T>(
-    def: CommandImpl<T>,
-    firstTime = false,
-  ): Promise<Command<T>> {
+  public static async create<T>(def: CommandImpl<T>, firstTime = false): Promise<Command<T>> {
     const user = User.loggedInUser(true);
     const c = new Command(def, []);
     const shortcuts = await Shortcuts.listForCommand<T>(def);
@@ -193,10 +178,9 @@ export class Command<T = unknown> {
   private constructor(
     private readonly def_: CommandImpl<T>,
     private readonly shortcuts_: Shortcuts[],
-  ) {
-  }
+  ) {}
 
-  public is(Class: { new(): CommandImpl<T> }): boolean {
+  public is(Class: { new (): CommandImpl<T> }): boolean {
     return this.def_ instanceof Class;
   }
 
@@ -213,17 +197,15 @@ export class Command<T = unknown> {
   }
 
   async labels() {
-    return await Promise.all(
-      this.shortcuts_.map((s) => s.command.labelOf(s.meta)),
-    );
+    return await Promise.all(this.shortcuts_.map(s => s.command.labelOf(s.meta)));
   }
 
   get shortcuts(): string[] {
-    return this.shortcuts_.map((s) => s.shortcut);
+    return this.shortcuts_.map(s => s.shortcut);
   }
 
   get shortcutsWithMeta(): { shortcut: string; meta: T }[] {
-    return this.shortcuts_.map((s) => ({
+    return this.shortcuts_.map(s => ({
       shortcut: s.shortcut,
       // This has been already validated when the shortcut was created.
       meta: s.meta as T,
@@ -236,21 +218,16 @@ export class Command<T = unknown> {
 
   public async addShortcut(shortcut: string, meta?: T): Promise<void> {
     if (!this.def_.validate(meta)) {
-      throw new Error("Meta does not match the command schema.");
+      throw new Error('Meta does not match the command schema.');
     }
 
     this.shortcuts_.push(
-      await Shortcuts.create(
-        User.loggedInUser(true),
-        this.def_,
-        shortcut,
-        meta,
-      ),
+      await Shortcuts.create(User.loggedInUser(true), this.def_, shortcut, meta),
     );
   }
 
   public async deleteShortcut(shortcut: string) {
-    const i = this.shortcuts_.findIndex((s) => s.shortcut === shortcut);
+    const i = this.shortcuts_.findIndex(s => s.shortcut === shortcut);
     const maybeShortcut = this.shortcuts_[i];
     if (!maybeShortcut) {
       return;
@@ -278,11 +255,9 @@ export class Commands {
    *                  This will set the default shortcuts for commands that have one.
    */
   public static async login(user: User, firstTime = false) {
-    if (Commands.isInit) {
-      throw new Error("Commands already initialized.");
-    }
+    assert.assert(!Commands.isInit, 'Commands already initialized.');
 
-    await (await import("@/commands")).init();
+    await (await import('@/commands')).init();
     Commands.isInit = true;
     for (const [key, def] of Commands.def) {
       Commands.commands.set(key, await Command.create(def, firstTime));
@@ -293,9 +268,7 @@ export class Commands {
    * Clear all commands and shortcuts. Used when logging out.
    */
   public static async logout() {
-    if (!Commands.isInit) {
-      throw new Error("Commands not initialized.");
-    }
+    assert.assert(Commands.isInit, 'Commands not initialized.');
 
     for (const [_, command] of Commands.commands) {
       for (const shortcut of command.shortcuts) {
@@ -311,12 +284,10 @@ export class Commands {
    * Register a new command. Add the shortcuts to the system, if any.
    * @param Class The class of command to register.
    */
-  public static async register<Json>(Class: { new(): CommandImpl<Json> }) {
+  public static async register<Json>(Class: { new (): CommandImpl<Json> }) {
     const def = new Class();
     if (Commands.def.has(def.key)) {
-      throw new Error(
-        `Command with key ${JSON.stringify(def.key)} already exists.`,
-      );
+      throw new Error(`Command with key ${JSON.stringify(def.key)} already exists.`);
     }
     Commands.def.set(def.key, def);
 
@@ -333,25 +304,17 @@ export class Commands {
     return Array.from(Commands.commands.values()) as Command<T>[];
   }
 
-  public static get<T>(Class: {
-    new(): CommandImpl<T>;
-  }): Command<T> | undefined {
-    return Array.from(Commands.commands.values()).find((c) => c.is(Class)) as
+  public static get<T>(Class: { new (): CommandImpl<T> }): Command<T> | undefined {
+    return Array.from(Commands.commands.values()).find(c => c.is(Class)) as Command<T> | undefined;
+  }
+
+  public static async find<T>(shortcut: string): Promise<Command<T> | undefined> {
+    return Array.from(Commands.commands.values()).find(c => c.shortcuts.includes(shortcut)) as
       | Command<T>
       | undefined;
   }
 
-  public static async find<T>(
-    shortcut: string,
-  ): Promise<Command<T> | undefined> {
-    return Array.from(Commands.commands.values()).find((c) =>
-      c.shortcuts.includes(shortcut),
-    ) as Command<T> | undefined;
-  }
-
   public static async shortcutExists(shortcut: string): Promise<boolean> {
-    return Array.from(Commands.commands.values()).some((c) =>
-      c.shortcuts.includes(shortcut),
-    );
+    return Array.from(Commands.commands.values()).some(c => c.shortcuts.includes(shortcut));
   }
 }

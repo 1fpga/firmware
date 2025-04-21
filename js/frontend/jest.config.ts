@@ -1,13 +1,13 @@
-import type { JestConfigWithTsJest } from "ts-jest";
+import type { JestConfigWithTsJest } from 'ts-jest';
 
 const jestConfig: JestConfigWithTsJest = {
-  testEnvironment: "node",
+  testEnvironment: 'node',
   transform: {
-    "^.+.tsx?$": ["ts-jest", {}],
+    '^.+.tsx?$': ['ts-jest', {}],
   },
-  rootDir: ".",
+  rootDir: '.',
   moduleNameMapper: {
-    "^1fpga:(.*)$": "<rootDir>/types/1fpga/$1",
+    '^1fpga:(.*)$': '<rootDir>/types/1fpga/$1',
   },
 };
 

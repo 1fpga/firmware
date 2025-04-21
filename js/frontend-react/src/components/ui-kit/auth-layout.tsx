@@ -1,4 +1,4 @@
-import type React from 'react'
+import type React from 'react';
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,5 +7,5 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         {children}
       </div>
     </main>
-  )
+  );
 }

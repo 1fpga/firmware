@@ -1,0 +1,17 @@
+{
+  "name": "1FPGA",
+  "uniqueName": "1FPGA",
+  "version": "20250422",
+  "cores": {
+    "url": "./stable/cores.json",
+    "version": "20240727"
+  },
+  "systems": {
+    "url": "./stable/systems.json",
+    "version": "20241030"
+  },
+  "releases": {
+    "url": "./stable/releases.json",
+    "version": "0.2.0"
+  }
+}

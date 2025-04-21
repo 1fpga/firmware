@@ -1,6 +1,5 @@
-import { Games } from "@/services/database/games";
+import { db } from '@/services';
 
 export class StartGameAction {
-  constructor(public readonly game: Games) {
-  }
+  constructor(public readonly game: db.games.ExtendedGamesRow) {}
 }

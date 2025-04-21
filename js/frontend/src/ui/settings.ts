@@ -1,83 +1,75 @@
-import * as osd from "1fpga:osd";
-import * as oneFpgaSettings from "1fpga:settings";
-import { shortcutsMenu } from "./settings/shortcuts";
-import {
-  CatalogCheckFrequency,
-  DatetimeUpdate,
-  Games,
-  GlobalSettings,
-  StartOnKind,
-  User,
-  UserSettings,
-} from "@/services";
-import { accountsSettingsMenu } from "@/ui/settings/accounts";
-import { networkSettingsMenu } from "./settings/network";
+import * as osd from '1fpga:osd';
+import * as oneFpgaSettings from '1fpga:settings';
+
+import { db, settings, user } from '@/services';
+import { pickGame } from '@/ui/games';
+import { accountsSettingsMenu } from '@/ui/settings/accounts';
+import { assert } from '@/utils';
+
+import { networkSettingsMenu } from './settings/network';
+import { shortcutsMenu } from './settings/shortcuts';
 
 const UPDATE_FREQUENCY_LABELS = {
-  [CatalogCheckFrequency.Manually]: "Manually",
-  [CatalogCheckFrequency.EveryStartup]: "On Startup",
-  [CatalogCheckFrequency.Daily]: "Daily",
-  [CatalogCheckFrequency.Weekly]: "Once a week",
-  [CatalogCheckFrequency.Monthly]: "Once a month",
+  [settings.CatalogCheckFrequency.Manually]: 'Manually',
+  [settings.CatalogCheckFrequency.EveryStartup]: 'On Startup',
+  [settings.CatalogCheckFrequency.Daily]: 'Daily',
+  [settings.CatalogCheckFrequency.Weekly]: 'Once a week',
+  [settings.CatalogCheckFrequency.Monthly]: 'Once a month',
 };
 
 const FONT_SIZE_LABELS: { [key in oneFpgaSettings.FontSize]: string } = {
-  small: "Small",
-  medium: "Medium",
-  large: "Large",
+  small: 'Small',
+  medium: 'Medium',
+  large: 'Large',
 };
 
 const DATETIME_FORMAT_LABELS: {
   [key in oneFpgaSettings.DateTimeFormat]: string;
 } = {
-  default: "Default",
-  short: "Short",
-  timeOnly: "Time Only",
-  hidden: "Hidden",
+  default: 'Default',
+  short: 'Short',
+  timeOnly: 'Time Only',
+  hidden: 'Hidden',
 };
 
-async function startOptionsMenu(settings: UserSettings) {
+async function startOptionsMenu(userSettings: settings.UserSettings) {
   const labels = {
-    [StartOnKind.MainMenu]: "Main Menu",
-    [StartOnKind.GameLibrary]: "Game Library",
-    [StartOnKind.LastGamePlayed]: "Last Game Played",
-    [StartOnKind.SpecificGame]: "Specific Game",
+    [settings.StartOnKind.MainMenu]: 'Main Menu',
+    [settings.StartOnKind.GameLibrary]: 'Game Library',
+    [settings.StartOnKind.LastGamePlayed]: 'Last Game Played',
+    [settings.StartOnKind.SpecificGame]: 'Specific Game',
   };
 
   let done = false;
 
-  let startOn = await settings.startOn();
-  let maybeGame: undefined | Games;
+  let startOn = await userSettings.startOn();
+  let maybeGame: undefined | db.games.ExtendedGamesRow;
   while (!done) {
-    if (startOn.kind === StartOnKind.SpecificGame) {
-      maybeGame = await Games.byId(startOn.game);
+    if (startOn.kind === settings.StartOnKind.SpecificGame) {
+      maybeGame = await db.games.getExtended(startOn.game);
     }
 
     done = await osd.textMenu({
       back: true,
-      title: "Startup Options",
+      title: 'Startup Options',
       items: [
         {
-          label: "Start on:",
+          label: 'Start on:',
           marker: labels[startOn.kind],
-          select: async (item) => {
+          select: async item => {
             // Cannot select specific game from this menu.
             const keys = Object.keys(labels);
-            let kind = keys[
-            (keys.indexOf(startOn.kind) + 1) % keys.length
-              ] as StartOnKind;
+            let kind = keys[(keys.indexOf(startOn.kind) + 1) % keys.length] as settings.StartOnKind;
 
             switch (kind) {
-              case StartOnKind.SpecificGame:
-                const g = maybeGame ?? (await Games.first());
+              case settings.StartOnKind.SpecificGame:
+                const g = maybeGame ?? (await db.games.first());
                 if (g) {
                   maybeGame = g;
                   startOn = { kind, game: g.id };
                 } else {
-                  while (kind === StartOnKind.SpecificGame) {
-                    kind = keys[
-                    (keys.indexOf(kind) + 1) % keys.length
-                      ] as StartOnKind;
+                  while (kind === settings.StartOnKind.SpecificGame) {
+                    kind = keys[(keys.indexOf(kind) + 1) % keys.length] as settings.StartOnKind;
                   }
                   startOn = { kind };
                 }
@@ -88,29 +80,29 @@ async function startOptionsMenu(settings: UserSettings) {
             }
 
             item.marker = labels[startOn.kind];
-            await settings.setStartOn(startOn);
-            console.log("Start on:", JSON.stringify(await settings.startOn()));
+            await userSettings.setStartOn(startOn);
+            console.log('Start on:', JSON.stringify(await userSettings.startOn()));
             return false;
           },
         },
-        ...(startOn.kind === StartOnKind.SpecificGame
+        ...(startOn.kind === settings.StartOnKind.SpecificGame
           ? [
-            {
-              label: "  ",
-              marker: maybeGame?.name ?? "",
-              select: async (item: osd.TextMenuItem<boolean>) => {
-                const game = await Games.select({
-                  title: "Select a game",
-                });
-                if (game) {
-                  maybeGame = game;
-                  startOn = { kind: StartOnKind.SpecificGame, game: game.id };
-                  await settings.setStartOn(startOn);
-                  item.marker = game.name;
-                }
+              {
+                label: '  ',
+                marker: maybeGame?.name ?? '',
+                select: async (item: osd.TextMenuItem<boolean>) => {
+                  const game = await pickGame({
+                    title: 'Select a game',
+                  });
+                  if (game) {
+                    maybeGame = game;
+                    startOn = { kind: settings.StartOnKind.SpecificGame, game: game.id };
+                    await userSettings.setStartOn(startOn);
+                    item.marker = game.name;
+                  }
+                },
               },
-            },
-          ]
+            ]
           : []),
       ],
     });
@@ -118,42 +110,39 @@ async function startOptionsMenu(settings: UserSettings) {
 }
 
 export async function uiSettingsMenu() {
-  if (!User.loggedInUser(true).admin) {
-    throw new Error("Only admins can change the UI settings.");
-  }
+  await assert.user.isAdmin();
 
-  const settings = await GlobalSettings.create();
+  const s = await settings.GlobalSettings.create();
   await osd.textMenu({
-    title: "UI Settings",
+    title: 'UI Settings',
     back: 0,
     items: [
       {
-        label: "Show FPS",
-        marker: (await settings.getShowFps()) ? "On" : "Off",
-        select: async (item) => {
-          item.marker = (await settings.toggleShowFps()) ? "On" : "Off";
+        label: 'Show FPS',
+        marker: (await s.getShowFps()) ? 'On' : 'Off',
+        select: async item => {
+          item.marker = (await s.toggleShowFps()) ? 'On' : 'Off';
         },
       },
       {
-        label: "Font Size",
-        marker: FONT_SIZE_LABELS[await settings.getFontSize()],
-        select: async (item) => {
-          item.marker = FONT_SIZE_LABELS[await settings.toggleFontSize()];
+        label: 'Font Size',
+        marker: FONT_SIZE_LABELS[await s.getFontSize()],
+        select: async item => {
+          item.marker = FONT_SIZE_LABELS[await s.toggleFontSize()];
         },
       },
       {
-        label: "Toolbar Date Format",
-        marker: DATETIME_FORMAT_LABELS[await settings.getDatetimeFormat()],
-        select: async (item) => {
-          item.marker =
-            DATETIME_FORMAT_LABELS[await settings.toggleDatetimeFormat()];
+        label: 'Toolbar Date Format',
+        marker: DATETIME_FORMAT_LABELS[await s.getDatetimeFormat()],
+        select: async item => {
+          item.marker = DATETIME_FORMAT_LABELS[await s.toggleDatetimeFormat()];
         },
       },
       {
-        label: "Invert Toolbar",
-        marker: (await settings.getInvertToolbar()) ? "On" : "Off",
-        select: async (item) => {
-          item.marker = (await settings.toggleInvertToolbar()) ? "On" : "Off";
+        label: 'Invert Toolbar',
+        marker: (await s.getInvertToolbar()) ? 'On' : 'Off',
+        select: async item => {
+          item.marker = (await s.toggleInvertToolbar()) ? 'On' : 'Off';
         },
       },
     ],
@@ -163,15 +152,15 @@ export async function uiSettingsMenu() {
 }
 
 async function setTimezone() {
-  const settings = await GlobalSettings.create();
+  const s = await settings.GlobalSettings.create();
   return await osd.textMenu({
-    title: "Pick a Timezone",
+    title: 'Pick a Timezone',
     back: null,
     items: [
-      ...oneFpgaSettings.listTimeZones().map((tz) => ({
+      ...oneFpgaSettings.listTimeZones().map(tz => ({
         label: tz,
         select: async () => {
-          await settings.setTimeZone(tz);
+          await s.setTimeZone(tz);
           return tz;
         },
       })),
@@ -202,7 +191,7 @@ async function setDateTimeUi(values: DateTimeMenuValues[]): Promise<boolean> {
       back: -1,
       highlighted: currentValue == -1 ? 0 : currentValue,
       items: [
-        ...menu.choices().map((choice) => ({
+        ...menu.choices().map(choice => ({
           label: choice,
           select: async () => {
             menu.value = choice;
@@ -238,9 +227,7 @@ async function setDateMenu() {
         date.setFullYear(parseInt(value, 10));
       },
       choices: () =>
-        Array.from({ length: 100 }, (_, i) =>
-          (date.getFullYear() + i - 50).toString(),
-        ),
+        Array.from({ length: 100 }, (_, i) => (date.getFullYear() + i - 50).toString()),
     },
     {
       get title() {
@@ -265,14 +252,8 @@ async function setDateMenu() {
         date.setDate(parseInt(value, 10));
       },
       choices: () => {
-        const daysInMonth = new Date(
-          date.getFullYear(),
-          date.getMonth() + 1,
-          0,
-        ).getDate();
-        return Array.from({ length: daysInMonth }, (_, i) =>
-          (i + 1).toString(),
-        );
+        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
       },
     },
   ]);
@@ -341,36 +322,32 @@ async function setTimeMenu() {
 }
 
 async function settingsMenuDateTime() {
-  if (!User.loggedInUser(true).admin) {
-    throw new Error("Only admins can change the date and time settings.");
-  }
+  await assert.user.isAdmin();
 
-  const settings = await GlobalSettings.create();
+  const s = await settings.GlobalSettings.create();
   while (true) {
-    const type = await settings.getDateTimeUpdate();
+    const type = await s.getDateTimeUpdate();
     const d = new Date();
     let items: osd.TextMenuItem<any>[] = [];
-    if (type !== DatetimeUpdate.Automatic) {
+    if (type !== settings.DatetimeUpdate.Automatic) {
       items.push({
-        label: "Set TimeZone...",
-        marker: await settings.getTimeZone(
-          oneFpgaSettings.getTimeZone() ?? "UTC",
-        ),
+        label: 'Set TimeZone...',
+        marker: await s.getTimeZone(oneFpgaSettings.getTimeZone() ?? 'UTC'),
         select: async (item: osd.TextMenuItem<undefined>) => {
           const newTZ = await setTimezone();
           if (newTZ !== null) {
             item.marker = newTZ;
-            await settings.setTimeZone(newTZ);
+            await s.setTimeZone(newTZ);
           }
         },
       });
     }
-    if (type === DatetimeUpdate.Manual) {
+    if (type === settings.DatetimeUpdate.Manual) {
       items.push(
         {
-          label: "Set Date",
+          label: 'Set Date',
           marker: `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`,
-          select: async (item) => {
+          select: async item => {
             const n = await setDateMenu();
             if (n) {
               item.marker = `${n.getFullYear()}-${n.getMonth() + 1}-${n.getDate()}`;
@@ -378,9 +355,9 @@ async function settingsMenuDateTime() {
           },
         },
         {
-          label: "Set Time",
+          label: 'Set Time',
           marker: `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`,
-          select: async (item) => {
+          select: async item => {
             const n = await setTimeMenu();
             if (n) {
               item.marker = `${n.getHours()}:${n.getMinutes()}:${n.getSeconds()}`;
@@ -392,32 +369,32 @@ async function settingsMenuDateTime() {
 
     let marker;
     switch (type) {
-      case DatetimeUpdate.Automatic:
-        marker = "Automatic";
+      case settings.DatetimeUpdate.Automatic:
+        marker = 'Automatic';
         break;
-      case DatetimeUpdate.Manual:
-        marker = "Manual";
+      case settings.DatetimeUpdate.Manual:
+        marker = 'Manual';
         break;
-      case DatetimeUpdate.AutoWithTz:
-        marker = "Automatic (with TZ)";
+      case settings.DatetimeUpdate.AutoWithTz:
+        marker = 'Automatic (with TZ)';
         break;
     }
 
     const result = await osd.textMenu({
-      title: "Date and Time",
+      title: 'Date and Time',
       back: 0,
       items: [
         {
-          label: "Update Date and Time",
+          label: 'Update Date and Time',
           marker,
           select: async () => {
             const next =
-              type === DatetimeUpdate.Automatic
-                ? DatetimeUpdate.AutoWithTz
-                : type === DatetimeUpdate.AutoWithTz
-                  ? DatetimeUpdate.Manual
-                  : DatetimeUpdate.Automatic;
-            await settings.setDateTimeUpdate(next);
+              type === settings.DatetimeUpdate.Automatic
+                ? settings.DatetimeUpdate.AutoWithTz
+                : type === settings.DatetimeUpdate.AutoWithTz
+                  ? settings.DatetimeUpdate.Manual
+                  : settings.DatetimeUpdate.Automatic;
+            await s.setDateTimeUpdate(next);
             return 1;
           },
         },
@@ -433,80 +410,72 @@ async function settingsMenuDateTime() {
 }
 
 export async function settingsMenu() {
-  const user = User.loggedInUser(true);
-  const settings = await UserSettings.forLoggedInUser();
-  const globals = await GlobalSettings.create();
+  const u = user.User.loggedInUser(true);
+  const s = await settings.UserSettings.forLoggedInUser();
+  const globals = await settings.GlobalSettings.create();
   let reloadMainMenu = false;
 
   await osd.textMenu({
     back: 0,
-    title: "Settings",
+    title: 'Settings',
     items: [
-      ...(user.admin
+      ...(u.admin
         ? [
-          {
-            label: "Network...",
-            select: async () => {
-              await networkSettingsMenu();
+            {
+              label: 'Network...',
+              select: async () => {
+                await networkSettingsMenu();
+              },
             },
-          },
-          {
-            label: "UI...",
-            select: async () => {
-              if (await uiSettingsMenu()) {
-                reloadMainMenu = true;
-              }
+            {
+              label: 'UI...',
+              select: async () => {
+                if (await uiSettingsMenu()) {
+                  reloadMainMenu = true;
+                }
+              },
             },
-          },
-          {
-            label: "Date and Time...",
-            select: async () => {
-              if (await settingsMenuDateTime()) {
-                reloadMainMenu = true;
-              }
+            {
+              label: 'Date and Time...',
+              select: async () => {
+                if (await settingsMenuDateTime()) {
+                  reloadMainMenu = true;
+                }
 
-              await (
-                await GlobalSettings.create()
-              ).updateDateTimeIfNecessary();
+                await (await settings.GlobalSettings.create()).updateDateTimeIfNecessary();
+              },
             },
-          },
-          {
-            label: "Check for Updates",
-            marker:
-              UPDATE_FREQUENCY_LABELS[
-                await globals.getCatalogCheckFrequency()
-                ],
-            select: async (item: osd.TextMenuItem<any>) => {
-              item.marker =
-                UPDATE_FREQUENCY_LABELS[
-                  await globals.toggleCatalogCheckFrequency()
-                  ];
+            {
+              label: 'Check for Updates',
+              marker: UPDATE_FREQUENCY_LABELS[await globals.getCatalogCheckFrequency()],
+              select: async (item: osd.TextMenuItem<any>) => {
+                item.marker = UPDATE_FREQUENCY_LABELS[await globals.toggleCatalogCheckFrequency()];
+              },
             },
-          },
-        ]
+          ]
         : []),
       {
-        label: "Accounts...",
+        label: 'Accounts...',
         select: async () => {
           reloadMainMenu = reloadMainMenu || (await accountsSettingsMenu());
         },
       },
-      "---",
+      '---',
       {
-        label: "Shortcuts...",
+        label: 'Shortcuts...',
         select: shortcutsMenu,
       },
       {
-        label: "Startup Options...",
-        select: async () => await startOptionsMenu(settings),
+        label: 'Startup Options...',
+        select: async () => await startOptionsMenu(s),
       },
-      "-",
+      '-',
       {
-        label: "Developer Tools",
-        marker: (await settings.getDevTools()) ? "On" : "Off",
-        select: async (item) => {
-          await settings.toggleDevTools();
-          item.marker = (await settings.getDevTools()) ? "On" : "Off";
+        label: 'Developer Tools',
+        marker: (await s.getDevTools()) ? 'On' : 'Off',
+        select: async item => {
+          await s.toggleDevTools();
+          item.marker = (await s.getDevTools()) ? 'On' : 'Off';
           reloadMainMenu = true;
         },
       },

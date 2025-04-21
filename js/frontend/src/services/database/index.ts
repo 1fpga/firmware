@@ -1,9 +1,9 @@
-export * from "./binary";
-export * from "./catalog";
-export * from "./core";
-export * from "./games";
-export * from "./games_database";
-export * from "./commands";
-export * from "./system";
+export * from './commands';
 
-export * from "./screenshot";
+export * as catalog from './catalog';
+export * as cores from './cores';
+export * as games from './games';
+export * as gamesId from './games_identification';
+export * as savestates from './savestates';
+export * as screenshots from './screenshots';
+export * as systems from './systems';

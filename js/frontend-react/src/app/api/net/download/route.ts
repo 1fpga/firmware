@@ -1,6 +1,7 @@
-import * as fs from "node:fs/promises";
-import { pathOf } from "@/utils/server/filesystem";
-import path from "node:path";
+import * as fs from 'node:fs/promises';
+import path from 'node:path';
+
+import { pathOf } from '@/utils/server/filesystem';
 
 export const GET = () => {
   return new Response(null, { status: 403 });
@@ -19,13 +20,19 @@ export async function POST(req: Request) {
   }
 
   // Save the file.
-  const dst =
-    destination ??
-    `/downloads/${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const fileNameHeader = response.headers
+    .get('Content-Disposition')
+    ?.split(';')
+    .find(s => s.startsWith('filename='));
+  const fileName = fileNameHeader ? JSON.parse(fileNameHeader) : path.basename(url);
+
+  const dst = destination
+    ? path.join(destination, fileName)
+    : `/downloads/${Date.now()}-${Math.random().toString(36).slice(2)}-${fileName}`;
   const canonDest = await pathOf(dst);
   const bytes = await response.arrayBuffer();
   await fs.mkdir(path.dirname(canonDest), { recursive: true });
   await fs.writeFile(canonDest, Buffer.from(bytes));
 
-  return new Response(dst, { status: 200 });
+  return new Response(dst);
 }

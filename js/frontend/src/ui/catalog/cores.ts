@@ -1,16 +1,15 @@
-import * as osd from "1fpga:osd";
-import { RemoteCatalog, RemoteCore, RemoteSystem } from "@/services";
-import type { Core as CoresCoreSchema } from "schemas:catalog/cores";
-import { filesize } from "filesize";
+import { filesize } from 'filesize';
 
-/**
- * Select cores from a remote catalog options.
- */
+import * as osd from '1fpga:osd';
+
+import * as remote from '@/services/remote';
+import { NormalizedCore } from '@/services/remote/catalog';
+
 export interface SelectCoresOptions {
   /**
    * A predicate to filter cores.
    */
-  predicate?: (uniqueName: string, core: CoresCoreSchema) => boolean;
+  predicate?: (core: remote.catalog.NormalizedCore) => boolean;
 
   /**
    * Show an option to install all cores.
@@ -19,40 +18,49 @@ export interface SelectCoresOptions {
 }
 
 export interface SelectCoresResult {
-  cores: RemoteCore[];
-  systems: RemoteSystem[];
+  cores: remote.catalog.NormalizedCore[];
+  systems: remote.catalog.NormalizedSystem[];
 }
 
 export async function selectCoresFromRemoteCatalog(
-  catalog: RemoteCatalog,
+  catalog: remote.catalog.NormalizedCatalog,
   options: SelectCoresOptions = {},
 ): Promise<SelectCoresResult> {
   const predicate = options.predicate ?? (() => true);
   const installAll = options.installAll ?? false;
   let selected = new Set<string>();
 
-  const cores = await catalog.fetchCores(predicate, true);
-  const systems = await catalog.fetchSystems((name, _) => {
-    return Object.values(cores).some((c) => c.systems.includes(name));
-  });
+  // If the catalog does not contain cores or systems, we cannot list them.
+  if (!catalog.cores || !catalog.systems) {
+    return { cores: [], systems: [] };
+  }
 
-  if (Object.values(systems).length === 0) {
+  const cores: remote.catalog.NormalizedCore[] = Object.values(
+    remote.catalog.denormalize(catalog.cores),
+  ).filter(predicate);
+  const systems = Object.values(remote.catalog.denormalize(catalog.systems)).filter(s =>
+    cores.some(c => c.systems.includes(s.uniqueName)),
+  );
+
+  if (systems.length === 0 || cores.length === 0) {
     return { cores: [], systems: [] };
   }
 
   const items: (osd.TextMenuItem<boolean> | string)[] = [];
-  const sortedSystems = Object.entries(systems).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
+  const sortedSystems = systems.sort((a, b) => a.uniqueName.localeCompare(b.uniqueName));
 
-  for (const [name, system] of sortedSystems) {
-    const systemCores = Object.entries(cores).filter(([_name, core]) => {
-      return core.systems.includes(name);
-    });
+  for (const system of sortedSystems) {
+    const name = system.uniqueName;
+    const systemCores = cores
+      .filter(core => {
+        return core.systems.includes(name);
+      })
+      .map(c => [c.uniqueName, c]) as [string, NormalizedCore][];
 
     // If there's only one core, do not show the system name.
-    let indent = "";
-    let coreStartSize = system.size;
+    let indent = '';
+    const dbSize = system.db?.size ?? 0;
+    let coreStartSize = dbSize;
     switch (systemCores.length) {
       case 0:
         continue;
@@ -60,35 +68,34 @@ export async function selectCoresFromRemoteCatalog(
         break;
       default:
         if (items.length > 0) {
-          items.push("-");
+          items.push('-');
         }
         items.push({ label: system.name });
-        indent = "  ";
-        if (system.size > 0) {
+        indent = '  ';
+        if (dbSize > 0) {
           coreStartSize = 0;
-          items.push({ label: "  Size:", marker: filesize(system.size) });
+          items.push({ label: '  Size:', marker: filesize(dbSize) });
         }
-        items.push("-");
+        items.push('-');
         break;
     }
 
     for (const [coreName, core] of systemCores) {
       if (core.systems.includes(name)) {
-        const coreSize = core.latestRelease.files.reduce(
-          (a, b) => a + b.size,
-          coreStartSize,
-        );
+        const coreSize =
+          remote.cores.latestReleaseOf(core)?.files.reduce((a, b) => a + b.size, coreStartSize) ??
+          0;
 
         items.push({
           label: `${indent}${core.name}`,
-          marker: selected.has(coreName) ? "install" : "",
-          select: (item) => {
+          marker: selected.has(coreName) ? 'install' : '',
+          select: item => {
             if (selected.has(coreName)) {
               selected.delete(coreName);
-              item.marker = "";
+              item.marker = '';
             } else {
               selected.add(coreName);
-              item.marker = "install";
+              item.marker = 'install';
             }
           },
         });
@@ -100,35 +107,34 @@ export async function selectCoresFromRemoteCatalog(
   }
 
   let shouldInstall = await osd.textMenu({
-    title: "Choose Cores to install",
+    title: 'Choose Cores to install',
     back: false,
     items: [
       ...(installAll
         ? [
-          {
-            label: "Install All...",
-            select: () => {
-              for (const core of Object.values(cores)) {
-                selected.add(core.uniqueName);
-              }
-              return true;
+            {
+              label: 'Install All...',
+              select: () => {
+                for (const core of Object.values(cores)) {
+                  selected.add(core.uniqueName);
+                }
+                return true;
+              },
             },
-          },
-          "-",
-        ]
+            '-',
+          ]
         : []),
       ...items,
-      "-",
-      { label: "Install selected cores", select: () => true },
+      '-',
+      { label: 'Install selected cores', select: () => true },
     ],
   });
+  console.log('Selected cores:', [...selected]);
 
   if (shouldInstall) {
-    const coresToInstall = Object.values(cores).filter((core) =>
-      selected.has(core.uniqueName),
-    );
-    const systemsToInstall = Object.values(systems).filter((system) =>
-      coresToInstall.some((core) => core.systems.includes(system.uniqueName)),
+    const coresToInstall = Object.values(cores).filter(core => selected.has(core.uniqueName));
+    const systemsToInstall = Object.values(systems).filter(system =>
+      coresToInstall.some(core => core.systems.includes(system.uniqueName)),
     );
     return { cores: coresToInstall, systems: systemsToInstall };
   } else {

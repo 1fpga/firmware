@@ -1,5 +1,5 @@
-export * from "./useView";
+export * from './useView';
 
-export * from "./useOneFpga";
+export * from './useOneFpga';
 
-export * from "./useOnline";
+export * from './useOnline';

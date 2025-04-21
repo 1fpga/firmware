@@ -1,5 +1,5 @@
 // Type definitions for general types and interfaces.
-import "./consts";
+import './consts';
 
 declare interface SendToBackgroundOptions {
   /**
@@ -7,7 +7,7 @@ declare interface SendToBackgroundOptions {
    * when the stretch mode is set to None.
    * @default "center"
    */
-  position?: { x: number; y: number } | "center" | "top-left";
+  position?: { x: number; y: number } | 'center' | 'top-left';
 
   /**
    * Whether to clear the background or not. Default to false.
@@ -40,7 +40,7 @@ declare global {
     /**
      * The default background image.
      */
-    static embedded(name: "background"): Promise<Image>;
+    static embedded(name: 'background'): Promise<Image>;
 
     /**
      * Save the image to the given path.
@@ -73,7 +73,7 @@ declare global {
   }
 
   interface OneFpgaGlobal {
-    name: "OneFPGA";
+    name: 'OneFPGA';
     version: {
       major: number;
       minor: number;

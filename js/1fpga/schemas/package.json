@@ -1,0 +1,26 @@
+{
+  "name": "@1fpga/schemas",
+  "version": "1.0.0",
+  "description": "Schemas for dealing with 1FPGA.",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": [
+    "schemas",
+    "1fpga"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "zod": "^4.0.0-beta.20250420T053007"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "ts-jest": "^29.3.2",
+    "typescript": "^5.8.3"
+  }
+}

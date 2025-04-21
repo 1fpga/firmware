@@ -182,7 +182,7 @@ impl OneFpgaApp {
                         if let Some(Some(g)) = self.gamepads.get(*which as usize) {
                             warn!(
                                 "Gamepad {} was already connected. Replacing it.",
-                                g.name().unwrap_or("<unnamed>".to_string())
+                                g.name().unwrap_or_else(|| "<unnamed>".into())
                             );
                         }
                         debug!(name = g.name(), mapping = g.mapping(), "Gamepad connected");

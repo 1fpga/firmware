@@ -1,7 +1,9 @@
-import * as osd from "1fpga:osd";
-import * as core from "1fpga:core";
-import { CoreSettingPage } from "1fpga:core";
-import type { Core } from "@/services/database/core";
+import * as core from '1fpga:core';
+import { CoreSettingPage } from '1fpga:core';
+import * as osd from '1fpga:osd';
+
+import * as db from '@/services/database';
+import * as games from '@/ui/games';
 
 enum SettingReturn {
   Continue,
@@ -21,39 +23,38 @@ export async function coreSettingsMenu(
     if (pageLabel !== undefined) {
       menu =
         menu.items.find(
-          (item): item is CoreSettingPage =>
-            item.kind === "page" && item.label === pageLabel,
+          (item): item is CoreSettingPage => item.kind === 'page' && item.label === pageLabel,
         ) ?? menu;
     }
 
     shouldReturn = await osd.textMenu<SettingReturn>({
-      title: "Core Settings",
+      title: 'Core Settings',
       back: SettingReturn.ReturnContinue,
       items: [
         ...(await Promise.all(
-          menu.items.map((item) => {
+          menu.items.map(item => {
             switch (item.kind) {
-              case "page":
+              case 'page':
                 return {
                   label: item.label,
-                  marker: ">",
+                  marker: '>',
                   select: async () => {
                     return await coreSettingsMenu(core, item.label);
                   },
                 };
-              case "separator":
-                return "-";
-              case "label":
+              case 'separator':
+                return '-';
+              case 'label':
                 return {
                   label: item.label,
                   selectable: item.selectable,
                 };
-              case "file":
+              case 'file':
                 return {
                   label: item.label,
-                  marker: item.extensions.join(","),
+                  marker: item.extensions.join(','),
                   select: async () => {
-                    let path = await osd.selectFile(item.label, "/media/fat", {
+                    let path = await osd.selectFile(item.label, '/media/fat', {
                       extensions: item.extensions,
                     });
                     if (path) {
@@ -62,32 +63,29 @@ export async function coreSettingsMenu(
                     }
                   },
                 };
-              case "trigger":
+              case 'trigger':
                 return {
                   label: item.label,
-                  marker: "!",
+                  marker: '!',
                   select: () => {
                     core.trigger(item.id);
                   },
                 };
-              case "bool":
+              case 'bool':
                 return {
                   label: item.label,
-                  marker: item.value ? "[X]" : "[ ]",
+                  marker: item.value ? '[X]' : '[ ]',
                   select: (menuItem: osd.TextMenuItem<SettingReturn>) => {
                     item.value = core.boolSelect(item.id, !item.value);
-                    menuItem.marker = item.value ? "[X]" : "[ ]";
+                    menuItem.marker = item.value ? '[X]' : '[ ]';
                   },
                 };
-              case "int":
+              case 'int':
                 return {
                   label: item.label,
                   marker: item.choices[item.value],
                   select: (menuItem: osd.TextMenuItem<SettingReturn>) => {
-                    item.value = core.intSelect(
-                      item.id,
-                      (item.value + 1) % item.choices.length,
-                    );
+                    item.value = core.intSelect(item.id, (item.value + 1) % item.choices.length);
                     menuItem.marker = item.choices[item.value];
                   },
                 };
@@ -102,56 +100,50 @@ export async function coreSettingsMenu(
     }
   }
 
-  return shouldReturn === SettingReturn.ReturnContinue
-    ? SettingReturn.Continue
-    : shouldReturn;
+  return shouldReturn === SettingReturn.ReturnContinue ? SettingReturn.Continue : shouldReturn;
 }
 
-function isKindFile(
-  item: core.CoreSettingsItem,
-): item is core.CoreSettingFileSelect {
-  return item.kind === "file";
-}
+const isKindFile = (item: core.CoreSettingsItem): item is core.CoreSettingFileSelect =>
+  item.kind === 'file';
 
 export async function coreOsdMenu(
   oneFpgaCore: core.OneFpgaCore,
-  coreDb: Core | null,
+  coreRow: db.cores.CoreRow | null,
 ): Promise<core.OsdResult> {
   let menu = oneFpgaCore.settings;
 
   let fileMenus = menu.items.filter(isKindFile);
 
-  console.log(JSON.stringify(menu));
+  const canLoadGame = coreRow && fileMenus.length > 0;
+  const [maybeSystem] = canLoadGame ? await db.systems.find({ core: coreRow }) : [];
 
   return await osd.textMenu({
-    title: "Core Menu",
+    title: 'Core Menu',
     back: false,
     items: [
-      ...(coreDb
+      ...(canLoadGame && maybeSystem
         ? [
-          {
-            label: "Load Game...",
-            select: async () => {
-              // let system = await coreDb.getSystem();
-              // let game = await (
-              //   await import("@/services/database/games")
-              // ).Games.select({
-              //   title: "Load Game",
-              //   system: system.uniqueName,
-              // });
-              // if (game?.romPath) {
-              //   oneFpgaCore.fileSelect(0, game.romPath);
-              //   return false;
-              // }
+            {
+              label: 'Load Game...',
+              select: async () => {
+                const game = await games.pickGame({
+                  title: 'Load Game',
+                  system: maybeSystem?.uniqueName,
+                });
+
+                if (game?.romPath) {
+                  oneFpgaCore.fileSelect(0, game.romPath);
+                  return false;
+                }
+              },
             },
-          },
-        ]
+          ]
         : []),
       ...(await Promise.all(
-        fileMenus.map((item) => ({
+        fileMenus.map(item => ({
           label: item.label,
           select: async () => {
-            let path = await osd.selectFile(item.label, "/media/fat", {
+            let path = await osd.selectFile(item.label, '/media/fat', {
               extensions: item.extensions,
             });
             if (path) {
@@ -161,9 +153,9 @@ export async function coreOsdMenu(
           },
         })),
       )),
-      "-",
+      '-',
       {
-        label: "Core Settings...",
+        label: 'Core Settings...',
         select: async () => {
           switch (await coreSettingsMenu(oneFpgaCore)) {
             case SettingReturn.Back:
@@ -176,15 +168,15 @@ export async function coreOsdMenu(
         },
       },
       {
-        label: "Reset Core",
+        label: 'Reset Core',
         select: () => {
           oneFpgaCore.reset();
           return false;
         },
       },
-      "-",
+      '-',
       {
-        label: "Quit",
+        label: 'Quit',
         select: () => true,
       },
     ],

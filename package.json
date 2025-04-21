@@ -3,15 +3,20 @@
   "workspaces": [
     "js/frontend",
     "js/frontend-react",
-    "js/1fpga/polyfill-react",
+    "js/1fpga/schemas",
     "js/1fpga/types",
     "scripts/patreon"
   ],
   "scripts": {
-    "build": "npm run build:frontend",
-    "build:frontend": "npm run -w @1fpga/frontend build"
+    "build": "npm run build:schemas && npm run build:frontend",
+    "build:schemas": "npm run -w @1fpga/schemas build",
+    "build:frontend": "npm run -w @1fpga/frontend build",
+    "patreon": "npm run -w patreon output",
+    "start": "npm run build:frontend && npm run -w frontend-react dev",
+    "test": "npm test -w @1fpga/schemas && npm test -w @1fpga/frontend"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "prettier": "3.3.3"
   }
 }

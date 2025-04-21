@@ -1,7 +1,7 @@
-import babelParser from "@babel/parser";
-import generate from "@babel/generator";
-import traverse from "@babel/traverse";
-import * as commonTags from "common-tags";
+import generate from '@babel/generator';
+import babelParser from '@babel/parser';
+import traverse from '@babel/traverse';
+import * as commonTags from 'common-tags';
 
 const { parse, ParserOptions } = babelParser;
 
@@ -27,7 +27,7 @@ function defaultTransformer(code) {
  */
 export function transformTaggedContent(content, options = {}) {
   const {
-    parserOptions = { sourceType: "module" },
+    parserOptions = { sourceType: 'module' },
     tagsToProcess = [],
     transformer = defaultTransformer,
   } = options;
@@ -55,9 +55,9 @@ export function transformTaggedContent(content, options = {}) {
  */
 export function transformTaggedTemplate(options = {}) {
   return {
-    name: "transform-tagged-template",
+    name: 'transform-tagged-template',
     transform(content, id) {
-      if (id.endsWith(".json")) {
+      if (id.endsWith('.json')) {
         return content;
       } else {
         return transformTaggedContent(content, options);
@@ -72,16 +72,16 @@ export function transformTaggedTemplate(options = {}) {
  */
 export function transformCommonTags(name) {
   return {
-    name: "transform-common-tags-" + name,
+    name: 'transform-common-tags-' + name,
     transform(content, id) {
-      if (id.endsWith(".json")) {
+      if (id.endsWith('.json')) {
         return content;
       } else {
         return transformTaggedContent(content, {
           tagsToProcess: [name],
           transformer: (content, o) => {
-            if (name === "oneLine") {
-              return content.replace(/\n\s*/gm, " ").replace(/\s+/g, " ");
+            if (name === 'oneLine') {
+              return content.replace(/\n\s*/gm, ' ').replace(/\s+/g, ' ');
             } else {
               return commonTags[name](content);
             }

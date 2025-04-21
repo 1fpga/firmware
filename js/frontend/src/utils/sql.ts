@@ -1,44 +1,40 @@
-import production from "consts:production";
-import * as oneFpgaDb from "1fpga:db";
-import { SqlTag, type SqlTagDriver } from "@sqltags/core";
-import { MigrationDetails } from "1fpga:migrations";
+import type { MigrationDetails } from '@:migrations';
+import { SqlTag, type SqlTagDriver } from '@sqltags/core';
 
-async function applyMigrations(
-  db: oneFpgaDb.Db,
-  _name: string,
-  latest: string,
-) {
-  const migrations = (await import("1fpga:migrations")).migrations;
-  const allMigrations: [string, MigrationDetails][] =
-    Object.getOwnPropertyNames(migrations)
-      .filter((m) => m.localeCompare(latest) > 0)
-      .sort()
-      .map(
-        (m) =>
-          migrations[m].up &&
-          ([m, migrations[m].up] as [string, MigrationDetails]),
-      )
-      .filter((m) => m !== undefined);
+import * as oneFpgaDb from '1fpga:db';
+
+import production from 'consts:production';
+
+async function applyMigrations(db: oneFpgaDb.Db, _name: string, latest: string) {
+  const initial = latest === '';
+  const migrations = (await import('@:migrations')).migrations;
+  const allMigrations: [string, MigrationDetails][] = Object.getOwnPropertyNames(migrations)
+    .filter(m => m.localeCompare(latest) > 0)
+    .sort()
+    .map(m => migrations[m].up && ([m, migrations[m].up] as [string, MigrationDetails]))
+    .filter(m => m !== undefined);
 
   if (allMigrations.length === 0) {
     console.debug(`Latest migration: ${latest}, no migrations to apply.`);
     return;
   }
 
-  console.log(
-    `Latest migration: ${latest}, applying ${allMigrations.length} migrations...`,
-  );
+  console.log(`Latest migration: ${latest}, applying ${allMigrations.length} migrations...`);
 
   const sql1 = await transaction();
   for (const [name, up] of allMigrations) {
     console.debug(`Applying ${name}...`);
-    const { sql, apply } = up;
+    const { sql, pre, post } = up;
 
     // Start a transaction so everything is in a single transaction.
     try {
+      let context: unknown = undefined;
+      if (pre) {
+        context = await pre(sql1, { initial });
+      }
       await sql1.db.executeRaw(sql);
-      if (apply) {
-        await apply(sql1);
+      if (post) {
+        await post(sql1, { initial, context });
       }
     } catch (e) {
       await sql1.rollback();
@@ -47,7 +43,7 @@ async function applyMigrations(
     }
 
     await sql1`INSERT INTO __1fpga_settings ${sql1.insertValues({
-      key: "latest_migration",
+      key: 'latest_migration',
       value: name,
     })}
                ON CONFLICT (key)
@@ -56,7 +52,7 @@ async function applyMigrations(
   await sql1.commit();
 
   console.log(
-    "Migrations applied. Latest migration: ",
+    'Migrations applied. Latest migration: ',
     (
       await sql<{ value: string }>`SELECT value
                                    FROM __1fpga_settings
@@ -65,18 +61,15 @@ async function applyMigrations(
   );
 }
 
-async function createMigrationTable(
-  db: oneFpgaDb.Db,
-  name: string,
-): Promise<void> {
+async function createMigrationTable(db: oneFpgaDb.Db, name: string): Promise<void> {
   await sql`CREATE TABLE __1fpga_settings
             (
-                id    INTEGER PRIMARY KEY,
-                key   TEXT NOT NULL UNIQUE,
-                value TEXT NOT NULL
+              id    INTEGER PRIMARY KEY,
+              key   TEXT NOT NULL UNIQUE,
+              value TEXT NOT NULL
             )`;
 
-  await applyMigrations(db, name, "");
+  await applyMigrations(db, name, '');
 }
 
 async function initDb(db: oneFpgaDb.Db, name: string): Promise<void> {
@@ -95,40 +88,40 @@ async function initDb(db: oneFpgaDb.Db, name: string): Promise<void> {
        FROM __1fpga_settings
        WHERE key = 'latest_migration'`;
 
-    await applyMigrations(db, name, latestMigration?.value || "");
+    await applyMigrations(db, name, latestMigration?.value || '');
   }
 }
 
 let db: oneFpgaDb.Db | null = null;
 
 export async function resetDb(): Promise<void> {
-  console.warn("Clearing the database. Be careful!");
-  await oneFpgaDb.reset("1fpga");
+  console.warn('Clearing the database. Be careful!');
+  db = null;
+  await oneFpgaDb.reset('1fpga');
+}
+
+export async function closeAllDb(): Promise<void> {
   db = null;
 }
 
 async function getDb(): Promise<oneFpgaDb.Db> {
   if (db === null) {
-    db = await oneFpgaDb.load("1fpga");
-    await initDb(db, "1fpga");
+    db = await oneFpgaDb.load('1fpga');
+    await initDb(db, '1fpga');
   }
 
   return db;
 }
 
 const driver: SqlTagDriver<undefined, never> = {
-  cursor(
-    sql: string,
-    params: any[],
-    options: {} | undefined,
-  ): AsyncIterable<any> {
-    throw new Error("Method not implemented.");
+  cursor(sql: string, params: any[], options: {} | undefined): AsyncIterable<any> {
+    throw new Error('Method not implemented.');
   },
   escapeIdentifier(identifier: string): string {
     return `"${identifier.replace(/"/g, '""')}"`;
   },
   parameterizeValue(value: any, paramIndex: number): string {
-    return "?";
+    return '?';
   },
   async query(sql: string, params: any[]): Promise<[any[], undefined]> {
     let db = await getDb();
@@ -137,9 +130,29 @@ const driver: SqlTagDriver<undefined, never> = {
   },
 };
 
-export const sql = new SqlTag(driver);
+export type DbSqlTag = SqlTag<undefined, never>;
 
-export interface SqlTransactionTag extends SqlTag<undefined, never> {
+export const sql: DbSqlTag = new SqlTag(driver);
+
+export const sqlOf = (database: oneFpgaDb.Db) => {
+  return new SqlTag<undefined, never>({
+    cursor(): AsyncIterable<any> {
+      throw new Error('Method not implemented.');
+    },
+    escapeIdentifier(identifier: string): string {
+      return `"${identifier.replace(/"/g, '""')}"`;
+    },
+    parameterizeValue(value: any, paramIndex: number): string {
+      return '?';
+    },
+    async query(sql: string, params: any[]): Promise<[any[], undefined]> {
+      let result = await database.query(sql, params);
+      return [result.rows, undefined];
+    },
+  }) as DbSqlTag;
+};
+
+export interface SqlTransactionTag extends DbSqlTag {
   commit(): Promise<void>;
 
   rollback(): Promise<void>;
@@ -154,7 +167,7 @@ export async function transaction(): Promise<SqlTransactionTag> {
     ...driver,
     async query(sql: string, params: any[]): Promise<[any[], undefined]> {
       if (!production) {
-        console.log("tx", sql, "|", JSON.stringify(params));
+        console.log('tx', sql, '|', JSON.stringify(params));
       }
       let { rows } = await db.query(sql, params);
       return [rows, undefined];

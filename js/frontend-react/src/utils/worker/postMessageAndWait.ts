@@ -3,11 +3,11 @@ const responses: {
   reject: (reason: any) => void;
 }[] = [];
 
-addEventListener("message", (e) => {
+addEventListener('message', e => {
   const { kind, id } = e.data as { kind: string; id?: number };
 
   switch (kind) {
-    case "response": {
+    case 'response': {
       if (id !== undefined) {
         const o = responses[id];
         o && o.resolve(e.data.result);
@@ -15,7 +15,7 @@ addEventListener("message", (e) => {
       }
       return;
     }
-    case "error": {
+    case 'error': {
       if (id !== undefined) {
         const o = responses[id];
         o && o.reject(e.data);
@@ -29,9 +29,9 @@ addEventListener("message", (e) => {
 export async function postMessageAndWait(data: any) {
   const { promise, resolve, reject } = Promise.withResolvers<any>();
   const id = responses.push({ resolve, reject }) - 1;
-  console.log("postMessageAndWait", { ...data, id });
+
   postMessage({ ...data, id });
+
   const result = await promise;
-  console.log("postMessageAndWait (result)", result);
   return result;
 }

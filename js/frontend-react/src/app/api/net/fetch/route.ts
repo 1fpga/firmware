@@ -10,9 +10,9 @@ export async function POST(req: Request) {
   }
 
   const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`${url} failed with status code ${response.status}`);
-  }
-
-  return new Response(response.body, { status: 200 });
+  const body = await response.bytes();
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+  });
 }

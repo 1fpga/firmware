@@ -30,6 +30,7 @@ impl SdlWindow {
                 .build()
                 .unwrap()
         });
+        platform.with(|ctx| ctx.video().unwrap().text_input().start(&window));
 
         let canvas = window.into_canvas();
 
@@ -37,11 +38,15 @@ impl SdlWindow {
             texture_creator: canvas.texture_creator(),
             texture_builder: |creator: &TextureCreator<WindowContext>| {
                 creator
-                    .create_texture_streaming(unsafe { PixelFormat::from_ll(SDL_PIXELFORMAT_RGB24) }, size.width, size.height)
+                    .create_texture_streaming(
+                        unsafe { PixelFormat::from_ll(SDL_PIXELFORMAT_RGB24) },
+                        size.width,
+                        size.height,
+                    )
                     .unwrap()
             },
         }
-            .build();
+        .build();
 
         Self {
             canvas,

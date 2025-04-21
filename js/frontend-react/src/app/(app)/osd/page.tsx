@@ -1,18 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { useView } from "@/hooks";
-import { createRoot, Root } from "react-dom/client";
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+import { Root, createRoot } from 'react-dom/client';
+
+import { useOneFpga, useView } from '@/hooks';
 
 export default function OsdPage() {
-  const view = useView("osd");
+  const { started } = useOneFpga();
+  const view = useView('osd');
   const viewRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     let root: Root;
     const id = setTimeout(() => {
       if (!viewRef.current) {
-        throw new Error("Could not find DOM element for OSD");
+        throw new Error('Could not find DOM element for OSD');
       }
 
       root = createRoot(viewRef.current);
@@ -27,6 +31,12 @@ export default function OsdPage() {
         root?.unmount();
       });
     };
+  });
+
+  useEffect(() => {
+    if (!started) {
+      router.replace('/');
+    }
   });
 
   return <div ref={viewRef} />;

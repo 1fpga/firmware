@@ -1,26 +1,26 @@
-import { DbStorage } from "../storage";
-import { User } from "../user";
-import type { StartOn as StartOnSchema } from "schemas:settings/start-on";
-import { getOrFail } from "@/services/settings/utils";
-import { GameSortOrder } from "@/services/database/games";
+import * as schemas from '@1fpga/schemas';
 
-export type StartOnSetting = StartOnSchema;
+import { GameSortOrder } from '@/services/database/games';
+import { getOrFail } from '@/services/settings/utils';
+
+import { DbStorage } from '../storage';
+import { User } from '../user';
 
 /**
  * The possible values for the `startOn` setting.
  * If you update this setting, remember to also update the `start-on.json` schema.
  */
 export enum StartOnKind {
-  MainMenu = "main-menu",
-  GameLibrary = "game-library",
-  LastGamePlayed = "last-game",
-  SpecificGame = "start-game",
+  MainMenu = 'main-menu',
+  GameLibrary = 'game-library',
+  LastGamePlayed = 'last-game',
+  SpecificGame = 'start-game',
 }
 
-const START_ON_KEY = "startOn";
-const DEV_TOOLS_KEY = "devTools";
-const GAME_SORT_KEY = "gameSort";
-const DEFAULT_VOLUME_KEY = "defaultVolume";
+const START_ON_KEY = 'startOn';
+const DEV_TOOLS_KEY = 'devTools';
+const GAME_SORT_KEY = 'gameSort';
+const DEFAULT_VOLUME_KEY = 'defaultVolume';
 
 export class UserSettings {
   public static async forLoggedInUser(): Promise<UserSettings> {
@@ -34,21 +34,21 @@ export class UserSettings {
     return new UserSettings(storage);
   }
 
-  private constructor(private readonly storage_: DbStorage) {
-  }
+  private constructor(private readonly storage_: DbStorage) {}
 
-  public async startOn(): Promise<StartOnSetting> {
+  public async startOn(): Promise<schemas.settings.StartOnSetting> {
+    const schema = schemas.settings.StartOnSetting;
     return await getOrFail(
       this.storage_,
       START_ON_KEY,
       {
         kind: StartOnKind.MainMenu,
       },
-      (await import("schemas:settings/start-on")).validate,
+      (v): v is schemas.settings.StartOnSetting => schema.safeParse(v).success,
     );
   }
 
-  public async setStartOn(value: StartOnSetting): Promise<void> {
+  public async setStartOn(value: schemas.settings.StartOnSetting): Promise<void> {
     await this.storage_.set(START_ON_KEY, value);
   }
 

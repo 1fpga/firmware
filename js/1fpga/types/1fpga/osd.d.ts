@@ -7,7 +7,7 @@
  * with it. For example, the `textMenu` function will create a menu with a list of
  * textual option, and the function will return the index of the selected option.
  */
-declare module "1fpga:osd" {
+declare module '1fpga:osd' {
   /**
    * Represents a textual menu item.
    */
@@ -46,10 +46,7 @@ declare module "1fpga:osd" {
     /**
      * The value to return if the user presses the cancel button (or function to execute).
      */
-    sort?: () =>
-      | Partial<TextMenuOptions<R>>
-      | void
-      | Promise<Partial<TextMenuOptions<R>> | void>;
+    sort?: () => Partial<TextMenuOptions<R>> | void | Promise<Partial<TextMenuOptions<R>> | void>;
 
     /**
      * The label to show for the sort button.
@@ -104,10 +101,6 @@ declare module "1fpga:osd" {
    * @returns The user input, or `undefined` if the user canceled the operation.
    */
   export function prompt(message: string): Promise<undefined | string>;
-  export function prompt(
-    title: string,
-    message: string,
-  ): Promise<undefined | string>;
   export function prompt(options: {
     title?: string;
     message: string;
@@ -167,10 +160,7 @@ declare module "1fpga:osd" {
   /**
    * Prompt the user for a shortcut.
    */
-  export function promptShortcut(
-    title?: string,
-    message?: string,
-  ): Promise<string | undefined>;
+  export function promptShortcut(title?: string, message?: string): Promise<string | undefined>;
 
   /**
    * Hide the OSD. This does not change the execution of the event loop,

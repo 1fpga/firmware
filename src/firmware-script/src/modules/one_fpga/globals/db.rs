@@ -10,7 +10,7 @@ use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, Value, ValueRef};
 use rusqlite::{Connection, Row, Statement};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use tracing::trace;
 
@@ -326,6 +326,10 @@ pub struct JsDb {
 impl JsDb {
     pub fn new(name: &str) -> JsResult<Self> {
         let path = db_root().join(format!("{}.sqlite", name));
+        Self::load_file(&path)
+    }
+
+    pub fn load_file(path: &Path) -> JsResult<Self> {
         trace!("Opening database at {:?}", path);
         let connection = Connection::open(path).map_err(|e| js_error!("SQL Error: {}", e))?;
 

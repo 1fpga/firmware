@@ -19,22 +19,26 @@
 /**
  * This module provides functions for upgrading the firmware.
  */
-declare module "1fpga:upgrade" {
+declare module '1fpga:upgrade' {
   /**
-   * Perform a firmware upgrade.
+   * Perform a binary upgrade. If the `name` parameter is '1fpga', this will upgrade
+   * the firmware itself.
    *
+   * @warning Currently only supports '1fpga' firmware upgrades.
    * @param name The name of the binary to upgrade. For now this is always "1fpga".
    * @param path The path of the firmware file to upgrade to.
    * @param signature The signature of the firmware file. If not provided,
    *                  the firmware will require the user to validate the upgrade
    *                  manually before proceeding.
-   * @throws If the upgrade fails.
+   * @throws any If the upgrade fails.
    */
-  export function upgrade(
-    name: string,
-    path: string,
-    signature?: Uint8Array,
-  ): Promise<void>;
+  export function upgrade(name: string, path: string, signature?: Uint8Array): Promise<void>;
+
+  /**
+   * Perform an upgrade of the 1FPGA binary (named `one_fpga`). This will restart the
+   * process and never return.
+   */
+  export function upgrade(name: '1fpga', path: string, signature?: Uint8Array): Promise<never>;
 
   /**
    * Verify a firmware file. This is a convenience to check if the firmware
@@ -45,8 +49,5 @@ declare module "1fpga:upgrade" {
    * @throws string If the file path is wrong or the signature is the invalid
    *                format. This will not throw if the signature is invalid.
    */
-  export function verifySignature(
-    path: string,
-    signature: Uint8Array,
-  ): Promise<boolean>;
+  export function verifySignature(path: string, signature: Uint8Array): Promise<boolean>;
 }

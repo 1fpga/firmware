@@ -1,5 +1,8 @@
-export * from "./database";
-export * from "./remote";
-export * from "./settings";
-export * from "./storage";
-export * from "./user";
+export * as catalog from './catalog';
+export * as core from './core';
+export * as db from './database';
+export * as launch from './launch';
+export * as remote from './remote';
+export * as settings from './settings';
+export * as storage from './storage';
+export * as user from './user';

@@ -1,15 +1,23 @@
-import { SqlTag } from "@sqltags/core";
+import { SqlTag } from '@sqltags/core';
 
-export interface MigrationDetails {
+export interface MigrationDetails<T = any> {
   /**
    * SQL to be executed.
    */
   sql: string;
+
+  pre: (db: SqlTag<unknown, unknown>, options: { initial: boolean }) => Promise<T>;
+
   /**
-   * Function to be executed
-   * after the SQL is executed.
+   * Function to be executed after the SQL is executed.
    */
-  apply: (db: SqlTag<unknown, unknown>) => Promise<void>;
+  post: (
+    db: SqlTag<unknown, unknown>,
+    options: {
+      context: T;
+      initial: boolean;
+    },
+  ) => Promise<void>;
 }
 
 export interface Migration {
@@ -19,6 +27,6 @@ export interface Migration {
 /**
  * List of up migrations to be applied.
  */
-export const migrations: {
+export declare const migrations: {
   [key: string]: Migration;
 };

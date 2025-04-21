@@ -426,6 +426,7 @@ impl Config {
             Some(ext) => ext.to_string_lossy(),
             None => return Err("No extension".to_string()),
         };
+        debug!("Looking for info for extension '{}'", path_ext);
 
         for item in self.menu.iter() {
             if let ConfigMenu::LoadFile(ref info) = item {

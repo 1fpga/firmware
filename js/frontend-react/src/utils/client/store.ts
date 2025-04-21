@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useSyncExternalStore } from "react";
+import { Dispatch, SetStateAction, useSyncExternalStore } from 'react';
 
 /**
  * A global store that can be used across
@@ -21,11 +21,12 @@ export interface GlobalStore<T> {
  * @param localStorageKey If specified, this will persist the value in localStorage.
  *                        This uses `JSON.stringify` and `JSON.parse` for serialization.
  */
-export function createGlobalStore<T>(
-  defaultValue: T,
-  localStorageKey?: string,
-): GlobalStore<T> {
+export function createGlobalStore<T>(defaultValue: T, localStorageKey?: string): GlobalStore<T> {
   let value: T = defaultValue;
+  if (typeof localStorage === 'undefined') {
+    localStorageKey = undefined;
+  }
+
   if (localStorageKey) {
     const maybeValue = localStorage.getItem(localStorageKey);
     if (maybeValue !== null) {
@@ -41,7 +42,7 @@ export function createGlobalStore<T>(
   }
 
   function unsubscribe(fn: () => void) {
-    listeners = listeners.filter((l) => l !== fn);
+    listeners = listeners.filter(l => l !== fn);
   }
 
   function dispatch() {
@@ -76,7 +77,7 @@ export function createGlobalStore<T>(
   }
 
   if (localStorageKey) {
-    window.addEventListener("storage", (e) => {
+    window.addEventListener('storage', e => {
       if (localStorageKey === e.key && e.storageArea === localStorage) {
         if (e.newValue !== null) {
           set(JSON.parse(e.newValue));

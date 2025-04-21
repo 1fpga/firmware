@@ -1,31 +1,43 @@
 /**
+ * A versioned schema that may contain a version field or a normalized version number.
+ */
+export type Versioned =
+  | { version?: string | number | null; _version?: string | number | null }
+  | string
+  | number
+  | null
+  | undefined;
+
+export function versionOf(a: Versioned): string | undefined {
+  if (typeof a === 'object') {
+    a = a && (a.version ?? a._version);
+  }
+  if (a === undefined || a === null) {
+    return undefined;
+  }
+  return `${a}`;
+}
+
+/**
  * Compare two versions in the catalog JSONs.
  * @param a The first version.
  * @param b The second version.
- * @returns `<= 1` if `a` is smaller than `b`,
+ * @returns `<= -1` if `a` is smaller than `b`,
  *          `== 0` if `a` is equal to `b`,
  *          `>= 1` if `a` is greater than `b`.
  */
-export function compareVersions(
-  a: string | number | null | undefined,
-  b: string | number | null | undefined,
-): number {
+export function compare(a: Versioned, b: Versioned): number {
+  a = versionOf(a);
+  b = versionOf(b);
+
   if (a === null || a === undefined) {
     return b === null || b === undefined ? 0 : 1;
   } else if (b === null || b === undefined) {
     return -1;
-  } else if (typeof a === "number") {
-    if (typeof b === "number") {
-      return a - b;
-    } else {
-      a = a.toString();
-    }
-  } else {
-    b = b.toString();
   }
 
-  const aParts = a.split(".");
-  const bParts = b.split(".");
+  const aParts = a.split('.');
+  const bParts = b.split('.');
   const length = Math.max(aParts.length, bParts.length);
   const zipped = Array.from({ length }).map((_, i) => [aParts[i], bParts[i]]);
 
@@ -48,3 +60,9 @@ export function compareVersions(
 
   return 0;
 }
+
+/**
+ * A comparator for a simpler way to call compare on normalized schemas. Will return the
+ * reverse of the `compare` function and can be used to sort descending.
+ */
+export const compareDesc = (a: Versioned, b: Versioned) => -compare(a, b);

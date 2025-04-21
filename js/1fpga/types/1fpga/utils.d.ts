@@ -3,7 +3,7 @@
 /**
  * Various utility functions.
  */
-declare module "1fpga:utils" {
+declare module '1fpga:utils' {
   export interface IpsPatchOptions {
     /**
      * Whether to skip the checksum verification or not.

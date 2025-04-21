@@ -1,7 +1,7 @@
-import { DbStorage } from "@/services";
+import { storage } from '@/services';
 
 export async function getOrFail<T>(
-  storage: DbStorage,
+  storage: storage.DbStorage,
   key: string,
   d?: T,
   validator?: (v: unknown) => v is T,

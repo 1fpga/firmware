@@ -1,5 +1,5 @@
 [package]
-name = "one_fpga"
+name = "one_fpga_bin"
 version = "0.2.0"
 edition = "2018"
 build = "build.rs"

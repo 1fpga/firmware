@@ -1,43 +1,45 @@
-import * as settings from "1fpga:settings";
-import { DbStorage } from "@/services/storage";
-import { getOrFail } from "@/services/settings/utils";
-import { Catalog } from "@/services/database";
+import * as osd from '1fpga:osd';
+import * as settings from '1fpga:settings';
+
+import { getOrFail } from '@/services/settings/utils';
+import { DbStorage } from '@/services/storage';
+import { assert } from '@/utils';
 
 export enum FontSize {
-  Small = "small",
-  Medium = "medium",
-  Large = "large",
+  Small = 'small',
+  Medium = 'medium',
+  Large = 'large',
 }
 
 export enum DateTimeFormat {
-  Default = "default",
-  Short = "short",
-  TimeOnly = "timeOnly",
-  Hidden = "hidden",
+  Default = 'default',
+  Short = 'short',
+  TimeOnly = 'timeOnly',
+  Hidden = 'hidden',
 }
 
 export enum DatetimeUpdate {
-  Automatic = "auto",
-  Manual = "manual",
-  AutoWithTz = "auto-tz",
+  Automatic = 'auto',
+  Manual = 'manual',
+  AutoWithTz = 'auto-tz',
 }
 
 export enum CatalogCheckFrequency {
-  Manually = "manually",
-  EveryStartup = "startup",
-  Daily = "daily",
-  Weekly = "weekly",
-  Monthly = "monthly",
+  Manually = 'manually',
+  EveryStartup = 'startup',
+  Daily = 'daily',
+  Weekly = 'weekly',
+  Monthly = 'monthly',
 }
 
-const FONT_SIZE_KEY = "fontSize";
-const DATETIME_FORMAT_KEY = "datetimeFormat";
-const SHOW_FPS_KEY = "showFps";
-const INVERT_TOOLBAR_KEY = "invertToolbar";
-const TIMEZONE_KEY = "timezone";
-const DATETIME_UPDATE_KEY = "datetimeUpdate";
-const LAST_CATALOG_CHECK_DATE_KEY = "lastCatalogCheck";
-const CATALOG_CHECK_FREQUENCY_KEY = "catalogCheckFrequency";
+const FONT_SIZE_KEY = 'fontSize';
+const DATETIME_FORMAT_KEY = 'datetimeFormat';
+const SHOW_FPS_KEY = 'showFps';
+const INVERT_TOOLBAR_KEY = 'invertToolbar';
+const TIMEZONE_KEY = 'timezone';
+const DATETIME_UPDATE_KEY = 'datetimeUpdate';
+const LAST_CATALOG_CHECK_DATE_KEY = 'lastCatalogCheck';
+const CATALOG_CHECK_FREQUENCY_KEY = 'catalogCheckFrequency';
 
 export class GlobalSettings {
   public static async create() {
@@ -56,8 +58,7 @@ export class GlobalSettings {
     return global;
   }
 
-  private constructor(private readonly storage_: DbStorage) {
-  }
+  private constructor(private readonly storage_: DbStorage) {}
 
   public async getFontSize(): Promise<FontSize> {
     return await getOrFail(this.storage_, FONT_SIZE_KEY, FontSize.Medium);
@@ -73,19 +74,14 @@ export class GlobalSettings {
   }
 
   public async setFontSize(value: FontSize): Promise<void> {
-    if (!Object.values(FontSize).includes(value)) {
-      throw new Error("Invalid font size");
-    }
+    assert.oneOfEnum(value, FontSize, 'Invalid font size');
+    
     await this.storage_.set(FONT_SIZE_KEY, value);
     settings.setFontSize(value);
   }
 
   public async getDatetimeFormat(): Promise<DateTimeFormat> {
-    return await getOrFail(
-      this.storage_,
-      DATETIME_FORMAT_KEY,
-      DateTimeFormat.Default,
-    );
+    return await getOrFail(this.storage_, DATETIME_FORMAT_KEY, DateTimeFormat.Default);
   }
 
   public async toggleDatetimeFormat() {
@@ -97,9 +93,7 @@ export class GlobalSettings {
   }
 
   public async setDatetimeFormat(value: DateTimeFormat): Promise<void> {
-    if (!Object.values(DateTimeFormat).includes(value)) {
-      throw new Error("Invalid datetime format");
-    }
+    assert.oneOfEnum(value, DateTimeFormat, 'Invalid datetime format');
     await this.storage_.set(DATETIME_FORMAT_KEY, value);
     settings.setDatetimeFormat(value);
   }
@@ -149,11 +143,7 @@ export class GlobalSettings {
   }
 
   public async getDateTimeUpdate() {
-    return await getOrFail(
-      this.storage_,
-      DATETIME_UPDATE_KEY,
-      DatetimeUpdate.Manual,
-    );
+    return await getOrFail(this.storage_, DATETIME_UPDATE_KEY, DatetimeUpdate.Manual);
   }
 
   public async getCatalogCheckFrequency() {
@@ -171,8 +161,7 @@ export class GlobalSettings {
   public async toggleCatalogCheckFrequency() {
     const current = await this.getCatalogCheckFrequency();
     const frequencies = Object.values(CatalogCheckFrequency);
-    const next =
-      frequencies[(frequencies.indexOf(current) + 1) % frequencies.length];
+    const next = frequencies[(frequencies.indexOf(current) + 1) % frequencies.length];
     await this.setCatalogCheckFrequency(next);
     return next;
   }
@@ -182,16 +171,14 @@ export class GlobalSettings {
     if (update != DatetimeUpdate.Manual) {
       let tz = undefined;
       if (update === DatetimeUpdate.AutoWithTz) {
-        tz = await this.getTimeZone("UTC");
+        tz = await this.getTimeZone('UTC');
       }
       settings.updateDateTime(tz, update === DatetimeUpdate.Automatic);
     }
   }
 
   private async shouldCheckForUpdates(days: number) {
-    const lastCheck = new Date(
-      await getOrFail(this.storage_, LAST_CATALOG_CHECK_DATE_KEY, 0),
-    );
+    const lastCheck = new Date(await getOrFail(this.storage_, LAST_CATALOG_CHECK_DATE_KEY, 0));
     return days === undefined
       ? true
       : Date.now() - lastCheck.getTime() >= days * 24 * 60 * 60 * 1000;
@@ -199,7 +186,7 @@ export class GlobalSettings {
 
   public async checkForUpdatesIfNecessary() {
     const checkFrequency = await this.getCatalogCheckFrequency();
-    console.debug("Check frequency:", checkFrequency);
+    console.debug('Check frequency:', checkFrequency);
 
     let should = false;
     switch (checkFrequency) {
@@ -220,10 +207,9 @@ export class GlobalSettings {
         return;
     }
 
-    console.log("Should check for updates:", should);
-
     if (should) {
-      await Catalog.checkForUpdates();
+      // await db.catalog.checkForUpdates();
+      await osd.alert('TODO: do update');
     }
     await this.storage_.set(LAST_CATALOG_CHECK_DATE_KEY, +Date.now());
   }

@@ -1,450 +1,268 @@
-import * as osd from "1fpga:osd";
-import type { Catalog as CatalogSchema } from "schemas:catalog/catalog";
-import type { System as SystemSchema } from "schemas:catalog/system";
-import type {
-  Core as CoresCoreSchema,
-  Cores as CoresSchema,
-} from "schemas:catalog/cores";
-import type {
-  System as SystemsSystemSchema,
-  Systems as SystemsSchema,
-} from "schemas:catalog/systems";
-import type { Core as CoreSchema } from "schemas:catalog/core";
-import { RemoteGamesDb } from "@/services/remote/games_database";
-import { fetchJsonAndValidate, ValidationError } from "@/utils";
-import { RemoteBinary, RemoteReleases } from "@/services/remote/release";
-import { compareVersions } from "@/utils/versions";
+import type * as schemas from '@1fpga/schemas';
 
+import * as osd from '1fpga:osd';
+
+import { latestOf } from '@/services/remote/releases';
+import { ValidationError, fetchJsonAndValidate, versions } from '@/utils';
+
+/**
+ * A list of catalogs that are officially known.
+ */
 export enum WellKnownCatalogs {
   // The basic stable 1FPGA catalog.
-  OneFpga = "https://catalog.1fpga.cloud/",
+  OneFpga = 'https://catalog.1fpga.cloud/catalog.json',
 
   // The BETA 1FPGA catalog (not yet available).
-  OneFpgaBeta = "https://catalog.1fpga.cloud/beta.json",
+  OneFpgaBeta = 'https://catalog.1fpga.cloud/beta.json',
 
   // Only exists in development mode.
-  LocalTest = "http://catalog.local:8081/catalog.json",
-}
-
-const CATALOG_CACHE: { [url: string]: RemoteCatalog } = {};
-
-/**
- * A remote system array. This is a `systems.json` that is fetched from the internet,
- * parsed and validated. It contains the list of all systems.
- */
-export class RemoteSystems {
-  /**
-   * The system cache.
-   * @private
-   */
-  private systems_: { [k: string]: RemoteSystem } = Object.create(null);
-
-  public static async fetch(
-    url: string,
-    catalog: RemoteCatalog,
-    _deep = false,
-  ) {
-    const systemsUrl = new URL(url, catalog.url).toString();
-    const systems = await fetchJsonAndValidate(
-      systemsUrl,
-      (await import("schemas:catalog/systems")).validate,
-    );
-    return new RemoteSystems(systemsUrl, systems, catalog);
-  }
-
-  constructor(
-    public readonly url: string,
-    public readonly schema: SystemsSchema,
-    public readonly catalog: RemoteCatalog,
-  ) {
-  }
-
-  public async fetchSystem(key: string, deep = false) {
-    if (!this.systems_[key]) {
-      this.systems_[key] = await RemoteSystem.fetch(
-        key,
-        new URL(this.schema[key].url, this.url).toString(),
-        this,
-        deep,
-      );
-    }
-    return this.systems_[key];
-  }
+  LocalTest = 'http://localhost:8081/catalog.json',
 }
 
 /**
- * A remote core array. This is a `cores.json` that is fetched from the internet,
- * parsed and validated. It contains the list of all cores. Each core is a `RemoteCore`.
+ * Understand whether an inner object is a URL or versioned URL or actual
+ * type. If this is a URL, the `_url` will be filled with the resolved
+ * URL fetched, and if it's a versioned URL, the version will also be
+ * set as the `_version` property.
  */
-export class RemoteCores {
-  /**
-   * The core cache.
-   * @private
-   */
-  private cores_: { [k: string]: RemoteCore } = Object.create(null);
-
-  public static async fetch(
-    url: string,
-    catalog: RemoteCatalog,
-    _deep = false,
-  ) {
-    const coresUrl = new URL(url, catalog.url).toString();
-    const cores = await fetchJsonAndValidate(
-      coresUrl,
-      (await import("schemas:catalog/cores")).validate,
-    );
-    return new RemoteCores(coresUrl, cores, catalog);
-  }
-
-  constructor(
-    public readonly url: string,
-    public readonly schema: CoresSchema,
-    public readonly catalog: RemoteCatalog,
-  ) {
-  }
-
-  public async fetchCore(key: string, _deep = false) {
-    if (!this.cores_[key]) {
-      this.cores_[key] = await RemoteCore.fetch(
-        key,
-        new URL(this.schema[key].url, this.url).toString(),
-        this,
-      );
-    }
-    return this.cores_[key];
+async function fetchVersioned<InnerSchema extends schemas.ZodType>(
+  baseUrl: string | undefined,
+  value: unknown,
+  schema: InnerSchema,
+): Promise<Normalized<schemas.TypeOf<typeof schema>>> {
+  if (typeof value == 'string') {
+    const url = new URL(value, baseUrl).toString();
+    osd.show('Fetching cores...', 'URL: ' + url);
+    return {
+      ...(await fetchJsonAndValidate<InnerSchema>(url, schema, {
+        allowRetry: true,
+      })),
+      _url: url,
+    } as Normalized<InnerSchema>;
+  } else if (typeof value === 'object' && value !== null && typeof (value as any).url == 'string') {
+    const url = new URL((value as any).url, baseUrl).toString();
+    const version = `${(value as any).version}`;
+    osd.show('Fetching cores...', 'URL: ' + url);
+    return {
+      ...(await fetchJsonAndValidate<InnerSchema>(url, schema, {
+        allowRetry: true,
+      })),
+      _url: url,
+      _version: version,
+    } as Normalized<InnerSchema>;
+  } else if (schema.safeParse(value).success) {
+    return { _url: baseUrl, ...(value as any) } as InnerSchema;
+  } else {
+    throw new ValidationError('Invalid value for schema.');
   }
 }
 
+type Normalized<T> = T & {
+  _url?: string;
+  _version?: string;
+};
+
+export function denormalize<T extends { _url?: string; _version?: string }>(
+  n: T,
+): Omit<T, '_url' | '_version'> {
+  const { _url, _version, ...d } = n;
+  return d;
+}
+
+export type NormalizedGamesDb = Normalized<schemas.catalog.GamesDb>;
+
+export type NormalizedSystem = Normalized<schemas.catalog.System> & {
+  gamesDb?: NormalizedGamesDb;
+};
+
+export type NormalizedSystems = Normalized<Record<string, NormalizedSystem>>;
+
+export type NormalizedCore = Normalized<schemas.catalog.Core>;
+
+export type NormalizedCores = Normalized<Record<string, NormalizedCore>>;
+
+export type NormalizedRelease = Normalized<schemas.catalog.Release>;
+
+export type NormalizedReleases = Normalized<Record<string, NormalizedRelease[]>>;
+
 /**
- * A remote core is a `core.json` that is fetched from the internet,
- * parsed and validated.
+ * A normalized catalog with cores.
  */
-export class RemoteCore {
-  public static async fetch(key: string, url: string, cores: RemoteCores) {
-    const u = new URL(url, cores.url).toString();
+export type NormalizedCatalog = Normalized<schemas.catalog.Catalog> & {
+  cores?: NormalizedCores;
+  systems?: NormalizedSystems;
+  releases?: NormalizedReleases;
+};
 
-    osd.show(
-      "Fetching core...",
-      `Catalog "${cores.catalog.name}"\nCore: ${key}\nURL: ${u}`,
+async function fetchInnerOfRecord<T, O>(
+  record: Normalized<T>,
+  schema: schemas.ZodType,
+): Promise<O> {
+  const base = record._url;
+  const result = {
+    ...record,
+  } as O;
+
+  for (const [name, value] of Object.entries(denormalize(record))) {
+    (result as any)[name] = await fetchVersioned(base, value, schema);
+  }
+
+  return result;
+}
+
+async function fetchInner<T extends schemas.ZodType>(
+  baseUrl: string,
+  record: unknown,
+  schema: T,
+  innerSchema?: schemas.ZodType,
+): Promise<Normalized<T> | undefined> {
+  if (record === undefined) {
+    return undefined;
+  }
+
+  const inner = await fetchVersioned(baseUrl, record, schema);
+  if (innerSchema) {
+    return await fetchInnerOfRecord(inner, innerSchema);
+  } else {
+    return inner as Normalized<T>;
+  }
+}
+
+export async function fetchAndNormalizeCatalog(url: string): Promise<NormalizedCatalog> {
+  // Normalize the URL.
+  url = new URL(url).toString();
+  osd.show('Fetching catalog...', 'URL: ' + url);
+
+  if (!url.startsWith('https://') && !url.startsWith('http://')) {
+    url = 'https://' + url;
+  }
+
+  const schemas = await import('@1fpga/schemas');
+  try {
+    let catalog = {
+      ...(await fetchJsonAndValidate<schemas.catalog.Catalog>(url, schemas.catalog.Catalog, {
+        allowRetry: false,
+      })),
+      _url: url,
+    } as Normalized<schemas.catalog.Catalog>;
+
+    catalog.cores = await fetchInner(
+      url,
+      catalog.cores,
+      schemas.catalog.Cores,
+      schemas.catalog.Core,
     );
-
-    // Dynamic loading to allow for code splitting.
-    const json = await fetchJsonAndValidate(
-      u,
-      (await import("schemas:catalog/core")).validate,
+    catalog.systems = await fetchInner(
+      url,
+      catalog.systems,
+      schemas.catalog.Systems,
+      schemas.catalog.System,
     );
+    catalog.releases = await fetchInner(url, catalog.releases, schemas.catalog.Releases);
 
-    if (key !== json.uniqueName) {
-      throw new Error(
-        `Core name mismatch: ${JSON.stringify(key)} != ${JSON.stringify(json.uniqueName)}`,
-      );
+    // At this point all internals have been normalized.
+    return catalog as NormalizedCatalog;
+  } catch (e) {
+    if (e instanceof ValidationError) {
+      throw e;
     }
 
-    return new RemoteCore(u, json, cores);
-  }
+    console.error('Error fetching catalog:', (e as any)?.message || e);
 
-  constructor(
-    public readonly url: string,
-    public readonly schema: CoreSchema,
-    public readonly cores: RemoteCores,
-  ) {
-  }
-
-  get catalog() {
-    return this.cores.catalog;
-  }
-
-  get name(): string {
-    return this.schema.name || this.schema.uniqueName;
-  }
-
-  get systems(): string[] {
-    if (typeof this.schema.systems === "string") {
-      return [this.schema.systems];
+    // If this is http, try with https.
+    // If this doesn't end with `catalog.json`, try adding it.
+    if (!url.endsWith('/catalog.json')) {
+      return fetchAndNormalizeCatalog(new URL('catalog.json', url).toString());
+    } else if (url.startsWith('http://')) {
+      return fetchAndNormalizeCatalog(url.replace(/^http:\/\//, 'https://'));
     } else {
-      return this.schema.systems || [];
+      throw e;
     }
-  }
-
-  get uniqueName() {
-    return this.schema.uniqueName;
-  }
-
-  get tags() {
-    return this.schema.tags || [];
-  }
-
-  get latestRelease() {
-    // If a release has the tag `latest`, use that.
-    const latest = this.schema.releases.find((r) => r.tags?.includes("latest"));
-    if (latest) {
-      return latest;
-    }
-
-    // Sort by version number, descending, skipping `alpha` or `beta` tags.
-    return this.schema.releases
-      .filter((x) => !(x.tags?.includes("alpha") || x.tags?.includes("beta")))
-      .sort((a, b) => -compareVersions(a.version, b.version))[0];
-  }
-
-  get releases() {
-    return this.schema.releases;
-  }
-
-  get description() {
-    return this.schema.description || null;
   }
 }
 
 /**
- * A remote system array is a `system.json` that is fetched from the internet,
- * parsed and validated.
+ * Return the difference between a catalog's latestJson and its initial JSON. If there's
+ * no latestJson field, the diffed catalog will be empty. The difference will include
+ * every core, system and other pieces of a catalog that need to be updated.
+ *
+ * If the two catalogs don't share the same name, url or anything, this might not do what
+ * you want it to do. This function only works if both catalog and latest are from the
+ * same catalog.
+ * @param current The base normalized catalog.
+ * @param latest The latest catalog to be diffed against the base.
+ * @returns The difference between the current and latest that need to be updated.
  */
-export class RemoteSystem {
-  public static pathForAsset(system: RemoteSystem, assetType: string) {
-    return `/media/fat/1fpga/systems/${system.uniqueName}/${assetType}`;
+export function diff(
+  current: NormalizedCatalog,
+  latest?: NormalizedCatalog | null,
+): NormalizedCatalog {
+  const { cores: cCurrent, systems: sCurrent, releases: rCurrent } = current;
+  const result: NormalizedCatalog = {
+    ...(latest ?? current),
+    cores: {},
+    systems: {},
+    releases: {},
+  };
+
+  // If there's no latest catalog, there's nothing to do here.
+  if (!latest) {
+    return result;
   }
 
-  public static async fetch(
-    key: string,
-    url: string,
-    systems: RemoteSystems,
-    _deep = false,
-  ): Promise<RemoteSystem> {
-    const u = new URL(url, systems.url).toString();
-
-    osd.show(
-      "Fetching system...",
-      `Catalog ${systems.catalog.name}\nURL: ${u}`,
-    );
-
-    // Dynamic loading to allow for code splitting.
-    const json = await fetchJsonAndValidate(
-      u,
-      (await import("schemas:catalog/system")).validate,
-    );
-
-    if (key !== json.uniqueName) {
-      throw new Error(
-        `System name mismatch: ${JSON.stringify(key)} != ${JSON.stringify(json.uniqueName)}`,
-      );
-    }
-    return new RemoteSystem(u, json, systems);
+  // If the catalog is higher or equal version as the latest, there's nothing to do here.
+  if (versions.compare(current, latest) >= 0) {
+    return result;
   }
 
-  constructor(
-    public readonly url: string,
-    public readonly schema: SystemSchema,
-    private systems_: RemoteSystems,
-  ) {
-  }
+  const { cores: cLatest, systems: sLatest, releases: rLatest } = latest;
 
-  get catalog(): RemoteCatalog {
-    return this.systems_.catalog;
-  }
-
-  get name(): string {
-    return this.schema.name || this.schema.uniqueName;
-  }
-
-  get uniqueName(): string {
-    return this.schema.uniqueName;
-  }
-
-  get description(): string | null {
-    return this.schema.description || null;
-  }
-
-  get size(): number {
-    return this.schema.gamesDb?.size || 0;
-  }
-
-  get tags(): string[] {
-    return this.schema.tags || [];
-  }
-
-  async downloadGameDatabase() {
-    if (!this.schema.gamesDb) {
-      return;
-    }
-
-    return await RemoteGamesDb.fetch(this.schema.gamesDb.url, this);
-  }
-}
-
-/**
- * A remote catalog is the `catalog.json` that is fetched from the internet,
- * parsed and validated.
- */
-export class RemoteCatalog {
-  private systems_: RemoteSystems | undefined;
-  private cores_: RemoteCores | undefined;
-  private releases_: RemoteReleases | undefined;
-
-  public static async clearCache() {
-    for (const key of Object.keys(CATALOG_CACHE)) {
-      delete CATALOG_CACHE[key];
+  // Find all the cores in `latest` and compare them to `current`.
+  const cores: NormalizedCores = {
+    _url: cLatest?._url,
+    _version: cLatest?._version,
+  } as NormalizedCores;
+  for (const cName of Object.keys(denormalize(cLatest ?? {}))) {
+    const coreL = cLatest && cLatest[cName];
+    const coreC = cCurrent && cCurrent[cName];
+    if (coreL && versions.compare(coreL, coreC) > 0) {
+      cores[cName] = coreL;
     }
   }
+  result.cores = cores;
 
-  public static async fetchWellKnown(
-    wellKnown: WellKnownCatalogs,
-  ): Promise<RemoteCatalog> {
-    return RemoteCatalog.fetch(wellKnown);
-  }
-
-  public static async fetch(url: string, all = false): Promise<RemoteCatalog> {
-    if (CATALOG_CACHE[url]) {
-      // TODO: When fetching, check if the cache is outdated.
-      let catalog = CATALOG_CACHE[url];
-      if (all) {
-        await catalog.fetchDeep();
-      }
-      return catalog;
-    }
-
-    url = new URL(url).toString();
-
-    osd.show("Fetching catalog...", "URL: " + url);
-
-    // Add protocol to the URL.
-    if (!url.startsWith("https://") && !url.startsWith("http://")) {
-      url = "https://" + url;
-    }
-
-    try {
-      // Dynamic loading to allow for code splitting. And also don't allow for retries
-      // since we're already in a retry loop.
-      const json = await fetchJsonAndValidate(
-        url,
-        (await import("schemas:catalog/catalog")).validate,
-        { allowRetry: false },
-      );
-      const catalog = new RemoteCatalog(url, json);
-      if (all) {
-        await catalog.fetchDeep();
-      }
-
-      CATALOG_CACHE[url] = catalog;
-      return catalog;
-    } catch (e) {
-      if (e instanceof ValidationError) {
-        throw e;
-      }
-
-      console.error("Error fetching catalog:", (e as any)?.message || e);
-
-      // If this is http, try with https.
-      // If this doesn't end with `catalog.json`, try adding it.
-      if (!url.endsWith("/catalog.json")) {
-        return RemoteCatalog.fetch(new URL("catalog.json", url).toString());
-      } else if (url.startsWith("http://")) {
-        return RemoteCatalog.fetch(url.replace(/^http:\/\//, "https://"));
-      } else {
-        throw e;
-      }
+  // Find all the systems in `latest` and compare them to `current`.
+  const systems: NormalizedSystems = {
+    _url: sLatest?._url,
+    _version: sLatest?._version,
+  } as NormalizedSystems;
+  for (const sName of Object.keys(denormalize(sLatest ?? {}))) {
+    const systemL = sLatest && sLatest[sName];
+    const systemC = sCurrent && sCurrent[sName];
+    if (systemL && versions.compare(systemL, systemC) > 0) {
+      systems[sName] = systemL;
     }
   }
+  result.systems = systems;
 
-  private constructor(
-    public readonly url: string,
-    public readonly schema: CatalogSchema,
-  ) {
-  }
+  // Find all the systems in `latest` and compare them to `current`.
+  const releases: NormalizedReleases = {
+    _url: rLatest?._url,
+    _version: rLatest?._version,
+  } as NormalizedReleases;
+  for (const rName of Object.keys(denormalize(rLatest ?? {}))) {
+    const releaseL = rLatest && rLatest[rName];
+    const releaseC = rCurrent && rCurrent[rName];
 
-  public get name(): string {
-    return this.schema.name;
-  }
-
-  public get version(): number | string {
-    return this.schema.version;
-  }
-
-  public get lastUpdated(): string | null {
-    return this.schema.lastUpdated || null;
-  }
-
-  public async fetchSystems(
-    predicate: (
-      uniqueName: string,
-      system: SystemsSystemSchema,
-    ) => boolean = () => true,
-    deep = false,
-  ): Promise<{ [k: string]: RemoteSystem }> {
-    // If there's no cores, return an empty array.
-    if (this.schema.systems === undefined) {
-      return {};
+    // Only compare the latest.
+    // TODO: compare all versions here or at least all tagged versions + latest.
+    const latestL = latestOf(releaseL ?? []);
+    const latestC = latestOf(releaseC ?? []);
+    if (releaseL && versions.compare(latestL, latestC) > 0) {
+      releases[rName] = releaseL;
     }
-
-    if (this.systems_ === undefined) {
-      this.systems_ = await RemoteSystems.fetch(this.schema.systems.url, this);
-    }
-
-    return Object.fromEntries(
-      (
-        await Promise.all(
-          Object.entries(this.systems_.schema)
-            .filter(([name, system]) => predicate(name, system))
-            .map(async ([name, _system]) => [
-              name,
-              await this.systems_?.fetchSystem(name, deep),
-            ]),
-        )
-      ).filter(([_, s]) => s !== undefined),
-    );
   }
+  result.releases = releases;
 
-  public async fetchCores(
-    predicate: (uniqueName: string, core: CoresCoreSchema) => boolean = () =>
-      true,
-    deep = false,
-  ): Promise<{ [k: string]: RemoteCore }> {
-    // If there's no cores, return an empty array.
-    if (this.schema.cores === undefined) {
-      return {};
-    }
-
-    if (this.cores_ === undefined) {
-      this.cores_ = await RemoteCores.fetch(this.schema.cores.url, this);
-    }
-
-    return Object.fromEntries(
-      (
-        await Promise.all(
-          Object.entries(this.cores_.schema)
-            .filter(([name, core]) => predicate(name, core))
-            .map(async ([name, _core]) => [
-              name,
-              await this.cores_?.fetchCore(name, deep),
-            ]),
-        )
-      ).filter(([_, c]) => c !== undefined),
-    );
-  }
-
-  public async fetchReleases(
-    predicate: (name: string) => boolean = () => true,
-  ): Promise<{
-    [name: string]: RemoteBinary;
-  }> {
-    if (this.schema.releases === undefined) {
-      return {};
-    }
-    if (this.releases_ === undefined) {
-      this.releases_ = await RemoteReleases.fetch(
-        this.schema.releases.url,
-        this,
-      );
-    }
-
-    return this.releases_.asObject(predicate);
-  }
-
-  public async fetchDeep() {
-    await Promise.all([
-      this.fetchReleases(() => true),
-      this.fetchSystems(() => true, true),
-      this.fetchCores(() => true, true),
-    ]);
-  }
+  return result;
 }

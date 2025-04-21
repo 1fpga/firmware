@@ -5,7 +5,7 @@
  * It is free form, so you can execute any SQL query you want. Be careful with
  * updates and schema changes.
  */
-declare module "1fpga:db" {
+declare module '1fpga:db' {
   /**
    * A value that can be bound to or returned from a SQL query. This can be a string,
    * number, boolean, or NULL.
@@ -20,13 +20,18 @@ declare module "1fpga:db" {
 
   /**
    * Gets a database object for the given database name. This will create the database if it
-   * does not exist. Applies migrations if specified.
+   * does not exist.
    * @param name The name of the database.
    * @returns The database object.
    */
-  export function load(
-    name: string,
-  ): Promise<Db>;
+  export function load(name: string): Promise<Db>;
+
+  /**
+   * Creates a SQLite database from a file on disk. If the file does not exist,
+   * this will create it. If it does exist, loads it as a SQLite file.
+   * @param path The absolute path of the file to load.
+   */
+  export function loadPath(path: string): Promise<Db>;
 
   /**
    * Resets the database. This will delete all tables and data in the database.
@@ -46,10 +51,7 @@ declare module "1fpga:db" {
      * @param bindings Optional array of values to bind to the query.
      * @returns An array of rows returned from the query.
      */
-    query<T = Row>(
-      query: string,
-      bindings?: SqlValue[],
-    ): Promise<{ rows: T[] }>;
+    query<T = Row>(query: string, bindings?: SqlValue[]): Promise<{ rows: T[] }>;
 
     /**
      * Executes a SQL query and returns the first row. If no rows are returned, this will return

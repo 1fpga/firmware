@@ -3,12 +3,12 @@
 /**
  * This module provides functions to interact with 1FPGA cores.
  */
-declare module "1fpga:core" {
+declare module '1fpga:core' {
   /**
    * A path to a core file.
    */
   export interface CorePath {
-    type: "Path";
+    type: 'Path';
     path: string;
   }
 
@@ -21,7 +21,7 @@ declare module "1fpga:core" {
    * A path to a game ROM.
    */
   export interface GameRomPath {
-    type: "RomPath";
+    type: 'RomPath';
     path: string;
   }
 
@@ -65,24 +65,24 @@ declare module "1fpga:core" {
   }
 
   export interface CoreSettingPage {
-    kind: "page";
+    kind: 'page';
     label: string;
     items: CoreSettingsItem[];
     disabled: boolean;
   }
 
   export interface CoreSettingSeparator {
-    kind: "separator";
+    kind: 'separator';
   }
 
   export interface CoreSettingLabel {
-    kind: "label";
+    kind: 'label';
     selectable: boolean;
     label: string;
   }
 
   export interface CoreSettingFileSelect {
-    kind: "file";
+    kind: 'file';
     id: number;
     label: string;
     extensions: string[];
@@ -90,14 +90,14 @@ declare module "1fpga:core" {
   }
 
   export interface CoreSettingTrigger {
-    kind: "trigger";
+    kind: 'trigger';
     id: number;
     label: string;
     disabled: boolean;
   }
 
   export interface CoreSettingBoolOption {
-    kind: "bool";
+    kind: 'bool';
     id: number;
     label: string;
     value: boolean;
@@ -105,7 +105,7 @@ declare module "1fpga:core" {
   }
 
   export interface CoreSettingIntOption {
-    kind: "int";
+    kind: 'int';
     id: number;
     label: string;
     choices: string[];
@@ -179,12 +179,12 @@ declare module "1fpga:core" {
      * shortcuts. This function will return when the core is unloaded by the
      * user.
      */
-    loop(options?: LoopOptions): void;
+    loop(options?: LoopOptions): Promise<void>;
 
     /**
      * Take a screenshot and returns it.
      */
-    screenshot(): Image;
+    screenshot(): Promise<Image>;
 
     /**
      * Show the menu for the core. This is different from just the OSD.
@@ -237,19 +237,19 @@ declare module "1fpga:core" {
      * @param event The event name.
      * @param listener The event listener.
      */
-    on(event: "saveState", listener: SaveStateListener): void;
+    on(event: 'saveState', listener: SaveStateListener): void;
 
     /**
      * Specialization of the `on` method for the `quit` event.
      * @param event The event name.
      * @param listener The event listener.
      */
-    on(event: "quit", listener: QuitListener): void;
+    on(event: 'quit', listener: QuitListener): void;
   }
 
   /**
    * Starts a core with the given options.
    * @param options The options for the core.
    */
-  export function load(options: RunOptions): OneFpgaCore;
+  export function load(options: RunOptions): Promise<OneFpgaCore>;
 }

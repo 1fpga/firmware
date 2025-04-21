@@ -1,28 +1,40 @@
-"use client";
+'use client';
 
-import { useOneFpga, useVersion } from "@/hooks";
-import { Heading, Subheading } from "@/components/ui-kit/heading";
-import { Divider } from "@/components/ui-kit/divider";
-import { Text } from "@/components/ui-kit/text";
-import { Button } from "@/components/ui-kit/button";
-import { Toggle } from "@/components/ui-kit/toggle";
-import { Input } from "@/components/ui-kit/input";
+import { TrashIcon } from '@heroicons/react/24/solid';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui-kit/button';
+import { Divider } from '@/components/ui-kit/divider';
+import { Heading, Subheading } from '@/components/ui-kit/heading';
+import { Input } from '@/components/ui-kit/input';
+import { Text } from '@/components/ui-kit/text';
+import { Toggle } from '@/components/ui-kit/toggle';
+import { useOneFpga, useVersion } from '@/hooks';
 
 export default function Home() {
   const { start, started, stop } = useOneFpga();
   const [version, setVersion] = useVersion();
+  const [disabled, setDisabled] = useState(false);
+  const router = useRouter();
 
   async function toggleStart() {
-    if (started) {
-      await stop();
-    } else {
-      await start();
+    setDisabled(true);
+    try {
+      if (started) {
+        await stop();
+      } else {
+        await start();
+        router.push('/osd');
+      }
+    } finally {
+      setDisabled(false);
     }
   }
 
   async function doReset() {
-    if (confirm("Are you sure you want to reset the whole 1FPGA filesystem?")) {
-      await fetch("/api/reset", { method: "POST" });
+    if (confirm('Are you sure you want to reset the whole 1FPGA filesystem?')) {
+      await fetch('/api/reset', { method: 'POST' });
     }
   }
 
@@ -38,7 +50,7 @@ export default function Home() {
             <Text>Start (or stop) the 1FPGA frontend.</Text>
           </div>
           <div className="flex-col flex items-end">
-            <Toggle name="start" checked={started} onChange={toggleStart} />
+            <Toggle name="start" checked={started} onChange={toggleStart} disabled={disabled} />
           </div>
         </section>
         <Divider className="my-10" soft />
@@ -54,7 +66,8 @@ export default function Home() {
             </Text>
           </div>
           <div className="flex-col flex items-end">
-            <Button onClick={doReset} disabled={started}>
+            <Button onClick={doReset} disabled={disabled || started}>
+              <TrashIcon />
               Reset
             </Button>
           </div>
@@ -79,10 +92,8 @@ export default function Home() {
                   type="number"
                   pattern="\d+"
                   min={0}
-                  disabled={started}
-                  onChange={(e) =>
-                    setVersion([e.target.valueAsNumber, version[1], version[2]])
-                  }
+                  disabled={disabled || started}
+                  onChange={e => setVersion([e.target.valueAsNumber, version[1], version[2]])}
                   value={version[0]}
                 />
               </div>
@@ -92,10 +103,8 @@ export default function Home() {
                   className="flex-1"
                   type="number"
                   pattern="\d+"
-                  disabled={started}
-                  onChange={(e) =>
-                    setVersion([version[0], e.target.valueAsNumber, version[2]])
-                  }
+                  disabled={disabled || started}
+                  onChange={e => setVersion([version[0], e.target.valueAsNumber, version[2]])}
                   value={version[1]}
                 />
               </div>
@@ -105,10 +114,8 @@ export default function Home() {
                   className="flex-1"
                   type="number"
                   pattern="\d+"
-                  disabled={started}
-                  onChange={(e) =>
-                    setVersion([version[0], version[1], e.target.valueAsNumber])
-                  }
+                  disabled={disabled || started}
+                  onChange={e => setVersion([version[0], version[1], e.target.valueAsNumber])}
                   value={version[2]}
                 />
               </div>

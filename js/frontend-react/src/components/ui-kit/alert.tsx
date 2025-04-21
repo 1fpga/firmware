@@ -1,7 +1,8 @@
-import * as Headless from '@headlessui/react'
-import clsx from 'clsx'
-import type React from 'react'
-import { Text } from './text'
+import * as Headless from '@headlessui/react';
+import clsx from 'clsx';
+import type React from 'react';
+
+import { Text } from './text';
 
 const sizes = {
   xs: 'sm:max-w-xs',
@@ -13,7 +14,7 @@ const sizes = {
   '3xl': 'sm:max-w-3xl',
   '4xl': 'sm:max-w-4xl',
   '5xl': 'sm:max-w-5xl',
-}
+};
 
 export function Alert({
   size = 'md',
@@ -39,7 +40,7 @@ export function Alert({
               className,
               sizes[size],
               'row-start-2 w-full rounded-2xl bg-white p-8 shadow-lg ring-1 ring-zinc-950/10 sm:rounded-2xl sm:p-6 dark:bg-zinc-900 dark:ring-white/10 forced-colors:outline',
-              'transition duration-100 will-change-transform data-closed:opacity-0 data-enter:ease-out data-closed:data-enter:scale-95 data-leave:ease-in'
+              'transition duration-100 will-change-transform data-closed:opacity-0 data-enter:ease-out data-closed:data-enter:scale-95 data-leave:ease-in',
             )}
           >
             {children}
@@ -47,7 +48,7 @@ export function Alert({
         </div>
       </div>
     </Headless.Dialog>
-  )
+  );
 }
 
 export function AlertTitle({
@@ -59,10 +60,10 @@ export function AlertTitle({
       {...props}
       className={clsx(
         className,
-        'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-sm/6 sm:text-wrap dark:text-white'
+        'text-center text-base/6 font-semibold text-balance text-zinc-950 sm:text-left sm:text-sm/6 sm:text-wrap dark:text-white',
       )}
     />
-  )
+  );
 }
 
 export function AlertDescription({
@@ -75,11 +76,11 @@ export function AlertDescription({
       {...props}
       className={clsx(className, 'mt-2 text-center text-pretty sm:text-left')}
     />
-  )
+  );
 }
 
 export function AlertBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx(className, 'mt-4')} />
+  return <div {...props} className={clsx(className, 'mt-4')} />;
 }
 
 export function AlertActions({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -88,8 +89,8 @@ export function AlertActions({ className, ...props }: React.ComponentPropsWithou
       {...props}
       className={clsx(
         className,
-        'mt-6 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:mt-4 sm:flex-row sm:*:w-auto'
+        'mt-6 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:mt-4 sm:flex-row sm:*:w-auto',
       )}
     />
-  )
+  );
 }

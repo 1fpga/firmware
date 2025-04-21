@@ -1,5 +1,6 @@
-import { createGlobalStore } from "@/utils/client";
-import { registerHandlers } from "@/hooks/handlers";
+import { registerHandlers } from '@/hooks/handlers';
+import { createView } from '@/hooks/useView';
+import { createGlobalStore } from '@/utils/client';
 
 export enum OneFpgaWorkerState {
   Stopped = 0,
@@ -12,10 +13,7 @@ export interface OneFpgaWorker {
   state: OneFpgaWorkerState;
   worker: Worker | null;
 
-  register<T extends { kind: string }>(
-    kind: string,
-    handler: (data: T) => Promise<any>,
-  ): void;
+  register<T extends { kind: string }>(kind: string, handler: (data: T) => Promise<any>): void;
 
   send<T extends { kind: string; id: never }>(data: T): Promise<any>;
 }
@@ -27,15 +25,9 @@ const workerStore = createGlobalStore<OneFpgaWorker>({
   send,
 });
 
-const versionStore = createGlobalStore<[number, number, number]>(
-  [0, 0, 0],
-  "oneFpgaVersion",
-);
+const versionStore = createGlobalStore<[number, number, number]>([0, 0, 0], 'oneFpgaVersion');
 
-let handlerRegistry: Record<
-  string,
-  <T extends { kind: string }>(data: T) => Promise<any>
-> = {};
+let handlerRegistry: Record<string, <T extends { kind: string }>(data: T) => Promise<any>> = {};
 let responses: {
   resolve: (result: any) => void;
   reject: (reason: any) => void;
@@ -48,12 +40,10 @@ export function register(kind: string, handler: (data: any) => Promise<any>) {
   handlerRegistry[kind] = handler;
 }
 
-export async function send<T extends { kind: string; id: never }>(
-  data: T,
-): Promise<any> {
+export async function send<T extends { kind: string; id: never }>(data: T): Promise<any> {
   const worker = workerStore.get().worker;
   if (!worker) {
-    throw new Error("Worker not running...");
+    throw new Error('Worker not running...');
   }
 
   const { promise, resolve, reject } = Promise.withResolvers<any>();
@@ -63,18 +53,23 @@ export async function send<T extends { kind: string; id: never }>(
 }
 
 async function startInner() {
-  const worker = new Worker(new URL("../workers/OneFpga", import.meta.url));
+  const worker = new Worker(new URL('../workers/OneFpga', import.meta.url));
 
-  worker.addEventListener("message", async (e) => {
+  worker.addEventListener('message', async e => {
     const { kind, id } = e.data as { kind: string; id?: number };
 
     switch (kind) {
-      case "started":
-        workerStore.set(
-          (w) => w && { ...w, state: OneFpgaWorkerState.Started },
-        );
+      case 'started':
+        workerStore.set(w => w && { ...w, state: OneFpgaWorkerState.Started });
         return;
-      case "response": {
+      case 'stopped':
+        await stop();
+        return;
+      case 'shutdown':
+        console.log('Shutting down...');
+        await stop();
+        return;
+      case 'response': {
         if (id !== undefined) {
           const o = responses[id];
           o && o.resolve(e.data);
@@ -82,7 +77,7 @@ async function startInner() {
         }
         return;
       }
-      case "error": {
+      case 'error': {
         if (id !== undefined) {
           const o = responses[id];
           o && o.reject(e.data);
@@ -97,14 +92,13 @@ async function startInner() {
         }
 
         const result = await handler(e.data);
-        console.log("startInner response:", { kind: "response", id, result });
-        worker.postMessage({ kind: "response", id, result });
+        worker.postMessage({ kind: 'response', id, result });
         return;
       }
     }
   });
-  worker.addEventListener("error", (e) => {
-    console.error("Error from the worker:", e.message);
+  worker.addEventListener('error', e => {
+    console.error('Error from the worker:', e.message);
   });
 
   registerHandlers();
@@ -112,7 +106,7 @@ async function startInner() {
   // Send the start message, do not wait for an answer as there shouldn't be
   // any.
   worker.postMessage({
-    kind: "start",
+    kind: 'start',
     version: versionStore.get(),
   });
 
@@ -122,7 +116,7 @@ async function startInner() {
     register,
     send,
   });
-  console.log(":. 1FPGA Started");
+  console.log(':. 1FPGA Started');
 }
 
 async function start() {
@@ -132,7 +126,11 @@ async function start() {
 
   const worker = workerStore.get();
   if (!worker) {
-    throw new Error("Worker not found.");
+    throw new Error('Worker not found.');
+  }
+
+  while (workerStore.get().state !== OneFpgaWorkerState.Started) {
+    await new Promise(r => setTimeout(r, 20));
   }
 }
 
@@ -141,16 +139,21 @@ async function stop() {
   if (!worker) {
     return;
   }
-  workerStore.set((w) => ({ ...w, state: OneFpgaWorkerState.Stopping }));
+  workerStore.set(w => ({ ...w, state: OneFpgaWorkerState.Stopping }));
 
+  createView('osd', () => undefined);
   worker.worker?.terminate();
-  workerStore.set((w) => ({
+
+  responses = [];
+  handlerRegistry = {};
+
+  workerStore.set(w => ({
     ...w,
     worker: null,
     state: OneFpgaWorkerState.Stopped,
   }));
-  responses = [];
-  handlerRegistry = {};
+
+  location.replace('/');
 }
 
 export function useOneFpga() {

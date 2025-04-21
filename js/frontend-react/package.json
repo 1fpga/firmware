@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,9 +13,12 @@
     "@1fpga/types": "../1fpga/types",
     "@headlessui/react": "^2.2.1",
     "@heroicons/react": "^2.2.0",
+    "@icons-pack/react-simple-icons": "^12.7.0",
     "ajv": "^8.17.1",
+    "file-select-dialog": "^1.5.4",
     "framer-motion": "^12.7.3",
     "next": "15.2.4",
+    "path-normalize": "^6.0.13",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sqlite": "^5.1.1",

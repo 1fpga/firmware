@@ -1,37 +1,38 @@
-import * as child_process from "node:child_process";
-import typescript from "@rollup/plugin-typescript";
-import terser from "@rollup/plugin-terser";
-import { nodeResolve } from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
-import del from "rollup-plugin-delete";
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
+import del from 'rollup-plugin-delete';
 
-import codegen from "./rollup/rollup-plugin-codegen.js";
+import * as child_process from 'node:child_process';
+
+import codegen from './rollup/rollup-plugin-codegen.js';
+import constants from './rollup/rollup-plugin-consts.js';
+import dbMigrations from './rollup/rollup-plugin-db-migrations.js';
 import {
   transformCommonTags,
   transformTaggedTemplate,
-} from "./rollup/rollup-plugin-template-literals.js";
-import dbMigrations from "./rollup/rollup-plugin-db-migrations.js";
-import constants from "./rollup/rollup-plugin-consts.js";
+} from './rollup/rollup-plugin-template-literals.js';
 
-const production =
-  !("NODE_ENV" in process.env) || process.env.NODE_ENV === "production";
+const production = !('NODE_ENV' in process.env) || process.env.NODE_ENV === 'production';
 
 const gitRev = child_process
-  .execSync("git describe --all --always --dirty")
+  .execSync('git describe --all --always --dirty')
   .toString()
   .trim()
-  .replace(/^.*\//, "");
+  .replace(/^.*\//, '');
 
 export default {
-  input: "src/main.ts",
+  input: 'src/main.ts',
   output: {
-    dir: "dist/",
-    format: "es",
+    dir: 'dist/',
+    format: 'es',
     sourcemap: !production,
+    hoistTransitiveImports: false,
   },
   plugins: [
-    del({ targets: "dist/*" }),
+    del({ targets: 'dist/*' }),
     codegen(),
     dbMigrations(),
     nodeResolve({
@@ -43,39 +44,30 @@ export default {
       revision: gitRev,
     }),
     typescript({
-      tsconfig: "./tsconfig.json",
-      exclude: ["src/**/*.spec.ts", "src/**/*.test.ts", "*.config.ts"],
+      tsconfig: './tsconfig.json',
+      exclude: ['src/**/*.spec.ts', 'src/**/*.test.ts', '*.config.ts'],
       compilerOptions: {
         declaration: !production,
       },
     }),
     json({}),
     commonjs({
-      extensions: [".js", ".ts", ".cjs"],
+      extensions: ['.js', '.ts', '.cjs'],
       transformMixedEsModules: true,
     }),
     // Remove tagged template in production only.
     ...(production
       ? [
           transformTaggedTemplate({
-            tagsToProcess: [
-              "sql",
-              "sql1",
-              "sql2",
-              "sql3",
-              "sql4",
-              "sql5",
-              "sql6",
-              "sql7",
-            ],
-            transformer: (sql) => {
-              return sql.replace(/\n/g, " ").replace(/\s\s+/g, " ");
+            tagsToProcess: ['sql', 'sql1', 'sql2', 'sql3', 'sql4', 'sql5', 'sql6', 'sql7'],
+            transformer: sql => {
+              return sql.replace(/\n/g, ' ').replace(/\s\s+/g, ' ');
             },
           }),
-          transformCommonTags("oneLine"),
-          transformCommonTags("source"),
-          transformCommonTags("stripIndent"),
-          transformCommonTags("stripIndents"),
+          transformCommonTags('oneLine'),
+          transformCommonTags('source'),
+          transformCommonTags('stripIndent'),
+          transformCommonTags('stripIndents'),
         ]
       : []),
     [
@@ -100,26 +92,16 @@ export default {
         : []),
     ],
   ],
-  external: [
-    "1fpga:commands",
-    "1fpga:core",
-    "1fpga:db",
-    "1fpga:fs",
-    "1fpga:net",
-    "1fpga:patrons",
-    "1fpga:schema",
-    "1fpga:settings",
-    "1fpga:storage",
-    "1fpga:osd",
-    "1fpga:upgrade",
-    "1fpga:utils",
-    "1fpga:video",
-  ],
+  external: [/^1fpga:/],
   onLog(level, log, handler) {
-    if (level === "warn") {
-      handler("error", log); // turn other warnings into errors
+    if (log.code === 'CIRCULAR_DEPENDENCY') {
+      // Show as warning.
+      handler('warn', log);
+    } else if (level === 'warn') {
+      // Warnings are errors.
+      handler('error', log);
     } else {
-      handler(level, log); // otherwise, just print the log
+      handler(level, log);
     }
   },
 };

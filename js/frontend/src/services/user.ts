@@ -1,11 +1,12 @@
-import * as osd from "1fpga:osd";
-import { sql } from "@/utils";
+import * as osd from '1fpga:osd';
+
+import { assert, sql } from '@/utils';
 
 let loggedInUser: User | null = null;
 
-export const DEFAULT_USERNAME = "admin";
+export const DEFAULT_USERNAME = 'admin';
 
-export interface UserRow {
+interface UserRow {
   id: number;
   username: string;
   password: string | null;
@@ -13,6 +14,9 @@ export interface UserRow {
   admin: number;
 }
 
+/**
+ * Represents a user.
+ */
 export class User {
   /**
    * Log out the currently logged-in user.
@@ -29,7 +33,7 @@ export class User {
       return null;
     }
 
-    return `[${password.join(", ")}]`;
+    return `[${password.join(', ')}]`;
   }
 
   /**
@@ -39,8 +43,8 @@ export class User {
    */
   public static loggedInUser(fail: true): User;
   public static loggedInUser(fail?: boolean): User | null {
-    if (loggedInUser === null && fail) {
-      throw new Error("No user logged in");
+    if (fail) {
+      assert.not.null_(loggedInUser, 'No user logged in');
     }
     return loggedInUser;
   }
@@ -48,7 +52,7 @@ export class User {
   public static async list(): Promise<User[]> {
     const rows = await sql<UserRow>`SELECT *
                                     FROM users`;
-    return rows.map((row) => new this(row.id, row.username, !!row.admin));
+    return rows.map(row => new this(row.id, row.username, !!row.admin));
   }
 
   public static async byUsername(username: string): Promise<User | null> {
@@ -76,18 +80,12 @@ export class User {
                                     FROM users
                                     WHERE username = ${username}`;
 
-    if (!user) {
-      throw new Error("Invalid username or password");
-    }
+    assert.not.null_(user, 'Invalid username or password');
 
     if (!force && user.password !== null) {
-      let prompt = "";
+      let prompt = '';
       while (true) {
-        const password = await osd.promptPassword(
-          "Enter your password:",
-          prompt,
-          4,
-        );
+        const password = await osd.promptPassword('Enter your password:', prompt, 4);
         if (password === null) {
           return null;
         }
@@ -96,11 +94,11 @@ export class User {
           break;
         }
 
-        prompt = "Invalid password. Please try again:";
+        prompt = 'Invalid password. Please try again:';
       }
     }
 
-    loggedInUser = new this(+user.id, "" + user.username, !!user.admin);
+    loggedInUser = new this(+user.id, '' + user.username, !!user.admin);
     return loggedInUser;
   }
 
@@ -154,17 +152,14 @@ export class User {
     public readonly id: number,
     public readonly username: string,
     private admin_: boolean,
-  ) {
-  }
+  ) {}
 
   public get admin() {
     return this.admin_;
   }
 
   public async delete() {
-    if (loggedInUser?.admin !== true) {
-      throw new Error("You do not have permission to delete users");
-    }
+    assert.assert(loggedInUser?.admin, 'You do not have permission to delete users');
 
     await sql`DELETE
               FROM users
@@ -185,7 +180,7 @@ export class User {
 
   public async toggleAdmin() {
     if (loggedInUser?.admin) {
-      throw new Error("You do not have permission to change user admin status");
+      throw new Error('You do not have permission to change user admin status');
     }
 
     this.admin_ = !this.admin;

@@ -8,29 +8,23 @@
       "src",
       "codegen"
     ],
-    "lib": [
-    ],
+    "lib": [],
     "strict": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "moduleResolution": "Bundler",
+    "skipLibCheck": true,
     "paths": {
       "@/*": [
         "./src/*"
       ],
-      "schemas:*": [
-        "codegen/schemas/*"
-      ],
-      "schemas-json:*": [
-        "schemas/*"
-      ],
       "1fpga:*": [
         "../1fpga/types/1fpga/*"
       ],
-      "1fpga:consts": [
+      "consts:*": [
         "../1fpga/types/consts"
       ],
-      "1fpga:migrations": [
+      "@:migrations": [
         "types/migrations"
       ]
     }

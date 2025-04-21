@@ -1,0 +1,1 @@
+-- Do nothing, this is to make sure we execute the migration.

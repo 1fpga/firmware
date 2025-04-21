@@ -1,4 +1,4 @@
-declare module "consts:production" {
+declare module 'consts:production' {
   /**
    * Whether the application is in production mode.
    */
@@ -6,7 +6,7 @@ declare module "consts:production" {
   export default production;
 }
 
-declare module "consts:*" {
+declare module 'consts:*' {
   /**
    * Constant that will be inlined by Rollup and rollup-plugin-consts.
    */

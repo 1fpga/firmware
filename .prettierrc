@@ -1,3 +1,21 @@
 {
-  "trailingComma": "all"
+  "plugins": [
+    "@trivago/prettier-plugin-sort-imports"
+  ],
+  "trailingComma": "all",
+  "semi": true,
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "bracketSpacing": true,
+  "arrowParens": "avoid",
+  "importOrder": [
+    "^1fpga:.*$",
+    "^[0-9a-zA-Z]+:.*$",
+    "^@/(.*)$",
+    "^\\."
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
 }

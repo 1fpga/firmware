@@ -6,7 +6,7 @@ js/frontend/dist/main.js: $(wildcard js/frontend/schemas/**/* js/frontend/migrat
 ifndef NPM
 	$(error "No `npm` in PATH, please install Node.js and npm, or pass NPM variable with path to npm binary")
 endif
-	$(NPM) run -w js/frontend/ build
+	$(NPM) run build
 
 build-frontend: js/frontend/dist/main.js
 
@@ -36,3 +36,11 @@ deploy-frontend: build-frontend
 new-migration:
 	mkdir js/frontend/migrations/1fpga/$(shell date +%Y-%m-%d-%H%M%S)_$(name)
 	@echo "-- Add your migration here. Comments will be removed." >> js/frontend/migrations/1fpga/$(shell date +%Y-%m-%d-%H%M%S)_$(name)/up.sql
+
+.PHONY: scripts/patreon/patrons.json
+
+scripts/patreon/patrons.json:
+	$(eval LAST_RELEASE = $(git tag | sort -r | head -n1))
+	LAST_RELEASE=$(LAST_RELEASE) npm run patreon
+
+patreon: scripts/patreon/patrons.json

@@ -1,6 +1,6 @@
-import { createGlobalStore } from "@/utils/client";
+import { createGlobalStore } from '@/utils/client';
 
-export const isOnlineStore = createGlobalStore(true, "isOnline");
+export const isOnlineStore = createGlobalStore(true, 'isOnline');
 
 export function useOnline() {
   return isOnlineStore.use();
@@ -15,5 +15,5 @@ export function setIsOnline(isOnline: boolean) {
 }
 
 export function toggleIsOnline() {
-  return isOnlineStore.set((x) => !x);
+  return isOnlineStore.set(x => !x);
 }

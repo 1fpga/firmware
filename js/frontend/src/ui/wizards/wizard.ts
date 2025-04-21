@@ -1,4 +1,4 @@
-import * as osd from "1fpga:osd";
+import * as osd from '1fpga:osd';
 
 export class WizardCancelError {}
 
@@ -17,10 +17,7 @@ export type WizardStep<T> = {
   (options: StepOptions): Promise<T>;
 };
 
-export function map<T, U>(
-  step: WizardStep<T>,
-  next: (value: T) => Promise<U>,
-): WizardStep<U> {
+export function map<T, U>(step: WizardStep<T>, next: (value: T) => Promise<U>): WizardStep<U> {
   return async (options: StepOptions) => {
     return await next(await step(options));
   };
@@ -45,23 +42,19 @@ export function conditional<T>(
 }
 
 export function value<T>(value: T | Promise<T>): WizardStep<T> {
-  return async (options) => await value;
+  return async options => await value;
 }
 
 export function call<T>(fn: () => Promise<T>): WizardStep<T> {
-  return async (options) => await fn();
+  return async options => await fn();
 }
 
 export function noop(): WizardStep<undefined> {
-  return async (options) => {};
+  return async options => {};
 }
 
-export function generate<T>(
-  fn: () => Promise<WizardStep<T | undefined>>,
-): WizardStep<T>;
-export function generate<T>(
-  fn: () => Promise<WizardStep<T | undefined>[]>,
-): WizardStep<T[]>;
+export function generate<T>(fn: () => Promise<WizardStep<T | undefined>>): WizardStep<T>;
+export function generate<T>(fn: () => Promise<WizardStep<T | undefined>[]>): WizardStep<T[]>;
 
 /**
  * Generate a step from a function that returns a list of steps, at the time
@@ -72,11 +65,11 @@ export function generate<T>(
 export function generate<T>(
   fn: () => Promise<WizardStep<T | undefined> | WizardStep<T | undefined>[]>,
 ): WizardStep<T | T[] | undefined> {
-  return async (options) => {
+  return async options => {
     const steps = await fn();
 
     if (Array.isArray(steps)) {
-      return (await sequence(...steps)(options)).filter((x) => x !== undefined);
+      return (await sequence(...steps)(options)).filter(x => x !== undefined);
     } else {
       return (await sequence(steps)(options))[0];
     }
@@ -100,10 +93,10 @@ export function skipIf<T>(
 export function repeat<T>(
   condition: (lastResult: T) => Promise<boolean>,
   step: WizardStep<T>,
-): WizardStep<T | undefined> {
+): WizardStep<T> {
   return async (options: StepOptions) => {
     let done = false;
-    let result;
+    let result: T;
     do {
       result = await step({
         ...options,
@@ -117,18 +110,14 @@ export function repeat<T>(
   };
 }
 
-export function first<T>(
-  step: WizardStep<T[] | undefined>,
-): WizardStep<T | undefined> {
+export function first<T>(step: WizardStep<T[] | undefined>): WizardStep<T | undefined> {
   return async (options: StepOptions) => {
     let result = await step(options);
     return result && result[0];
   };
 }
 
-export function last<T>(
-  step: WizardStep<T[] | undefined>,
-): WizardStep<T | undefined> {
+export function last<T>(step: WizardStep<T[] | undefined>): WizardStep<T | undefined> {
   return async (options: StepOptions) => {
     let result = await step(options);
     return result && result[result.length - 1];
@@ -179,7 +168,7 @@ export function message<T = number>(
   message: string,
   options?: MessageOptions<T>,
 ): WizardStep<T | undefined> {
-  const choices = options?.choices ?? ["OK"];
+  const choices = options?.choices ?? ['OK'];
   const noCancel = options?.noCancel ?? false;
   let previous = -1;
   if (options?.previous) {
@@ -188,7 +177,7 @@ export function message<T = number>(
     }
     previous = choices.indexOf(options.previous);
   }
-  const mapper = options?.map ?? ((x) => x as unknown as T);
+  const mapper = options?.map ?? (x => x as unknown as T);
 
   return async (options: StepOptions) => {
     while (true) {
@@ -227,7 +216,7 @@ export function choice<T>(
       const result = await osd.alert({
         title,
         message,
-        choices: choices.map((c) => c[0]),
+        choices: choices.map(c => c[0]),
       });
       if (result === null) {
         await options.previous();
@@ -247,7 +236,7 @@ export function choice<T>(
   };
   fn.count = Math.max.apply(
     null,
-    choices.map((c) => c[1].count ?? 1),
+    choices.map(c => c[1].count ?? 1),
   );
   return fn;
 }
@@ -255,19 +244,20 @@ export function choice<T>(
 export async function wizard<T>(
   steps: WizardStep<T>[],
   onError?: (e: any) => Promise<void>,
-): Promise<void> {
+): Promise<T[] | undefined> {
   let seq = sequence(...steps);
   let options: StepOptions = {
     async previous(): Promise<void> {},
   };
 
   try {
-    await seq(options);
+    return await seq(options);
   } catch (e) {
     // Swallow errors that are of known types.
     if (e instanceof WizardCancelError || e instanceof WizardCancelDone) {
     } else if (onError) {
       await onError(e);
+      return undefined;
     } else {
       throw e;
     }

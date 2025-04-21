@@ -1,5 +1,6 @@
-import { ReactNode } from "react";
-import { createGlobalStore } from "@/utils/client";
+import { ReactNode } from 'react';
+
+import { createGlobalStore } from '@/utils/client';
 
 export interface ViewRenderer {
   render(): ReactNode;
@@ -22,7 +23,7 @@ export function useView(name: keyof ViewContent) {
 }
 
 export function createView(name: keyof ViewContent, render: () => ReactNode) {
-  viewStore.set((old) => {
+  viewStore.set(old => {
     return {
       ...old,
       [name]: { render },

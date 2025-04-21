@@ -5,16 +5,16 @@
  * of the 1FPGA frontend. This is distinct from the settings that are
  * stored in the local storage.
  */
-declare module "1fpga:settings" {
+declare module '1fpga:settings' {
   /**
    * Font size options for the UI.
    */
-  export type FontSize = "small" | "medium" | "large";
+  export type FontSize = 'small' | 'medium' | 'large';
 
   /**
    * Date and time format options for the toolbar.
    */
-  export type DateTimeFormat = "default" | "short" | "timeOnly" | "hidden";
+  export type DateTimeFormat = 'default' | 'short' | 'timeOnly' | 'hidden';
 
   export function fontSize(): FontSize;
 

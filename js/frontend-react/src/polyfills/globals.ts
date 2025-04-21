@@ -1,9 +1,9 @@
-const { version } = (global as any)["__startupWorkerMessage"] as {
+const { version } = (global as any)['__startupWorkerMessage'] as {
   version: [number, number, number];
 };
 
-(global as any)["ONE_FPGA"] = {
-  name: "OneFPGA-React",
+(global as any)['ONE_FPGA'] = {
+  name: 'OneFPGA-React',
   version: {
     major: version[0],
     minor: version[1],
@@ -11,7 +11,7 @@ const { version } = (global as any)["__startupWorkerMessage"] as {
   },
 };
 
-(global as any)["Image"] = class Image {
+(global as any)['Image'] = class Image {
   private constructor(
     public readonly name: string,
     public readonly width: number,
@@ -27,7 +27,7 @@ const { version } = (global as any)["__startupWorkerMessage"] as {
   }
 
   save(path: string): Promise<void> {
-    console.log("Image.save()", path);
+    console.log('Image.save()', path);
     return Promise.resolve();
   }
 

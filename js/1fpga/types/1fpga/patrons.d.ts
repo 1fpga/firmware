@@ -9,6 +9,6 @@ declare const PATRONS: {
   };
 };
 
-declare module "1fpga:patrons" {
+declare module '1fpga:patrons' {
   export default PATRONS;
 }

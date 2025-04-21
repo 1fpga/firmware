@@ -60,8 +60,8 @@ impl MisterFpgaSendFileInfo {
     pub fn from_path(path: impl AsRef<Path>, core: &MisterFpgaCore) -> Result<Self, String> {
         let info = core
             .config
-            .load_info(path)?
-            .ok_or("Could not find info for extension")?;
+            .load_info(&path)?
+            .ok_or_else(|| format!("Could not find info for {:?}", path.as_ref()))?;
         Self::from_file_info(info)
     }
 

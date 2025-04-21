@@ -5,19 +5,19 @@
         "500": "Cloud Subscriber"
     },
     "patrons": {
-        "Cloud Subscriber": [
-            "Nicolas Mutis Mesa (11 months)",
-            "Callan Barrett (11 months)",
-            "RetroRGB (11 months)"
-        ],
         "Members": [
-            "Pat Jones (11 months)",
-            "Allister Fiend (11 months)",
-            "John Stefanic (11 months)",
-            "Cory Stargel (11 months)",
-            "Jon (7 months)",
-            "Kristofer Göransson (5 months)",
-            "JSwan (1 month)"
+            "Pat Jones (1 year)",
+            "Allister Fiend (1 year)",
+            "Cory Stargel (1 year)",
+            "Jon (1 year)",
+            "Kristofer Göransson (11 months)"
+        ],
+        "Cloud Subscriber": [
+            "Callan Barrett (1 year)",
+            "RetroRGB (1 year)",
+            "Eric placencio (6 months)",
+            "Michael Fleisher (5 months)",
+            "Zain Ghufran (3 months)"
         ],
         "Contributors": [
             "hansl"

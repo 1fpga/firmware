@@ -1,19 +1,19 @@
 /**
  * Font size options for the UI.
  */
-export type FontSize = "small" | "medium" | "large";
+export type FontSize = 'small' | 'medium' | 'large';
 
 /**
  * Date and time format options for the toolbar.
  */
-export type DateTimeFormat = "default" | "short" | "timeOnly" | "hidden";
+export type DateTimeFormat = 'default' | 'short' | 'timeOnly' | 'hidden';
 
 const settings = {
-  fontSize: "medium" as FontSize,
-  dateTimeFormat: "default" as DateTimeFormat,
+  fontSize: 'medium' as FontSize,
+  dateTimeFormat: 'default' as DateTimeFormat,
   showFps: false,
   invertToolbar: false,
-  timeZone: "Default TimeZone",
+  timeZone: 'Default TimeZone',
 };
 
 export function fontSize(): FontSize {
@@ -59,7 +59,7 @@ export function updateDateTime(tz?: string, updateTz?: boolean): void {}
  * Get a list of all available timezones.
  */
 export function listTimeZones(): string[] {
-  return ["TimeZone 1", "TimeZone 2", "TimeZone 3", "TimeZone 4", "TimeZone 5"];
+  return ['TimeZone 1', 'TimeZone 2', 'TimeZone 3', 'TimeZone 4', 'TimeZone 5'];
 }
 
 /**

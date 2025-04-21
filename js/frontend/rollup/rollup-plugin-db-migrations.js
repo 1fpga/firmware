@@ -1,7 +1,7 @@
-import * as fs from "fs";
-import * as path from "path";
-import { globSync } from "glob";
-import { stripIndent } from "common-tags";
+import { stripIndent } from 'common-tags';
+import * as fs from 'fs';
+import { globSync } from 'glob';
+import * as path from 'path';
 
 /**
  * Simplify the SQL content by removing comments and extra whitespace.
@@ -10,27 +10,26 @@ import { stripIndent } from "common-tags";
  */
 function simplifySql(sql) {
   return sql
-    .split("\n")
-    .map((x) => x.replace(/--.*?$/, "").trim())
-    .filter((x) => x.length > 0)
-    .join(" ")
-    .replace(/\s\s+/g, " ");
+    .split('\n')
+    .map(x => x.replace(/--.*?$/, '').trim())
+    .filter(x => x.length > 0)
+    .join(' ')
+    .replace(/\s\s+/g, ' ');
 }
 
 export default function (baseDir = process.cwd()) {
-  const root = path.resolve(`${baseDir}/codegen`);
   return {
-    name: "1fpga-codegen",
+    name: '1fpga-codegen',
     async load(id) {
-      if (id.startsWith("1fpga:migrations")) {
-        const files = globSync("migrations/**/up.sql");
-        let output = "{";
+      if (id.startsWith('@:migrations')) {
+        const files = globSync('migrations/**/up.sql');
+        let output = '{';
         for (const file of files) {
-          const content = fs.readFileSync(file, "utf8");
+          const content = fs.readFileSync(file, 'utf8');
           const version = path.basename(path.dirname(file));
-          let applyUpPath = path.join(path.dirname(file), "apply.ts");
-          if (!fs.existsSync(applyUpPath)) {
-            applyUpPath = undefined;
+          let migrationUpPath = path.join(path.dirname(file), 'migration.ts');
+          if (!fs.existsSync(migrationUpPath)) {
+            migrationUpPath = undefined;
           }
 
           output += stripIndent`
@@ -38,17 +37,22 @@ export default function (baseDir = process.cwd()) {
               up: {
                 sql: ${JSON.stringify(simplifySql(content))},
                 ${
-                  applyUpPath
-                    ? `apply: async (a, b, c, d, e) => {
-                  await (await import(${JSON.stringify(applyUpPath)})).up(a, b, c, d, e);
-                },`
-                    : ""
+                  migrationUpPath
+                    ? `
+                      post: async (a, b, c, d, e) => {
+                        await ((await import(${JSON.stringify(migrationUpPath)})).post?.(a, b, c, d, e));
+                      },
+                      pre: async (a, b, c, d, e) => {
+                        await ((await import(${JSON.stringify(migrationUpPath)})).pre?.(a, b, c, d, e));
+                      }
+                    `
+                    : ''
                 }
               },
             },
           `;
         }
-        output += "}";
+        output += '}';
 
         return `
           export const migrations = ${output};
@@ -57,7 +61,7 @@ export default function (baseDir = process.cwd()) {
       return null;
     },
     resolveId(source) {
-      if (source.startsWith("1fpga:migrations")) {
+      if (source.startsWith('@:migrations')) {
         return source;
       }
       return null;

@@ -1,6 +1,6 @@
 // The about page.
-import * as osd from "1fpga:osd";
-import p from "1fpga:patrons";
+import * as osd from '1fpga:osd';
+import p from '1fpga:patrons';
 
 export async function about() {
   let { patrons, tiers } = p;
@@ -13,9 +13,9 @@ export async function about() {
   const patronsList = [];
   for (let tier of tiersSorted) {
     if (patrons[tier]) {
-      patronsList.push("-");
+      patronsList.push('-');
       patronsList.push({ label: tier, selectable: false });
-      patronsList.push("-");
+      patronsList.push('-');
       for (let patron of patrons[tier]) {
         patronsList.push({ label: patron, select: () => undefined });
       }
@@ -26,27 +26,27 @@ export async function about() {
   const version = `${oneFpga.major}.${oneFpga.minor}.${oneFpga.patch}`;
 
   await osd.textMenu({
-    title: "About",
+    title: 'About',
     back: true,
     items: [
       {
-        label: "1FPGA Version",
+        label: '1FPGA Version',
         marker: version,
         select: () => {},
       },
-      "-",
+      '-',
       {
-        label: "< Join the 1FPGA Patreon >",
-        marker: "...",
+        label: '< Join the 1FPGA Patreon >',
+        marker: '...',
         select: () => {
           osd.qrCode(
-            "https://patreon.com/golem_fpga/join",
-            "Use this code to join our Patreon community",
+            'https://patreon.com/golem_fpga/join',
+            'Use this code to join our Patreon community',
           );
         },
       },
-      "-",
-      "Thanks to our patrons",
+      '-',
+      'Thanks to our patrons',
       ...patronsList,
     ],
   });

@@ -168,6 +168,29 @@ fn mkdir(dir: JsString, all: Option<bool>, context: &mut Context) -> JsPromise {
     )
 }
 
+fn rmdir(dir: JsString, recursive: Option<bool>, context: &mut Context) -> JsPromise {
+    let path = PathBuf::from(dir.to_std_string_escaped());
+
+    JsPromise::new(
+        |resolvers, context| {
+            let result = if recursive.unwrap_or(false) {
+                std::fs::remove_dir(&path)
+            } else {
+                std::fs::remove_dir_all(&path)
+            };
+
+            match result {
+                Ok(_) => resolvers.resolve.call(&JsValue::undefined(), &[], context),
+                Err(e) => {
+                    let v: JsValue = js_error!("{}", e).to_opaque(context);
+                    resolvers.reject.call(&JsValue::undefined(), &[v], context)
+                }
+            }
+        },
+        context,
+    )
+}
+
 fn is_dir(file: JsString, context: &mut Context) -> JsPromise {
     let path = PathBuf::from(file.to_std_string_escaped());
 
@@ -330,6 +353,7 @@ pub fn create_module(context: &mut Context) -> JsResult<(JsString, Module)> {
             is_file.into_js_function_copied(context),
         ),
         (js_string!("mkdir"), mkdir.into_js_function_copied(context)),
+        (js_string!("rmdir"), rmdir.into_js_function_copied(context)),
         (js_string!("isDir"), is_dir.into_js_function_copied(context)),
         (
             js_string!("findAllFiles"),
