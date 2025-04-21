@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useView } from "@/hooks";
 import { createRoot, Root } from "react-dom/client";
 
-export default function Osd() {
+export default function OsdPage() {
   const view = useView("osd");
   const viewRef = useRef<HTMLDivElement | null>(null);
 

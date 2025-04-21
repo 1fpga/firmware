@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { createGlobalStore } from "@/utils";
+import { createGlobalStore } from "@/utils/client";
 
 export interface ViewRenderer {
   render(): ReactNode;

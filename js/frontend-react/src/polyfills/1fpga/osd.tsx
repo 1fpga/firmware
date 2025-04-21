@@ -1,5 +1,4 @@
-import { createView } from "@/hooks";
-import { OsdAlert, OsdTextMenu } from "@/components/osd";
+import { postMessageAndWait } from "@/utils/worker/postMessageAndWait";
 
 /**
  * Represents a textual menu item.
@@ -75,33 +74,17 @@ export async function alert(
   messageOrOptions:
     | string
     | {
-        title?: string;
-        message: string;
-        choices?: string[];
-      },
+    title?: string;
+    message: string;
+    choices?: string[];
+  },
   orMessage: string,
 ): Promise<void | null | number> {
-  // Resolve which version of alert was called.
-  const { message, title, choices } =
-    typeof messageOrOptions !== "string"
-      ? messageOrOptions
-      : {
-          message: orMessage ?? messageOrOptions,
-          title: orMessage === undefined ? undefined : orMessage,
-        };
-
-  let { promise, resolve } = Promise.withResolvers<number | null>();
-  createView("osd", () => (
-    <OsdAlert
-      message={message}
-      title={title}
-      choices={choices}
-      resolve={resolve}
-    />
-  ));
-
-  const result = await promise;
-  return result ?? null;
+  return await postMessageAndWait({
+    kind: "osd.alert",
+    messageOrOptions,
+    orMessage,
+  });
 }
 
 export interface SelectFileOptions {
@@ -122,23 +105,78 @@ export async function selectFile(
   return undefined;
 }
 
-export const hideOsd = () => {};
-export const inputTester = () => {};
-export const prompt = () => {};
-export const promptPassword = () => {};
-export const promptShortcut = () => {};
-export const qrCode = () => {};
-export const show = () => {};
-export const showOsd = () => {};
+export const hideOsd = () => {
+};
+export const inputTester = () => {
+};
+export const prompt = () => {
+};
+export const promptPassword = () => {
+};
+export const promptShortcut = () => {
+};
+export const qrCode = () => {
+};
+export const show = () => {
+};
+export const showOsd = () => {
+};
 
 export async function textMenu<R>(options: TextMenuOptions<R>): Promise<R> {
-  while (true) {
-    let { promise, resolve, reject } = Promise.withResolvers<R | void>();
-    createView("osd", () => (
-      <OsdTextMenu options={options} resolve={resolve} reject={reject} />
-    ));
+  const root = Math.random().toString(36).slice(2);
+  let id = 0;
+  const back = options.back;
+  const sort = options.sort;
+  const fnCallbacks = Object.create(null);
 
-    const result = await promise;
+  function createCallback(f: any, args: any[]) {
+    if (f instanceof Function) {
+      const k = `--key-${root}-${id++}`;
+      fnCallbacks[k] = [f, args];
+      return k;
+    } else {
+      return f;
+    }
+  }
+
+  const newOptions = {
+    ...options,
+    back: `--back-${root}`,
+    sort: `--sort-${root}`,
+    items: [
+      ...options.items.map((item, i) => {
+        if (typeof item === "string") {
+          return item;
+        } else {
+          item = {
+            ...item,
+            select: createCallback(item.select, [item, i]),
+            details: createCallback(item.details, [item, i]),
+          };
+          return item;
+        }
+      }),
+    ],
+  };
+
+  while (true) {
+    let result = await postMessageAndWait({ kind: "osd.textMenu", options: newOptions });
+    console.log(`result: ${result}`);
+
+    if (result in fnCallbacks) {
+      const [fn, args] = fnCallbacks[result];
+      result = fn(args);
+    } else if (result === `--back-${root}`) {
+      if (back instanceof Function) {
+        result = back();
+      } else {
+        result = back;
+      }
+    } else if (result === `--sort-${root}`) {
+      result = sort?.();
+    }
+    result = await result;
+
     if (result !== undefined) {
       return result;
     }

@@ -1,11 +1,11 @@
-import { isOnline as isOnlineSetting } from "@/hooks";
+import { postMessageAndWait } from "@/utils/worker/postMessageAndWait";
 
-export function isOnline() {
-  return isOnlineSetting();
+export async function isOnline() {
+  return await postMessageAndWait({ kind: "net.isOnline" });
 }
 
 export async function fetchJson(url: string): Promise<any> {
-  if (!isOnlineSetting()) {
+  if (!await isOnline()) {
     throw new Error("Not online.");
   }
 
@@ -27,7 +27,7 @@ export async function download(
   url: string,
   destination?: string,
 ): Promise<string> {
-  if (!isOnlineSetting()) {
+  if (!await isOnline()) {
     throw new Error("Not online.");
   }
 
@@ -46,4 +46,6 @@ export async function download(
   }
 }
 
-export function interfaces() {}
+export function interfaces() {
+  return {};
+}

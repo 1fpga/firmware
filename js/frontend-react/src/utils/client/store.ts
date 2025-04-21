@@ -46,11 +46,11 @@ export function createGlobalStore<T>(defaultValue: T): GlobalStore<T> {
     }
   }
 
-  function get() {
+  function get(): Readonly<T> {
     return value;
   }
 
-  function use() {
+  function use(): Readonly<T> {
     return useSyncExternalStore(subscribe, get, get);
   }
 

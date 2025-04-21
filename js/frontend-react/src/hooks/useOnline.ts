@@ -1,4 +1,4 @@
-import { createGlobalStore } from "@/utils";
+import { createGlobalStore } from "@/utils/client";
 
 export const isOnlineStore = createGlobalStore(true);
 
