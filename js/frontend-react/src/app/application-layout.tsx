@@ -9,6 +9,7 @@ import {
   HomeIcon,
   PlayIcon,
   Squares2X2Icon,
+  StopIcon,
 } from "@heroicons/react/24/solid";
 import {
   Sidebar,
@@ -25,10 +26,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { useOneFpga } from "@/hooks";
 import GearIcon from "next/dist/client/components/react-dev-overlay/ui/icons/gear-icon";
 
-function IsOneFpgaRunning({ children }: { children: ReactNode }) {
+function IsOneFpgaRunning({
+  fallback = null,
+  children,
+}: {
+  fallback?: ReactNode;
+  children: ReactNode;
+}) {
   const { started } = useOneFpga();
 
-  if (!started) return null;
+  if (!started) return fallback;
   return children;
 }
 
@@ -45,7 +52,7 @@ export function ApplicationLayout({ children }: { children: ReactNode }) {
             <SidebarItem>
               <CpuChipIcon />
               <SidebarLabel>1FPGA</SidebarLabel>
-              <IsOneFpgaRunning>
+              <IsOneFpgaRunning fallback={<StopIcon />}>
                 <PlayIcon />
               </IsOneFpgaRunning>
             </SidebarItem>

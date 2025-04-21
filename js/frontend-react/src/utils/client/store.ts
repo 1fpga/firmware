@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { Dispatch, SetStateAction, useSyncExternalStore } from "react";
 
 /**
  * A global store that can be used across
@@ -11,14 +11,26 @@ export interface GlobalStore<T> {
   get(): T;
 
   use(): T;
+
+  useState(): [T, Dispatch<SetStateAction<T>>];
 }
 
 /**
  * Create a global store that updates across React roots.
  * @param defaultValue The default value of the store.
  */
-export function createGlobalStore<T>(defaultValue: T): GlobalStore<T> {
-  let value = defaultValue;
+export function createGlobalStore<T>(
+  defaultValue: T,
+  localStorageKey?: string,
+): GlobalStore<T> {
+  let value: T = defaultValue;
+  if (localStorageKey) {
+    const maybeValue = localStorage.getItem(localStorageKey);
+    if (maybeValue !== null) {
+      value = JSON.parse(maybeValue);
+    }
+  }
+
   let listeners: (() => void)[] = [];
 
   function subscribe(fn: () => void) {
@@ -36,12 +48,15 @@ export function createGlobalStore<T>(defaultValue: T): GlobalStore<T> {
     }
   }
 
-  function set(newValue: T | ((oldValue: T) => T)) {
+  function set(newValue: T | SetStateAction<T>) {
     if (newValue instanceof Function) {
       newValue = newValue(value);
     }
     if (value !== newValue) {
       value = newValue;
+      if (localStorageKey) {
+        localStorage.setItem(localStorageKey, JSON.stringify(value));
+      }
       dispatch();
     }
   }
@@ -54,10 +69,27 @@ export function createGlobalStore<T>(defaultValue: T): GlobalStore<T> {
     return useSyncExternalStore(subscribe, get, get);
   }
 
+  function useState(): [T, Dispatch<SetStateAction<T>>] {
+    return [use(), set];
+  }
+
+  if (localStorageKey) {
+    window.addEventListener("storage", (e) => {
+      if (localStorageKey === e.key && e.storageArea === localStorage) {
+        if (e.newValue !== null) {
+          set(JSON.parse(e.newValue));
+        } else {
+          set(defaultValue);
+        }
+      }
+    });
+  }
+
   return {
     subscribe,
     set,
     get,
     use,
+    useState,
   };
 }

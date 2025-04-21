@@ -5,7 +5,7 @@ export async function isOnline() {
 }
 
 export async function fetchJson(url: string): Promise<any> {
-  if (!await isOnline()) {
+  if (!(await isOnline())) {
     throw new Error("Not online.");
   }
 
@@ -27,7 +27,7 @@ export async function download(
   url: string,
   destination?: string,
 ): Promise<string> {
-  if (!await isOnline()) {
+  if (!(await isOnline())) {
     throw new Error("Not online.");
   }
 
@@ -46,6 +46,6 @@ export async function download(
   }
 }
 
-export function interfaces() {
-  return {};
+export async function interfaces(): Promise<any> {
+  return [];
 }

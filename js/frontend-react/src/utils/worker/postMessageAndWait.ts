@@ -1,6 +1,9 @@
-const responses: { resolve: (result: any) => void; reject: (reason: any) => void }[] = [];
+const responses: {
+  resolve: (result: any) => void;
+  reject: (reason: any) => void;
+}[] = [];
 
-addEventListener("message", e => {
+addEventListener("message", (e) => {
   const { kind, id } = e.data as { kind: string; id?: number };
 
   switch (kind) {
@@ -20,16 +23,6 @@ addEventListener("message", e => {
       }
       return;
     }
-    // default: {
-    //   const handler = handlerRegistry[kind];
-    //   if (!handler) {
-    //     throw new Error(`Kind "${kind}" has no handler`);
-    //   }
-    //
-    //   const result = await handler(e.data);
-    //   postMessage({ kind: "response", result });
-    //   return;
-    // }
   }
 });
 

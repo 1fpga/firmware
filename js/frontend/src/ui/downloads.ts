@@ -106,7 +106,7 @@ async function performBinaryUpdate(b: Binary) {
 
   const update = await osd.alert({
     title: `Update ${b.name}`,
-    message: `Do you want to update ${b.name} to version ${release.version}?`,
+    message: `Do you want to update ${b.name} to version ${release.version}? You have ${b.version}.`,
     choices: ["Cancel", "Update and Restart"],
   });
 

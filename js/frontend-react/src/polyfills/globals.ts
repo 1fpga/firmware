@@ -1,9 +1,13 @@
+const { version } = (global as any)["__startupWorkerMessage"] as {
+  version: [number, number, number];
+};
+
 (global as any)["ONE_FPGA"] = {
   name: "OneFPGA-React",
   version: {
-    major: 0,
-    minor: 0,
-    patch: 0,
+    major: version[0],
+    minor: version[1],
+    patch: version[2],
   },
 };
 

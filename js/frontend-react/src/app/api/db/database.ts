@@ -54,4 +54,6 @@ export async function resetAll() {
   for (const file of files.filter((n) => n.endsWith(".sqlite"))) {
     await reset(file.slice(0, -7));
   }
+
+  DB_MAP.clear();
 }

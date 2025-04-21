@@ -74,10 +74,10 @@ export async function alert(
   messageOrOptions:
     | string
     | {
-    title?: string;
-    message: string;
-    choices?: string[];
-  },
+        title?: string;
+        message: string;
+        choices?: string[];
+      },
   orMessage: string,
 ): Promise<void | null | number> {
   return await postMessageAndWait({
@@ -105,37 +105,29 @@ export async function selectFile(
   return undefined;
 }
 
-export const hideOsd = () => {
-};
-export const inputTester = () => {
-};
-export const prompt = () => {
-};
-export const promptPassword = () => {
-};
-export const promptShortcut = () => {
-};
-export const qrCode = () => {
-};
-export const show = () => {
-};
-export const showOsd = () => {
-};
+export const hideOsd = () => {};
+export const inputTester = () => {};
+export const prompt = () => {};
+export const promptPassword = () => {};
+export const promptShortcut = () => {};
+export const qrCode = () => {};
+export const show = () => {};
+export const showOsd = () => {};
 
 export async function textMenu<R>(options: TextMenuOptions<R>): Promise<R> {
   const root = Math.random().toString(36).slice(2);
   let id = 0;
   const back = options.back;
   const sort = options.sort;
-  const fnCallbacks = Object.create(null);
+  const fnCallbacks: Record<string, () => any> = Object.create(null);
 
-  function createCallback(f: any, args: any[]) {
-    if (f instanceof Function) {
+  function createCallback(v: any, fn: (fn: Function) => any) {
+    if (v instanceof Function) {
       const k = `--key-${root}-${id++}`;
-      fnCallbacks[k] = [f, args];
+      fnCallbacks[k] = () => fn(v);
       return k;
     } else {
-      return f;
+      return v;
     }
   }
 
@@ -148,24 +140,29 @@ export async function textMenu<R>(options: TextMenuOptions<R>): Promise<R> {
         if (typeof item === "string") {
           return item;
         } else {
-          item = {
+          const select = item.select;
+          const details = item.details;
+          const newItem = {
             ...item,
-            select: createCallback(item.select, [item, i]),
-            details: createCallback(item.details, [item, i]),
+            select: createCallback(select, (f) => f(newItem, i)),
+            details: createCallback(details, (f) => f(newItem, i)),
           };
-          return item;
+          return newItem;
         }
       }),
     ],
   };
 
   while (true) {
-    let result = await postMessageAndWait({ kind: "osd.textMenu", options: newOptions });
+    let result = await postMessageAndWait({
+      kind: "osd.textMenu",
+      options: newOptions,
+    });
     console.log(`result: ${result}`);
 
     if (result in fnCallbacks) {
-      const [fn, args] = fnCallbacks[result];
-      result = fn(args);
+      const fn = fnCallbacks[result];
+      result = fn();
     } else if (result === `--back-${root}`) {
       if (back instanceof Function) {
         result = back();

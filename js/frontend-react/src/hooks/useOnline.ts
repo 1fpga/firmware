@@ -1,6 +1,6 @@
 import { createGlobalStore } from "@/utils/client";
 
-export const isOnlineStore = createGlobalStore(true);
+export const isOnlineStore = createGlobalStore(true, "isOnline");
 
 export function useOnline() {
   return isOnlineStore.use();

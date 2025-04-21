@@ -4,8 +4,7 @@ import { Heading, Subheading } from "@/components/ui-kit/heading";
 import { Divider } from "@/components/ui-kit/divider";
 import { Text } from "@/components/ui-kit/text";
 import { toggleIsOnline, useOnline } from "@/hooks";
-import { Checkbox, CheckboxField } from "@/components/ui-kit/checkbox";
-import { Label } from "@/components/ui-kit/fieldset";
+import { Toggle } from "@/components/ui-kit/toggle";
 
 export default function Settings() {
   const isOnline = useOnline();
@@ -16,7 +15,7 @@ export default function Settings() {
         <Heading>Settings</Heading>
         <Divider className="my-10 mt-6" />
 
-        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+        <section className="grid gap-x-8 gap-y-6 px-4 sm:grid-cols-2">
           <div className="space-y-1">
             <Subheading>Online</Subheading>
             <Text>
@@ -24,15 +23,12 @@ export default function Settings() {
               address will be generated.
             </Text>
           </div>
-          <div>
-            <CheckboxField>
-              <Checkbox
-                name="online"
-                checked={isOnline}
-                onChange={toggleIsOnline}
-              />
-              <Label>Online</Label>
-            </CheckboxField>
+          <div className="flex-col flex items-end">
+            <Toggle
+              name="online"
+              checked={isOnline}
+              onChange={toggleIsOnline}
+            />
           </div>
         </section>
         <Divider className="my-10" soft />

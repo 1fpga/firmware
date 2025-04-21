@@ -33,8 +33,7 @@ export class RemoteReleases {
     public readonly url: string,
     public readonly schema: ReleasesSchema,
     public readonly catalog: RemoteCatalog,
-  ) {
-  }
+  ) {}
 
   public asObject(predicate: (name: string) => boolean = () => true) {
     return Object.fromEntries(
@@ -64,8 +63,7 @@ export class RemoteBinary {
     public readonly name: string,
     private readonly schema_: ReleaseBinary,
     private readonly releases_: RemoteReleases,
-  ) {
-  }
+  ) {}
 
   public get url() {
     return this.releases_.url;
@@ -107,8 +105,7 @@ export class RemoteRelease {
   constructor(
     private readonly schema_: ReleasesReleaseSchema,
     private readonly binary_: RemoteBinary,
-  ) {
-  }
+  ) {}
 
   public get version() {
     return this.schema_.version;
