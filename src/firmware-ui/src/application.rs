@@ -180,7 +180,10 @@ impl OneFpgaApp {
                             .open(*which)
                             .unwrap();
                         if let Some(Some(g)) = self.gamepads.get(*which as usize) {
-                            warn!("Gamepad {} was already connected. Replacing it.", g.name());
+                            warn!(
+                                "Gamepad {} was already connected. Replacing it.",
+                                g.name().unwrap_or("<unnamed>".to_string())
+                            );
                         }
                         debug!(name = g.name(), mapping = g.mapping(), "Gamepad connected");
 

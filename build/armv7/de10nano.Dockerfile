@@ -1,4 +1,4 @@
-FROM rust:bookworm AS chef
+FROM rust:bullseye AS chef
 USER root
 RUN cargo install cargo-chef
 WORKDIR /app
@@ -23,7 +23,7 @@ FROM chef AS builder
 RUN apt update && apt upgrade -y
 RUN apt install -y g++-arm-linux-gnueabihf libc6-dev-armhf-cross
 
-RUN apt-get install --assume-yes fbi cmake mold
+RUN apt-get install --assume-yes fbi cmake
 RUN apt-get install --assume-yes libdbus-1-dev
 RUN apt-get install --assume-yes libusb-dev
 RUN apt-get install --assume-yes libevdev-dev
