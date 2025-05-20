@@ -5,6 +5,8 @@ import * as oneFpgaDb from '1fpga:db';
 
 import production from 'consts:production';
 
+const shouldLog = !production;
+
 async function applyMigrations(db: oneFpgaDb.Db, _name: string, latest: string) {
   const initial = latest === '';
   const migrations = (await import('@:migrations')).migrations;
@@ -125,6 +127,7 @@ const driver: SqlTagDriver<undefined, never> = {
   },
   async query(sql: string, params: any[]): Promise<[any[], undefined]> {
     let db = await getDb();
+    console.debug(sql, '\n|', JSON.stringify(params));
     let result = await db.query(sql, params);
     return [result.rows, undefined];
   },
@@ -146,6 +149,9 @@ export const sqlOf = (database: oneFpgaDb.Db) => {
       return '?';
     },
     async query(sql: string, params: any[]): Promise<[any[], undefined]> {
+      if (shouldLog) {
+        console.debug('of', sql, '\n|', JSON.stringify(params));
+      }
       let result = await database.query(sql, params);
       return [result.rows, undefined];
     },
@@ -166,8 +172,8 @@ export async function transaction(): Promise<SqlTransactionTag> {
   const tag = new SqlTag({
     ...driver,
     async query(sql: string, params: any[]): Promise<[any[], undefined]> {
-      if (!production) {
-        console.log('tx', sql, '|', JSON.stringify(params));
+      if (shouldLog) {
+        console.debug('tx', sql, '\n|', JSON.stringify(params));
       }
       let { rows } = await db.query(sql, params);
       return [rows, undefined];

@@ -1,6 +1,7 @@
 import { Row } from '1fpga:db';
 
-import { CoreRow } from '@/services/database/cores';
+import type { CoreRow } from '@/services/database/cores';
+import type { PlaylistsRow } from '@/services/database/playlists';
 import { NormalizedCore, NormalizedSystem } from '@/services/remote/catalog';
 import { sql } from '@/utils';
 
@@ -59,12 +60,22 @@ export interface GamesListOptions {
   includeUnplayed?: boolean;
   includeUnfavorites?: boolean;
   system?: string;
+
+  playlist?: PlaylistsRow;
 }
 
 function buildSqlQuery(options: GamesListOptions) {
   return sql`
     SELECT *
-    FROM ExtendedGamesView
+    FROM ExtendedGamesView ${
+      options.playlist !== undefined
+        ? sql`
+          LEFT JOIN PlaylistsGames ON PlaylistsGames.gamesId = ExtendedGamesView.id
+        LEFT JOIN Playlists ON Playlists.id = PlaylistsGames.playlistsId
+        `
+        : undefined
+    }
+
     WHERE ${sql.and(
       true,
       options.system
@@ -73,6 +84,10 @@ function buildSqlQuery(options: GamesListOptions) {
         : undefined,
       (options.includeUnplayed ?? true) ? undefined : sql`UserGames.lastPlayedAt IS NOT NULL`,
       (options.includeUnfavorites ?? true) ? undefined : sql`UserGames.favorite = true`,
+      options.playlist
+        ? sql`Playlists.id =
+        ${options.playlist.id}`
+        : undefined,
     )}
     ORDER BY ${sql.raw(options.sort ?? GameSortOrder.NameAsc)}
     LIMIT ${options.limit ?? 100} OFFSET ${options.index ?? 0}
@@ -167,7 +182,7 @@ export async function listExtended(options: GamesListOptions = {}) {
   const games = await sql<ExtendedGamesRow>`${buildSqlQuery(options)}`;
   const total = await count(options);
 
-  return { total, games: games };
+  return { total, games };
 }
 
 export async function setFavorite(row: ExtendedGamesRow, favorite: boolean) {

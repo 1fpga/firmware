@@ -137,6 +137,13 @@ async function mainMenu(
             ]
           : []),
         {
+          label: 'Playlists...',
+          async select(_, index) {
+            await ui.playlists.menu();
+            return index;
+          },
+        },
+        {
           label: 'Controllers...',
           async select(_, index) {
             await osd.alert('Controllers', 'Not implemented yet.');

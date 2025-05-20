@@ -34,7 +34,6 @@ pub(super) fn register_modules(
         db::create_module,
         fs::create_module,
         net::create_module,
-        schema::create_module,
         settings::create_module,
         system::create_module,
         osd::create_module,
