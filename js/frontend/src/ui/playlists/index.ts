@@ -1,6 +1,7 @@
 import * as osd from '1fpga:osd';
 
 import * as services from '@/services';
+import { delete_ } from '@/services/database/playlists';
 import * as games from '@/ui/games';
 
 export async function manage(playlist: services.db.playlists.PlaylistsRow) {
@@ -56,6 +57,20 @@ export async function manage(playlist: services.db.playlists.PlaylistsRow) {
                   return false;
                 },
               },
+              {
+                label: 'Delete the playlist',
+                async select() {
+                  const choice = await osd.alert({
+                    title: 'Delete playlist?',
+                    message: `Do you want to delete the playlist "${playlist.name}"?`,
+                    choices: ['Cancel', 'Remove'],
+                  });
+                  if (choice === 1) {
+                    await services.db.playlists.delete_(playlist);
+                    return true;
+                  }
+                },
+              },
             ]
           : []),
       ],
@@ -69,6 +84,7 @@ export async function create(): Promise<boolean> {
 
   do {
     name = await osd.prompt(`Enter a name for your new playlist: ${error && `\n(${error})`}`);
+    name = name?.trim(); // Make sure it doesn't only contains/starts/ends with spaces.
     if (!name) {
       return false;
     }
@@ -89,11 +105,11 @@ export async function create(): Promise<boolean> {
 }
 
 export async function menu() {
-  const playlists = await services.db.playlists.list({});
-
   let done = false;
 
   while (!done) {
+    const playlists = await services.db.playlists.list({});
+
     done = await osd.textMenu({
       title: 'Playlists',
       back: true,
@@ -102,6 +118,7 @@ export async function menu() {
           label: pl.name,
           async select() {
             await manage(pl);
+            return false;
           },
         })),
         ...(playlists.length > 0 ? ['-'] : []),

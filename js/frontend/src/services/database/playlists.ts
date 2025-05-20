@@ -1,7 +1,8 @@
 import { Row } from '1fpga:db';
 
+import * as services from '@/services';
 import * as user from '@/services/user';
-import { sql } from '@/utils';
+import { assert, sql } from '@/utils';
 
 export interface PlaylistsRow extends Row {
   id: number;
@@ -42,23 +43,16 @@ function buildQuery({ all = false, name, isPublic = true }: ListOptions) {
   return sql`
     WHERE
     ${sql.and(
-      all ||
-        sql`usersId =
-      ${user.User.loggedInUser(true).id}`,
-      isPublic &&
-        sql`(isPublic IS TRUE
-            OR usersId =
-            ${user.User.loggedInUser(true).id})`,
-      name === undefined
-        ? undefined
-        : sql`name =
-        ${name}`,
+      all || sql`usersId = ${user.User.loggedInUser(true).id}`,
+      isPublic && sql`(isPublic IS TRUE OR usersId = ${user.User.loggedInUser(true).id})`,
+      name === undefined ? undefined : sql`name = ${name}`,
     )}`;
 }
 
 export function list(options: ListOptions = {}): Promise<PlaylistsRow[]> {
   return sql<PlaylistsRow>`SELECT *
-                           FROM Playlists ${buildQuery(options)}`;
+                           FROM Playlists ${buildQuery(options)}
+                           ORDER BY name`;
 }
 
 export async function count(options: ListOptions = {}) {
@@ -68,6 +62,9 @@ export async function count(options: ListOptions = {}) {
 }
 
 export async function removeGame(playlist: PlaylistsRow, game: { id: number }) {
+  const user = services.user.User.loggedInUser(true);
+  assert.assert(playlist.usersId === user.id || user.admin);
+
   await sql`DELETE
             FROM PlaylistsGames
             WHERE playlistsId = ${playlist.id}
@@ -75,10 +72,22 @@ export async function removeGame(playlist: PlaylistsRow, game: { id: number }) {
 }
 
 export async function addGame(playlist: PlaylistsRow, game: { id: number }) {
+  const user = services.user.User.loggedInUser(true);
+  assert.assert(playlist.usersId === user.id || user.admin);
+
   await sql`INSERT INTO PlaylistsGames ${sql.insertValues({
     playlistsId: playlist.id,
     gamesId: game.id,
   })}
             ON CONFLICT
   DO NOTHING`;
+}
+
+export async function delete_(playlist: PlaylistsRow) {
+  const user = services.user.User.loggedInUser(true);
+  assert.assert(playlist.usersId === user.id || user.admin);
+
+  await sql`DELETE
+            FROM Playlists
+            WHERE id = ${playlist.id}`;
 }

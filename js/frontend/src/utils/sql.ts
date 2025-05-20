@@ -127,7 +127,9 @@ const driver: SqlTagDriver<undefined, never> = {
   },
   async query(sql: string, params: any[]): Promise<[any[], undefined]> {
     let db = await getDb();
-    console.debug(sql, '\n|', JSON.stringify(params));
+    if (shouldLog) {
+      console.debug(sql, '\n|', JSON.stringify(params));
+    }
     let result = await db.query(sql, params);
     return [result.rows, undefined];
   },

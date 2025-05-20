@@ -84,20 +84,13 @@ async function mainMenu(
       break;
   }
 
-  async function notImplemented(s: string) {
-    await osd.alert('Not implemented yet: ' + s);
+  function parenthesize(n: number) {
+    return n ? `(${n})` : '';
   }
 
   let selected: number | undefined = 0;
   // There is no back menu, but we still need to loop sometimes (when selecting a game, for example).
   while (!(quit || logout)) {
-    const nbGames = await services.db.games.count();
-    const nbCores = await services.db.cores.count();
-    const nbScreenshots = await services.db.screenshots.count();
-
-    const gamesMarker = nbGames ? `(${nbGames})` : '';
-    const coresMarker = nbCores ? `(${nbCores})` : '';
-    const screenshotsMarker = nbScreenshots ? `(${nbScreenshots})` : '';
     const downloadMarker = (await services.db.catalog.anyUpdatePending()) ? '!' : '';
 
     selected = await osd.textMenu<number>({
@@ -107,17 +100,25 @@ async function mainMenu(
         {
           label: 'Game Library',
           select: () => ui.games.gamesMenu().then(() => 0),
-          marker: gamesMarker,
+          marker: parenthesize(await services.db.games.count()),
         },
         {
           label: 'Cores',
           select: () => ui.cores.select().then(() => 1),
-          marker: coresMarker,
+          marker: parenthesize(await services.db.cores.count()),
         },
         {
           label: 'Screenshots',
           select: () => ui.screenshots.screenshotsMenu().then(() => 2),
-          marker: screenshotsMarker,
+          marker: parenthesize(await services.db.screenshots.count()),
+        },
+        {
+          label: 'Playlists...',
+          async select(_, index) {
+            await ui.playlists.menu();
+            return index;
+          },
+          marker: parenthesize(await services.db.playlists.count()),
         },
         '---',
         {
@@ -136,13 +137,6 @@ async function mainMenu(
               } as TextMenuItem<number>,
             ]
           : []),
-        {
-          label: 'Playlists...',
-          async select(_, index) {
-            await ui.playlists.menu();
-            return index;
-          },
-        },
         {
           label: 'Controllers...',
           async select(_, index) {

@@ -3,7 +3,7 @@
 CREATE TABLE Playlists
 (
     id       INTEGER PRIMARY KEY,
-    name     TEXT,
+    name     TEXT    NOT NULL,
     -- Who owns it, ie. can add/remove games and delete it.
     usersId  INTEGER NOT NULL REFERENCES Users (id),
     -- Whether everyone can see this playlist or not.
@@ -13,8 +13,8 @@ CREATE TABLE Playlists
 
 CREATE TABLE PlaylistsGames
 (
-    playlistsId INTEGER REFERENCES Playlists (id),
-    gamesId     INTEGER REFERENCES Games (id),
+    playlistsId INTEGER REFERENCES Playlists (id) ON DELETE CASCADE,
+    gamesId     INTEGER REFERENCES Games (id) ON DELETE CASCADE,
     CONSTRAINT PlaylistsGamesPlaylistsIdGamesIdUnique UNIQUE (playlistsId, gamesId)
 );
 
