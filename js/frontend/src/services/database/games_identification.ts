@@ -38,13 +38,13 @@ async function query(
            size
 
     FROM GamesId
-           LEFT JOIN GamesSources ON GamesId.id = GamesSources.gameId
+           LEFT JOIN GamesSources ON GamesId.id = GamesSources.gamesId
 
-           LEFT JOIN GamesRegions ON GamesId.id = GamesRegions.gameId
-           LEFT JOIN Regions ON GamesRegions.regionId = Regions.id
+           LEFT JOIN GamesRegions ON GamesId.id = GamesRegions.gamesId
+           LEFT JOIN Regions ON GamesRegions.regionsId = Regions.id
 
-           LEFT JOIN GamesTags ON GamesId.id = GamesTags.gameId
-           LEFT JOIN Tags ON GamesTags.tagId = Tags.id
+           LEFT JOIN GamesTags ON GamesId.id = GamesTags.gamesId
+           LEFT JOIN Tags ON GamesTags.tagsId = Tags.id
 
     WHERE GamesSources.sha256 == x'${sql1.raw(sha)}'
       AND (size == 0 OR size == ${size})
@@ -72,7 +72,7 @@ export async function identify(
     (await systems.list())
       .filter(s => !!s.dbPath)
       .map(async s => {
-        return [s.id, sqlOf(await db.loadPath(s.dbPath))] as SystemDbTuple;
+        return [s.id, sqlOf(await db.loadPath(s.dbPath!))] as SystemDbTuple;
       }),
   );
   const systemsByExtensions = new Map<string, SystemDbTuple[]>();
@@ -93,9 +93,7 @@ export async function identify(
 
   const extensions = [...systemsByExtensions.keys()];
 
-  console.log(`All extensions: ${extensions}`);
   const allFiles = await fs.findAllFiles(root, { extensions });
-  console.log(`All files:`, allFiles);
 
   async function find(path: string, sha: string, size: number): Promise<GamesId | undefined> {
     const ext = path.split('.').pop();

@@ -14,7 +14,7 @@
 import * as commands from '1fpga:commands';
 import * as core from '1fpga:core';
 
-import { assert, sql } from '@/utils';
+import { asArray, assert, sql } from '@/utils';
 
 import { User } from '../user';
 
@@ -165,7 +165,7 @@ export class Command<T = unknown> {
     const c = new Command(def, []);
     const shortcuts = await Shortcuts.listForCommand<T>(def);
     if (firstTime && shortcuts.length == 0 && def.default) {
-      const defaults = Array.isArray(def.default) ? def.default : [def.default];
+      const defaults = asArray(def.default);
       for (const d of defaults) {
         shortcuts.push(await Shortcuts.create<T>(user, def, d, undefined));
       }

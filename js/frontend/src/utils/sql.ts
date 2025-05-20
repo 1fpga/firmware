@@ -7,6 +7,8 @@ import production from 'consts:production';
 
 const shouldLog = !production;
 
+// const shouldLog = true;
+
 async function applyMigrations(db: oneFpgaDb.Db, _name: string, latest: string) {
   const initial = latest === '';
   const migrations = (await import('@:migrations')).migrations;

@@ -15,6 +15,7 @@ CREATE TABLE PlaylistsGames
 (
     playlistsId INTEGER REFERENCES Playlists (id) ON DELETE CASCADE,
     gamesId     INTEGER REFERENCES Games (id) ON DELETE CASCADE,
+    priority    INTEGER,
     CONSTRAINT PlaylistsGamesPlaylistsIdGamesIdUnique UNIQUE (playlistsId, gamesId)
 );
 

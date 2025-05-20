@@ -37,13 +37,18 @@ export interface ListOptions {
   all?: boolean;
   name?: string;
   isPublic?: boolean;
+  usersId?: number;
 }
 
-function buildQuery({ all = false, name, isPublic = true }: ListOptions) {
+function buildQuery({ all = false, name, isPublic = true, usersId }: ListOptions) {
   return sql`
     WHERE
     ${sql.and(
-      all || sql`usersId = ${user.User.loggedInUser(true).id}`,
+      usersId
+        ? sql`usersId = ${usersId}`
+        : all
+          ? sql`usersId = ${user.User.loggedInUser(true).id}`
+          : undefined,
       isPublic && sql`(isPublic IS TRUE OR usersId = ${user.User.loggedInUser(true).id})`,
       name === undefined ? undefined : sql`name = ${name}`,
     )}`;
@@ -53,6 +58,13 @@ export function list(options: ListOptions = {}): Promise<PlaylistsRow[]> {
   return sql<PlaylistsRow>`SELECT *
                            FROM Playlists ${buildQuery(options)}
                            ORDER BY name`;
+}
+
+export async function exists(name: string, u?: user.User) {
+  if (!u) {
+    u = user.User.loggedInUser(true);
+  }
+  return (await count({ name, usersId: u.id })) > 0;
 }
 
 export async function count(options: ListOptions = {}) {
@@ -71,13 +83,14 @@ export async function removeGame(playlist: PlaylistsRow, game: { id: number }) {
               AND gamesId = ${game.id}`;
 }
 
-export async function addGame(playlist: PlaylistsRow, game: { id: number }) {
+export async function addGame(playlist: PlaylistsRow, game: { id: number }, priority?: number) {
   const user = services.user.User.loggedInUser(true);
   assert.assert(playlist.usersId === user.id || user.admin);
 
   await sql`INSERT INTO PlaylistsGames ${sql.insertValues({
     playlistsId: playlist.id,
     gamesId: game.id,
+    ...(priority !== undefined ? { priority } : {}),
   })}
             ON CONFLICT
   DO NOTHING`;

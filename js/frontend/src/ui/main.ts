@@ -9,7 +9,7 @@ import { MainMenuAction } from '@/actions/main_menu';
 import { StartGameAction } from '@/actions/start_game';
 import * as services from '@/services';
 import * as ui from '@/ui/index';
-import { resetAll, resetDb } from '@/utils';
+import { parenthesize, resetAll, resetDb } from '@/utils';
 
 async function debugMenu() {
   await osd.textMenu({
@@ -84,10 +84,6 @@ async function mainMenu(
       break;
   }
 
-  function parenthesize(n: number) {
-    return n ? `(${n})` : '';
-  }
-
   let selected: number | undefined = 0;
   // There is no back menu, but we still need to loop sometimes (when selecting a game, for example).
   while (!(quit || logout)) {
@@ -113,7 +109,7 @@ async function mainMenu(
           marker: parenthesize(await services.db.screenshots.count()),
         },
         {
-          label: 'Playlists...',
+          label: 'Playlists',
           async select(_, index) {
             await ui.playlists.menu();
             return index;

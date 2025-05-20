@@ -33,3 +33,7 @@ export async function resetAll(restart = false): Promise<never> {
     }
   }
 }
+
+export const asArray = <T>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
+
+export const parenthesize = (n: number) => (n ? `(${n})` : '');

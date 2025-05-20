@@ -3,7 +3,7 @@ import { Row } from '1fpga:db';
 import type { CoreRow } from '@/services/database/cores';
 import type { PlaylistsRow } from '@/services/database/playlists';
 import { NormalizedCore, NormalizedSystem } from '@/services/remote/catalog';
-import { sql } from '@/utils';
+import { asArray, sql } from '@/utils';
 
 import { User } from '../user';
 import type { GamesId } from './games_identification';
@@ -34,6 +34,7 @@ export interface ExtendedGamesRow extends Row {
   coresId: number;
   favorite: boolean | null;
   lastPlayedAt: string | null;
+  playlistPriority: number | null;
 }
 
 export enum GameSortOrder {
@@ -66,12 +67,12 @@ export interface GamesListOptions {
 
 function buildSqlQuery(options: GamesListOptions) {
   return sql`
-    SELECT *
+    SELECT * ${options.playlist && sql.raw(', PlaylistsGames.priority as playlistPriority')}
     FROM ExtendedGamesView ${
       options.playlist !== undefined
         ? sql`
           LEFT JOIN PlaylistsGames ON PlaylistsGames.gamesId = ExtendedGamesView.id
-        LEFT JOIN Playlists ON Playlists.id = PlaylistsGames.playlistsId
+          LEFT JOIN Playlists ON Playlists.id = PlaylistsGames.playlistsId
         `
         : undefined
     }
@@ -89,7 +90,7 @@ function buildSqlQuery(options: GamesListOptions) {
         ${options.playlist.id}`
         : undefined,
     )}
-    ORDER BY ${sql.raw(options.sort ?? GameSortOrder.NameAsc)}
+    ORDER BY ${options.playlist && sql.raw('priority, ')} ${sql.raw(options.sort ?? GameSortOrder.NameAsc)}
     LIMIT ${options.limit ?? 100} OFFSET ${options.index ?? 0}
   `;
 }
@@ -101,8 +102,6 @@ export async function count(options: GamesListOptions = {}) {
   `;
   return count;
 }
-
-const asArray = <T>(v: T | T[]): T[] => (Array.isArray(v) ? v : [v]);
 
 /**
  * Get one or multiple extended games rows based on their IDs. If `id` is an array,
@@ -166,16 +165,31 @@ export async function lastPlayedExtended() {
   return row ?? null;
 }
 
+export interface FirstOptions {
+  sha256?: string | string[];
+}
+
 /**
  * Return the first game we can find.
  */
-export async function first() {
-  const [row] = await sql<ExtendedGamesRow>`
-    SELECT *
-    FROM ExtendedGamesView
-    LIMIT 1
-  `;
-  return row ?? null;
+export async function first({ sha256 }: FirstOptions = {}): Promise<ExtendedGamesRow | null> {
+  if (sha256 !== undefined) {
+    const [row] = await sql<ExtendedGamesRow>`
+      SELECT ExtendedGamesView.*, sha256
+      FROM ExtendedGamesView
+             INNER JOIN Games ON ExtendedGamesView.id = Games.id
+      WHERE ${sql.in('sha256', asArray(sha256))}
+      LIMIT 1
+    `;
+    return row ?? null;
+  } else {
+    const [row] = await sql<ExtendedGamesRow>`
+      SELECT *
+      FROM ExtendedGamesView
+      LIMIT 1
+    `;
+    return row ?? null;
+  }
 }
 
 export async function listExtended(options: GamesListOptions = {}) {

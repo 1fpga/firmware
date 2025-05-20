@@ -9,7 +9,7 @@ export interface SystemsRow extends Row {
   catalogsId: number;
   name: string;
   uniqueName: string;
-  dbPath: string;
+  dbPath: string | null;
 }
 
 export async function create(catalog: CatalogRow, system: NormalizedSystem, dbPath: string | null) {

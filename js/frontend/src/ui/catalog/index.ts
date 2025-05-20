@@ -1,7 +1,6 @@
 import * as osd from '1fpga:osd';
 
 import * as services from '@/services';
-import { chooseCatalogToInstall } from '@/ui/wizards/first-time-setup';
 import { wizard } from '@/ui/wizards/wizard';
 
 export * as cores from './cores';
@@ -36,6 +35,8 @@ export async function downloadCenterMenu() {
         });
       }
     }
+
+    const { chooseCatalogToInstall } = await import('@/ui/wizards/first-time-setup');
 
     done = await osd.textMenu<boolean>({
       title: 'Download Center',
