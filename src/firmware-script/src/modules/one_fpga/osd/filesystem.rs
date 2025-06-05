@@ -4,14 +4,16 @@ use crate::commands::maybe_call_command;
 use crate::HostData;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::TryFromJs;
-use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, JsValue, TryIntoJsResult};
+use boa_engine::{
+    Context, JsError, JsNativeError, JsResult, JsString, JsValue, TryIntoJsResult,
+};
 use boa_interop::ContextData;
 use boa_macros::{Finalize, JsData, Trace};
 use firmware_ui::application::menu::filesystem::{select_file_path_menu, FilesystemMenuOptions};
 use regex::Regex;
 use serde::Deserialize;
 
-#[derive(Debug, Finalize, Trace, JsData, Deserialize)]
+#[derive(Debug, Default, Finalize, Trace, JsData, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SelectFileOptions {
     allow_back: Option<bool>,
@@ -25,7 +27,9 @@ pub struct SelectFileOptions {
 
 impl TryFromJs for SelectFileOptions {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
-        let serde_v = value.to_json(context)?;
+        let Some(serde_v) = value.to_json(context)? else {
+            return Ok(Self::default());
+        };
         let options: SelectFileOptions = serde_json::from_value(serde_v)
             .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))?;
 

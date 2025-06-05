@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use boa_engine::class::Class;
 use boa_engine::value::TryFromJs;
-use boa_engine::{js_string, Context, JsError, JsResult, JsString, JsValue, Module};
+use boa_engine::{js_error, js_string, Context, JsError, JsResult, JsString, JsValue, Module};
 use boa_interop::{ContextData, IntoJsFunctionCopied, IntoJsModule};
 use boa_macros::{Finalize, JsData, Trace};
 use one_fpga::core::Rom;
@@ -38,7 +38,11 @@ struct RunOptions {
 
 impl TryFromJs for RunOptions {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
-        serde_json::from_value(value.to_json(context)?)
+        let Some(value) = value.to_json(context)? else {
+            return Err(js_error!("Expected options, got undefined."));
+        };
+
+        serde_json::from_value(value)
             .map_err(|e| JsError::from_opaque(JsString::from(e.to_string()).into()))
     }
 }

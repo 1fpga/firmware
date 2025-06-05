@@ -54,7 +54,7 @@ impl FromSql for SqlValue {
 impl TryFromJs for SqlValue {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
         match value.variant() {
-            JsVariant::Null => Ok(Self::Null),
+            JsVariant::Null | JsVariant::Undefined => Ok(Self::Null),
             JsVariant::Boolean(b) => Ok(Self::Integer(b as i64)),
             JsVariant::String(s) => Ok(Self::String(s.clone())),
             JsVariant::Float64(r) => Ok(Self::Number(r)),
@@ -63,7 +63,7 @@ impl TryFromJs for SqlValue {
                 let array = JsUint8Array::from_object(o.clone())?;
                 Ok(Self::Binary(array.iter(context).collect()))
             }
-            _ => Ok(Self::Json(value.to_json(context)?)),
+            _ => Ok(Self::Json(value.to_json(context)?.expect("Unreachable."))),
         }
     }
 }
