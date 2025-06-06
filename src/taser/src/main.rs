@@ -2,7 +2,6 @@ use clap::Parser;
 use clap_verbosity_flag::Level as VerbosityLevel;
 use clap_verbosity_flag::Verbosity;
 use fce_movie_format::{FceInputButton, FceInputGamepad};
-use mister_fpga::config::Config;
 use mister_fpga::core::buttons::{ButtonMap, MisterFpgaButtons};
 use mister_fpga::core::MisterFpgaCore;
 use mister_fpga::fpga::user_io::UserIoButtonSwitch;

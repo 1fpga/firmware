@@ -358,7 +358,7 @@ dependencies = [
 [[package]]
 name = "boa_ast"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "bitflags 2.9.1",
  "boa_interner",
@@ -372,7 +372,7 @@ dependencies = [
 [[package]]
 name = "boa_engine"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "arrayvec 0.7.6",
  "bitflags 2.9.1",
@@ -418,7 +418,7 @@ dependencies = [
 [[package]]
 name = "boa_gc"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "boa_macros",
  "boa_profiler",
@@ -430,7 +430,7 @@ dependencies = [
 [[package]]
 name = "boa_interner"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "boa_gc",
  "boa_macros",
@@ -445,7 +445,7 @@ dependencies = [
 [[package]]
 name = "boa_interop"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -456,7 +456,7 @@ dependencies = [
 [[package]]
 name = "boa_macros"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "cfg-if",
  "cow-utils",
@@ -469,7 +469,7 @@ dependencies = [
 [[package]]
 name = "boa_parser"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "bitflags 2.9.1",
  "boa_ast",
@@ -487,12 +487,12 @@ dependencies = [
 [[package]]
 name = "boa_profiler"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 
 [[package]]
 name = "boa_runtime"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -504,7 +504,7 @@ dependencies = [
 [[package]]
 name = "boa_string"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 dependencies = [
  "fast-float2",
  "itoa",
@@ -534,9 +534,9 @@ checksum = "56ed6191a7e78c36abdb16ab65341eefd73d64d303fffccdbb00d51e4205967b"
 
 [[package]]
 name = "bumpalo"
-version = "3.17.0"
+version = "3.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1628fb46dfa0b37568d12e5edd512553eccf6a22a78e8bde00bb4aed84d5bdbf"
+checksum = "793db76d6187cd04dff33004d8e6c9cc4e05cd330500379d2394209271b4aeee"
 
 [[package]]
 name = "bus"
@@ -609,9 +609,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.25"
+version = "1.2.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0fc897dc1e865cc67c0e05a836d9d3f1df3cbe442aa4a9473b18e12624a4951"
+checksum = "956a5e21988b87f372569b66183b78babf23ebc2e744b733e4350a752c4dafac"
 dependencies = [
  "jobserver",
  "libc",
@@ -624,7 +624,7 @@ version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d067ad48b8650848b989a59a86c6c36a995d02d2bf778d45c3c5d57bc2718f02"
 dependencies = [
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "target-lexicon",
 ]
 
@@ -1380,7 +1380,7 @@ dependencies = [
  "lebe",
  "miniz_oxide",
  "rayon-core",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "zune-inflate",
 ]
 
@@ -1841,7 +1841,7 @@ dependencies = [
  "once_cell",
  "parking_lot",
  "signal-hook",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
 ]
 
@@ -1906,7 +1906,7 @@ dependencies = [
  "gix-sec",
  "memchr",
  "once_cell",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
  "unicode-bom",
  "winnow 0.6.26",
@@ -2052,7 +2052,7 @@ dependencies = [
  "libc",
  "memmap2",
  "rustix 0.38.44",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
 ]
 
@@ -2092,7 +2092,7 @@ dependencies = [
  "gix-utils",
  "gix-validate 0.8.5",
  "itoa",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
  "winnow 0.6.26",
 ]
@@ -2131,7 +2131,7 @@ dependencies = [
  "gix-object",
  "gix-path",
  "memmap2",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
 ]
 
@@ -2192,7 +2192,7 @@ dependencies = [
  "gix-hash",
  "gix-revision",
  "gix-validate 0.8.5",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
 ]
 
@@ -2223,7 +2223,7 @@ dependencies = [
  "gix-hash",
  "gix-hashtable",
  "gix-object",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
 ]
 
@@ -2273,7 +2273,7 @@ dependencies = [
  "gix-hashtable",
  "gix-object",
  "gix-revwalk",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thiserror 1.0.69",
 ]
 
@@ -2507,16 +2507,16 @@ dependencies = [
  "httparse",
  "itoa",
  "pin-project-lite",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "tokio",
  "want",
 ]
 
 [[package]]
 name = "hyper-rustls"
-version = "0.27.6"
+version = "0.27.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03a01595e11bdcec50946522c32dde3fc6914743000a68b93000965f2f02406d"
+checksum = "e3c93eb611681b207e1fe55d5a71ecf91572ec8a6705cdb6857f7d8d5242cf58"
 dependencies = [
  "http",
  "hyper",
@@ -2671,7 +2671,7 @@ dependencies = [
  "icu_normalizer_data 1.5.1",
  "icu_properties 1.5.1",
  "icu_provider 1.5.0",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "utf16_iter",
  "utf8_iter",
  "write16",
@@ -2689,7 +2689,7 @@ dependencies = [
  "icu_normalizer_data 2.0.0",
  "icu_properties 2.0.1",
  "icu_provider 2.0.0",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "zerovec 0.11.2",
 ]
 
@@ -2806,7 +2806,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "686f825264d630750a544639377bae737628043f20d38bbc029e8f29ea968a7e"
 dependencies = [
  "idna_adapter",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "utf8_iter",
 ]
 
@@ -3600,7 +3600,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "redox_syscall",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "windows-targets 0.52.6",
 ]
 
@@ -3799,9 +3799,9 @@ dependencies = [
 
 [[package]]
 name = "portable-atomic"
-version = "1.11.0"
+version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "350e9b48cbc6b0e028b0473b114454c6316e57336ee184ceab6e53f72c178b3e"
+checksum = "f84267b20a16ea918e43c6a88433c2d54fa145c92a811b5b047ccbe153674483"
 
 [[package]]
 name = "potential_utf"
@@ -3941,9 +3941,9 @@ dependencies = [
 
 [[package]]
 name = "psl"
-version = "2.1.116"
+version = "2.1.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10a9da533ae9faae4b0fbef5afbe9acaf1802b18fafa002a421753e3273389df"
+checksum = "b8fc27a100a65f00ca032e7770a5e6f877c669eeceb7c8be29edb9021636920c"
 dependencies = [
  "psl-types",
 ]
@@ -4438,7 +4438,7 @@ dependencies = [
  "hashlink",
  "libsqlite3-sys",
  "serde_json",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
 ]
 
 [[package]]
@@ -4674,9 +4674,9 @@ dependencies = [
 
 [[package]]
 name = "serde_spanned"
-version = "0.6.8"
+version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87607cb1398ed59d48732e575a4c28a7a8ebf2454b964fe3f224f2afc07909e1"
+checksum = "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3"
 dependencies = [
  "serde",
 ]
@@ -4852,9 +4852,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.15.0"
+version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
+checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "socket2"
@@ -4990,7 +4990,7 @@ dependencies = [
 [[package]]
 name = "tag_ptr"
 version = "0.1.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#571cea9259df057b581e7a273e46fc8d970076b9"
+source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
 
 [[package]]
 name = "tap"
@@ -5214,9 +5214,9 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.8.22"
+version = "0.8.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05ae329d1f08c4d17a59bed7ff5b5a769d062e64a62d34a3261b219e62cd5aae"
+checksum = "dc1beb996b9d83529a9e75c17a1686767d148d70663143c7854d8b4a09ced362"
 dependencies = [
  "serde",
  "serde_spanned",
@@ -5226,18 +5226,18 @@ dependencies = [
 
 [[package]]
 name = "toml_datetime"
-version = "0.6.9"
+version = "0.6.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3da5db5a963e24bc68be8b17b6fa82814bb22ee8660f192bb182771d498f09a3"
+checksum = "22cddaf88f4fbc13c51aebbf5f8eceb5c7c5a9da2ac40a13519eb5b0a0e8f11c"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "toml_edit"
-version = "0.22.26"
+version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "310068873db2c5b3e7659d2cc35d21855dbafa50d1ce336397c666e3cb08137e"
+checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
 dependencies = [
  "indexmap 2.9.0",
  "serde",
@@ -5304,9 +5304,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-attributes"
-version = "0.1.28"
+version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "395ae124c09f9e6918a2310af6038fba074bcf474ac352496d5910dd59a2226d"
+checksum = "1b1ffbcf9c6f6b99d386e7444eb608ba646ae452a36b39737deb9663b610f662"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5315,9 +5315,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-core"
-version = "0.1.33"
+version = "0.1.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e672c95779cf947c5311f83787af4fa8fffd12fb27e4993211a84bdfd9610f9c"
+checksum = "b9d12581f227e93f094d3af2ae690a574abb8a2b9b7a96e7cfe9647b2b617678"
 dependencies = [
  "once_cell",
  "valuable",
@@ -5345,7 +5345,7 @@ dependencies = [
  "once_cell",
  "regex",
  "sharded-slab",
- "smallvec 1.15.0",
+ "smallvec 1.15.1",
  "thread_local",
  "tracing",
  "tracing-core",

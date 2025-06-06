@@ -58,7 +58,8 @@ pub fn maybe_call_command(
                 Ok(())
             }
             Err(error) => {
-                debug!(elapsed = ?start.elapsed(), ?error, "Command failed.");
+                let message = error.to_string();
+                debug!(elapsed = ?start.elapsed(), ?message, "Command failed.");
                 Err(error)
             }
         }

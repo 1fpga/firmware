@@ -19,11 +19,14 @@ export async function main() {
   let quit = false;
 
   // Log the last time this was started.
+  console.log(0);
   await fs.writeFile('1fpga.start', new Date().toISOString());
+  console.log(0, 1);
 
   const start = Date.now();
   const resolution = video.getResolution();
   let image = await Image.embedded('background');
+  console.log(1);
 
   if (resolution) {
     console.log('Resolution:', resolution.width, 'x', resolution.height);

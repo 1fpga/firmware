@@ -21,7 +21,7 @@ pub mod osd_io;
 pub mod user_io;
 
 pub trait SpiCommandExt: Sized {
-    fn command(&mut self, command: impl IntoLowLevelSpiCommand) -> SpiCommandGuard<Self> {
+    fn command(&mut self, command: impl IntoLowLevelSpiCommand) -> SpiCommandGuard<'_, Self> {
         self.command_read(command, &mut 0)
     }
     fn command_read(
@@ -411,7 +411,7 @@ impl<M: MemoryMapper> SpiCommandExt for Spi<M> {
         &mut self,
         command: impl IntoLowLevelSpiCommand,
         out: &mut u16,
-    ) -> SpiCommandGuard<Self> {
+    ) -> SpiCommandGuard<'_, Self> {
         self.command_read(command, out)
     }
 

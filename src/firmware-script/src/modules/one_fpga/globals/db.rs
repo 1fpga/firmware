@@ -2,15 +2,16 @@ use boa_engine::builtins::typed_array::TypedArray;
 use boa_engine::class::Class;
 use boa_engine::object::builtins::{JsArray, JsPromise, JsUint8Array};
 use boa_engine::value::TryFromJs;
-use boa_engine::{js_error, Context, JsObject, JsResult, JsString, JsValue, JsVariant};
-use boa_interop::{js_class, JsClass};
-use boa_macros::{Finalize, JsData, Trace};
+use boa_engine::{
+    js_error, Context, JsObject, JsResult, JsString, JsValue, JsVariant, TryIntoJsResult,
+};
+use boa_macros::{boa_class, Finalize, JsData, Trace};
 use ouroboros::self_referencing;
 use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, Value, ValueRef};
 use rusqlite::{Connection, Row, Statement};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::rc::Rc;
 use tracing::trace;
 
@@ -63,7 +64,11 @@ impl TryFromJs for SqlValue {
                 let array = JsUint8Array::from_object(o.clone())?;
                 Ok(Self::Binary(array.iter(context).collect()))
             }
-            _ => Ok(Self::Json(value.to_json(context)?.expect("Unreachable."))),
+            _ => Ok(Self::Json(
+                value
+                    .to_json(context)?
+                    .ok_or_else(|| js_error!("Failed to convert value."))?,
+            )),
         }
     }
 }
@@ -323,13 +328,23 @@ pub struct JsDb {
     inner: Rc<RefCell<JsDbInner>>,
 }
 
+impl TryIntoJsResult for JsDb {
+    fn try_into_js_result(self, context: &mut Context) -> JsResult<JsValue> {
+        Ok(JsDb::from_data(self, context)?.into())
+    }
+}
+
+#[boa_class(name = "Db")]
 impl JsDb {
-    pub fn new(name: &str) -> JsResult<Self> {
+    #[boa(constructor)]
+    pub(crate) fn new(name: String) -> JsResult<Self> {
         let path = db_root().join(format!("{}.sqlite", name));
-        Self::load_file(&path)
+        Self::load_file(path.to_string_lossy().into_owned())
     }
 
-    pub fn load_file(path: &Path) -> JsResult<Self> {
+    #[boa(name = "loadFile")]
+    pub fn load_file(path: String) -> JsResult<Self> {
+        let path = PathBuf::from(path);
         trace!("Opening database at {:?}", path);
         let connection = Connection::open(path).map_err(|e| js_error!("SQL Error: {}", e))?;
 
@@ -340,7 +355,7 @@ impl JsDb {
         })
     }
 
-    pub fn reset(name: &str) -> JsResult<()> {
+    pub fn reset(name: String) -> JsResult<()> {
         let path = db_root().join(format!("{}.sqlite", name));
         trace!("Deleting database at {:?}", path);
         std::fs::remove_file(path).map_err(|e| js_error!("Could not delete database: {}", e))?;
@@ -349,31 +364,31 @@ impl JsDb {
 
     pub fn query(
         &self,
-        query: &String,
+        query: String,
         bindings: Option<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsPromise {
-        self.inner.borrow().query(None, query, bindings, context)
+        self.inner.borrow().query(None, &query, bindings, context)
     }
 
     pub fn query_one(
         &self,
-        query: &String,
+        query: String,
         bindings: Option<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         self.inner
             .borrow()
-            .query_one(None, query, bindings, context)
+            .query_one(None, &query, bindings, context)
     }
 
     pub fn execute(
         &self,
-        query: &String,
+        query: String,
         bindings: Option<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsResult<usize> {
-        self.inner.borrow().execute(None, query, bindings, context)
+        self.inner.borrow().execute(None, &query, bindings, context)
     }
 
     pub fn execute_raw(&self, query: String) -> JsResult<()> {
@@ -382,16 +397,17 @@ impl JsDb {
 
     pub fn execute_many(
         &self,
-        query: &String,
+        query: String,
         bindings: Vec<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsResult<usize> {
         self.inner
             .borrow()
-            .execute_many(None, query, bindings, context)
+            .execute_many(None, &query, bindings, context)
     }
 
-    pub fn begin_transaction(&self, context: &mut Context) -> JsPromise {
+    #[boa(name = "beginTransaction")]
+    fn begin_transaction(&self, context: &mut Context) -> JsPromise {
         JsPromise::new(
             move |fns, context| {
                 let tx_id = self.inner.borrow_mut().create_transaction()?;
@@ -411,38 +427,6 @@ impl JsDb {
     }
 }
 
-js_class! {
-    class JsDb as "Db" {
-        constructor(name: JsString) {
-            JsDb::new(name.to_std_string().map_err(|_| js_error!("Invalid db name"))?.as_str())
-        }
-
-        fn begin_transaction as "beginTransaction"(this: JsClass<JsDb>, context: &mut Context) -> JsPromise {
-            this.borrow_mut().begin_transaction(context)
-        }
-
-        fn query(this: JsClass<JsDb>, query: String, bindings: Option<Vec<SqlValue>>, context: &mut Context) -> JsPromise {
-            this.borrow().query(&query, bindings, context)
-        }
-
-        fn query_one as "queryOne"(this: JsClass<JsDb>, query: String, bindings: Option<Vec<SqlValue>>, context: &mut Context) -> JsResult<JsValue> {
-            this.borrow().query_one(&query, bindings, context)
-        }
-
-        fn execute(this: JsClass<JsDb>, query: String, bindings: Option<Vec<SqlValue>>, context: &mut Context) -> JsResult<usize> {
-            this.borrow().execute(&query, bindings, context)
-        }
-
-        fn execute_raw as "executeRaw"(this: JsClass<JsDb>, query: String) -> JsResult<()> {
-            this.borrow().execute_raw(query)
-        }
-
-        fn execute_many as "executeMany"(this: JsClass<JsDb>, query: String, bindings: Vec<Vec<SqlValue>>, context: &mut Context) -> JsResult<usize> {
-            this.borrow().execute_many(&query, bindings, context)
-        }
-    }
-}
-
 #[derive(Trace, Finalize, JsData)]
 pub struct JsDbTransaction {
     #[unsafe_ignore_trace]
@@ -451,49 +435,55 @@ pub struct JsDbTransaction {
     tx_id: u32,
 }
 
+#[boa_class(name = "DbTransaction")]
 impl JsDbTransaction {
+    #[boa(constructor)]
+    fn constructor() -> JsResult<Self> {
+        Err(js_error!("Cannot construct DbTransaction directly"))
+    }
+
     pub fn query(
         &self,
-        query: &String,
+        query: String,
         bindings: Option<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsPromise {
         self.inner
             .borrow()
-            .query(Some(self.tx_id), query, bindings, context)
+            .query(Some(self.tx_id), &query, bindings, context)
     }
 
     pub fn query_one(
         &self,
-        query: &String,
+        query: String,
         bindings: Option<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         self.inner
             .borrow()
-            .query_one(Some(self.tx_id), query, bindings, context)
+            .query_one(Some(self.tx_id), &query, bindings, context)
     }
 
     pub fn execute(
         &self,
-        query: &String,
+        query: String,
         bindings: Option<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsResult<usize> {
         self.inner
             .borrow()
-            .execute(Some(self.tx_id), query, bindings, context)
+            .execute(Some(self.tx_id), &query, bindings, context)
     }
 
     pub fn execute_many(
         &self,
-        query: &String,
+        query: String,
         bindings: Vec<Vec<SqlValue>>,
         context: &mut Context,
     ) -> JsResult<usize> {
         self.inner
             .borrow()
-            .execute_many(Some(self.tx_id), query, bindings, context)
+            .execute_many(Some(self.tx_id), &query, bindings, context)
     }
 
     pub fn execute_raw(&self, query: String) -> JsResult<()> {
@@ -536,41 +526,5 @@ impl JsDbTransaction {
             },
             context,
         )
-    }
-}
-
-js_class! {
-    class JsDbTransaction as "DbTransaction" {
-        constructor() {
-            Err(js_error!("Cannot construct DbTransaction directly"))
-        }
-
-        fn query(this: JsClass<JsDbTransaction>, query: String, bindings: Option<Vec<SqlValue>>, context: &mut Context) -> JsPromise {
-            this.borrow().query(&query, bindings, context)
-        }
-
-        fn query_one as "queryOne"(this: JsClass<JsDbTransaction>, query: String, bindings: Option<Vec<SqlValue>>, context: &mut Context) -> JsResult<JsValue> {
-            this.borrow().query_one(&query, bindings, context)
-        }
-
-        fn execute(this: JsClass<JsDbTransaction>, query: String, bindings: Option<Vec<SqlValue>>, context: &mut Context) -> JsResult<usize> {
-            this.borrow().execute(&query, bindings, context)
-        }
-
-        fn execute_many as "executeMany"(this: JsClass<JsDbTransaction>, query: String, bindings: Vec<Vec<SqlValue>>, context: &mut Context) -> JsResult<usize> {
-            this.borrow().execute_many(&query, bindings, context)
-        }
-
-        fn execute_raw as "executeRaw"(this: JsClass<JsDbTransaction>, query: String) -> JsResult<()> {
-            this.borrow().execute_raw(query)
-        }
-
-        fn commit(this: JsClass<JsDbTransaction>, context: &mut Context) -> JsPromise {
-            this.borrow_mut().commit(context)
-        }
-
-        fn rollback(this: JsClass<JsDbTransaction>, context: &mut Context) -> JsPromise {
-            this.borrow_mut().rollback(context)
-        }
     }
 }

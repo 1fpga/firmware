@@ -1,14 +1,14 @@
 use crate::commands::maybe_call_command;
 use crate::modules::one_fpga::globals::classes::JsImage;
 use crate::HostData;
+use boa_engine::class::Class;
 use boa_engine::object::builtins::{JsFunction, JsPromise, JsUint8Array};
 use boa_engine::value::TryFromJs;
 use boa_engine::{js_error, Context, JsError, JsResult, JsString, JsValue, TryIntoJsResult};
-use boa_interop::{js_class, ContextData, JsClass};
-use boa_macros::{Finalize, JsData, Trace};
+use boa_interop::{ContextData, JsClass};
+use boa_macros::{boa_class, Finalize, JsData, Trace};
 use enum_map::{Enum, EnumMap};
 use firmware_ui::application::panels::core_loop::run_core_loop;
-use firmware_ui::application::OneFpgaApp;
 use mister_fpga::core::{AsMisterCore, MisterFpgaCore};
 use one_fpga::core::SettingId;
 use one_fpga::{Core, OneFpgaCore};
@@ -54,22 +54,94 @@ impl JsCore {
             events: Default::default(),
         }
     }
+}
+
+#[boa_class(name = "OneFpgaCore")]
+impl JsCore {
+    #[boa(constructor)]
+    fn constructor(ContextData(data): ContextData<HostData>) -> JsResult<Self> {
+        let core = data
+            .app_mut()
+            .platform_mut()
+            .core_manager_mut()
+            .get_current_core()
+            .unwrap()
+            .clone();
+
+        Ok(Self::new(core))
+    }
+
+    #[boa(getter)]
+    fn name(&self) -> JsString {
+        JsString::from(self.core.name())
+    }
+
+    #[boa(getter)]
+    fn settings(&self, context: &mut Context) -> JsResult<JsValue> {
+        let settings = self.core.settings().map_err(JsError::from_rust)?;
+        let json = serde_json::to_value(&settings).map_err(JsError::from_rust)?;
+        JsValue::from_json(&json, context).map_err(JsError::from_rust)
+    }
+
+    #[boa(getter)]
+    #[boa(name = "statusBits")]
+    fn status_bits(&self, context: &mut Context) -> Option<JsUint8Array> {
+        if let Some(core) = self.core.as_mister_core() {
+            JsUint8Array::from_iter(
+                core.status_bits().iter().map(|b| if b { 1 } else { 0 }),
+                context,
+            )
+            .ok()
+        } else {
+            None
+        }
+    }
+
+    #[boa(setter)]
+    #[boa(name = "statusBits")]
+    fn set_status_bits(
+        this: JsClass<JsCore>,
+        bits: JsUint8Array,
+        context: &mut Context,
+    ) -> JsResult<()> {
+        if let Some(core) = this.borrow().core.as_mister_core() {
+            let mut slice = *core.status_bits();
+            for bit in 0..slice.len() {
+                slice.set(bit, bits.at(bit as i64, context)?.to_uint8(context)? != 0);
+            }
+        }
+        Ok(())
+    }
+
+    #[boa(getter)]
+    fn volume(&self) -> JsResult<f64> {
+        Ok(self.core.volume().map_err(JsError::from_rust)? as f64 / 255.0)
+    }
+
+    #[boa(setter)]
+    #[boa(name = "volume")]
+    fn set_volume(&mut self, volume: f64) -> JsResult<()> {
+        let value = (volume * 255.0) as u8;
+        self.core.set_volume(value).map_err(JsError::from_rust)
+    }
 
     fn reset(&mut self) -> JsResult<()> {
         self.core.reset().map_err(JsError::from_rust)
     }
 
-    fn r#loop(
-        &mut self,
-        host_defined: HostData,
+    #[boa(name = "loop")]
+    #[boa(method)]
+    fn run_loop(
+        this: JsClass<JsCore>,
+        ContextData(host_defined): ContextData<HostData>,
         options: Option<LoopOptions>,
         context: &mut Context,
     ) -> JsResult<JsPromise> {
         let app = host_defined.app_mut();
         let command_map = host_defined.command_map_mut();
-        let mut core = self.core.clone();
+        let mut core = this.borrow().core.clone();
 
-        let events = self.events.clone();
+        let events = this.borrow().events.clone();
         info!("Running loop: {:?}", options);
 
         let cx = RefCell::new(context);
@@ -83,8 +155,9 @@ impl JsCore {
             |_app, _core, screenshot, slot, savestate| {
                 for handler in events.borrow()[Events::SaveState].iter() {
                     let ss = JsUint8Array::from_iter(savestate.iter().copied(), *cx.borrow_mut())?;
-                    let image = screenshot
-                        .and_then(|i| JsImage::new(i.clone()).into_object(*cx.borrow_mut()).ok());
+                    let image = screenshot.and_then(|i| {
+                        JsImage::from_data(JsImage::new(i.clone()), *cx.borrow_mut()).ok()
+                    });
                     let result = handler.call(
                         &JsValue::undefined(),
                         &[
@@ -111,7 +184,7 @@ impl JsCore {
                 error!(?e, "Error converting result to JS");
                 JsValue::undefined()
             });
-        self.events.borrow()[Events::Quit].iter().for_each(|f| {
+        events.borrow()[Events::Quit].iter().for_each(|f| {
             let _ = f.call(
                 &JsValue::undefined(),
                 &[js_result.clone()],
@@ -122,16 +195,20 @@ impl JsCore {
         result.map(|_| JsPromise::resolve(JsValue::undefined(), *cx.borrow_mut()))
     }
 
+    #[boa(name = "showOsd")]
     fn show_osd(
-        &mut self,
-        app: &mut OneFpgaApp,
+        this: JsClass<JsCore>,
+        ContextData(host_defined): ContextData<HostData>,
         handler: JsFunction,
         context: &mut Context,
     ) -> JsResult<()> {
+        let app = host_defined.app_mut();
         app.platform_mut().core_manager_mut().show_osd();
 
         // Update saves on Mister Cores.
-        if let Some(c) = self.core.as_any_mut().downcast_mut::<MisterFpgaCore>() {
+        let mut core = this.borrow().core.clone();
+
+        if let Some(c) = core.as_any_mut().downcast_mut::<MisterFpgaCore>() {
             loop {
                 match c.poll_mounts() {
                     Ok(true) => {}
@@ -150,162 +227,52 @@ impl JsCore {
         }
 
         if v.to_boolean() {
-            self.quit();
+            this.borrow_mut().quit();
         }
 
         app.platform_mut().core_manager_mut().hide_osd();
         Ok(())
     }
 
-    fn settings(&self, context: &mut Context) -> JsResult<JsValue> {
-        let settings = self.core.settings().map_err(JsError::from_rust)?;
-        let json = serde_json::to_value(&settings).map_err(JsError::from_rust)?;
-        JsValue::from_json(&json, context).map_err(JsError::from_rust)
-    }
-
     fn quit(&mut self) {
         self.core.quit();
-    }
-
-    fn get_status_bits(&self, context: &mut Context) -> Option<JsUint8Array> {
-        if let Some(core) = self.core.as_mister_core() {
-            JsUint8Array::from_iter(
-                core.status_bits().iter().map(|b| if b { 1 } else { 0 }),
-                context,
-            )
-            .ok()
-        } else {
-            None
-        }
-    }
-
-    fn set_status_bits(&mut self, bits: JsUint8Array, context: &mut Context) -> JsResult<()> {
-        if let Some(core) = self.core.as_mister_core() {
-            let mut slice = *core.status_bits();
-            for bit in 0..slice.len() {
-                slice.set(bit, bits.at(bit as i64, context)?.to_uint8(context)? != 0);
-            }
-        }
-        Ok(())
     }
 
     fn on(&mut self, event: Events, handler: JsFunction) -> JsResult<()> {
         self.events.borrow_mut()[event].push(handler);
         Ok(())
     }
-}
 
-js_class! {
-    class JsCore as "OneFpgaCore" {
-        property name {
-            fn get(this: JsClass<JsCore>) -> JsResult<JsString> {
-                Ok(JsString::from(this.borrow().core.name()))
-            }
-        }
+    fn screenshot(&self, context: &mut Context) -> JsResult<JsPromise> {
+        let screenshot = self.core.screenshot().map_err(JsError::from_rust)?;
+        let image = JsImage::from_data(JsImage::new(screenshot), context)?;
+        Ok(JsPromise::resolve(image, context))
+    }
 
-        property settings {
-            fn get(this: JsClass<JsCore>, context: &mut Context) -> JsResult<JsValue> {
-                this.borrow().settings(context)
-            }
-        }
+    #[boa(name = "fileSelect")]
+    fn file_select(&mut self, id: u32, path: JsString) -> JsResult<()> {
+        self.core
+            .file_select(SettingId::from(id), path.to_std_string_lossy())
+            .map_err(JsError::from_rust)
+    }
 
-        property status_bits as "statusBits" {
-            fn get(this: JsClass<JsCore>, context: &mut Context) -> Option<JsUint8Array> {
-                this.borrow().get_status_bits(context)
-            }
+    fn trigger(&mut self, id: u32) -> JsResult<()> {
+        self.core
+            .trigger(SettingId::from(id))
+            .map_err(JsError::from_rust)
+    }
 
-            fn set(this: JsClass<JsCore>, value: JsUint8Array, context: &mut Context) -> JsResult<()> {
-                this.borrow_mut().set_status_bits(value, context)
-            }
-        }
+    #[boa(name = "boolSelect")]
+    fn bool_select(&mut self, id: u32, value: bool) -> JsResult<bool> {
+        self.core
+            .bool_option(SettingId::from(id), value)
+            .map_err(JsError::from_rust)
+    }
 
-        property volume {
-            fn get(this: JsClass<JsCore>) -> JsResult<f64> {
-                let volume = this.borrow().core.volume().map_err(JsError::from_rust)? as f64;
-
-                Ok(volume / 255.0)
-            }
-
-            fn set(this: JsClass<JsCore>, value: f64) -> JsResult<()> {
-                let value = (value * 255.0) as u8;
-                this.borrow_mut().core.set_volume(value).map_err(JsError::from_rust)
-            }
-        }
-
-        constructor(data: ContextData<HostData>) {
-            let host_defined = data.0;
-            Ok(JsCore::new(host_defined.app_mut().platform_mut().core_manager_mut().get_current_core().unwrap().clone()))
-        }
-
-        fn reset(this: JsClass<JsCore>) -> JsResult<()> {
-            this.clone_inner().reset()
-        }
-
-        fn run_loop as "loop"(
-            this: JsClass<JsCore>,
-            data: ContextData<HostData>,
-            options: Option<LoopOptions>,
-            context: &mut Context,
-        ) -> JsResult<JsPromise> {
-            this.clone_inner().r#loop(data.0, options, context)
-        }
-
-        fn show_osd as "showOsd"(
-            this: JsClass<JsCore>,
-            data: ContextData<HostData>,
-            handler: JsFunction,
-            context: &mut Context,
-        ) -> JsResult<()> {
-            this.clone_inner().show_osd(data.0.app_mut(), handler, context)
-        }
-
-        fn screenshot(this: JsClass<JsCore>, context: &mut Context) -> JsResult<JsPromise> {
-            let screenshot = this.borrow().core.screenshot().map_err(JsError::from_rust)?;
-            let image = JsImage::new(screenshot).into_object(context)?;
-            Ok(JsPromise::resolve(image, context))
-        }
-
-        fn file_select as "fileSelect"(
-            this: JsClass<JsCore>,
-            id: u32,
-            path: JsString,
-        ) -> JsResult<()> {
-            this.clone_inner().core.file_select(SettingId::from(id), path.to_std_string_lossy()).map_err(JsError::from_rust)
-        }
-
-        fn trigger(
-            this: JsClass<JsCore>,
-            id: u32,
-        ) -> JsResult<()> {
-            this.clone_inner().core.trigger(SettingId::from(id)).map_err(JsError::from_rust)
-        }
-
-        fn bool_select as "boolSelect"(
-            this: JsClass<JsCore>,
-            id: u32,
-            value: bool,
-        ) -> JsResult<bool> {
-            this.clone_inner().core.bool_option(SettingId::from(id), value).map_err(JsError::from_rust)
-        }
-
-        fn int_select as "intSelect"(
-            this: JsClass<JsCore>,
-            id: u32,
-            value: u32,
-        ) -> JsResult<u32> {
-            this.clone_inner().core.int_option(SettingId::from(id), value).map_err(JsError::from_rust)
-        }
-
-        fn quit(this: JsClass<JsCore>) -> () {
-            this.clone_inner().quit()
-        }
-
-        fn on(
-            this: JsClass<JsCore>,
-            event: Events,
-            handler: JsFunction,
-        ) -> JsResult<()> {
-            this.clone_inner().on(event, handler)
-        }
+    #[boa(name = "intSelect")]
+    fn int_select(&mut self, id: u32, value: u32) -> JsResult<u32> {
+        self.core
+            .int_option(SettingId::from(id), value)
+            .map_err(JsError::from_rust)
     }
 }

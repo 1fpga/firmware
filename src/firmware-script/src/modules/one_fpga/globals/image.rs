@@ -90,10 +90,6 @@ impl JsImage {
             _ => Err(js_error!("Unknown embedded image.")),
         }
     }
-
-    pub fn into_object(self, context: &mut Context) -> JsResult<JsObject> {
-        Self::from_data(self, context)
-    }
 }
 
 #[boa_class(name = "Image")]
@@ -109,6 +105,7 @@ impl JsImage {
         Self::from_data(Self::new(image), context)
     }
 
+    #[boa(static)]
     pub fn embedded(name: String, context: &mut Context) -> JsResult<JsObject> {
         Self::from_data(Self::load_embedded(name.as_str())?, context)
     }
@@ -138,14 +135,15 @@ impl JsImage {
         ar: Option<bool>,
         context: &mut Context,
     ) -> JsResult<JsObject> {
-        Self::new(if ar.unwrap_or(true) {
+        let this = Self::new(if ar.unwrap_or(true) {
             self.inner
                 .resize(width, height, image::imageops::FilterType::Nearest)
         } else {
             self.inner
                 .resize_exact(width, height, image::imageops::FilterType::Nearest)
-        })
-        .into_object(context)
+        });
+
+        Self::from_data(this, context)
     }
 
     /// Save the image
@@ -169,7 +167,7 @@ impl JsImage {
 
     /// Put the image as the background, if on the menu core.
     #[boa(name = "sendToBackground")]
-    pub fn send_to_background(
+    fn send_to_background(
         &self,
         host_data: ContextData<HostData>,
         options: Option<SendToBackgroundOptions>,

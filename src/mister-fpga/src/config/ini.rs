@@ -161,7 +161,7 @@ impl<'a> Ini<'a> {
     }
 }
 
-pub fn parse(mut input: &str) -> Result<Ini, Error> {
+pub fn parse<'a>(mut input: &'a str) -> Result<Ini<'a>, Error> {
     let mut root_kv = Vec::new();
     let mut sections = Vec::new();
     let mut current_section: Option<(&str, Section)> = None;
