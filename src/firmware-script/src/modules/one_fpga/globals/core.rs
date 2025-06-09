@@ -57,6 +57,7 @@ impl JsCore {
 }
 
 #[boa_class(name = "OneFpgaCore")]
+#[boa(rename = "camelCase")]
 impl JsCore {
     #[boa(constructor)]
     fn constructor(ContextData(data): ContextData<HostData>) -> JsResult<Self> {
@@ -84,7 +85,6 @@ impl JsCore {
     }
 
     #[boa(getter)]
-    #[boa(name = "statusBits")]
     fn status_bits(&self, context: &mut Context) -> Option<JsUint8Array> {
         if let Some(core) = self.core.as_mister_core() {
             JsUint8Array::from_iter(
@@ -195,7 +195,6 @@ impl JsCore {
         result.map(|_| JsPromise::resolve(JsValue::undefined(), *cx.borrow_mut()))
     }
 
-    #[boa(name = "showOsd")]
     fn show_osd(
         this: JsClass<JsCore>,
         ContextData(host_defined): ContextData<HostData>,
@@ -249,7 +248,6 @@ impl JsCore {
         Ok(JsPromise::resolve(image, context))
     }
 
-    #[boa(name = "fileSelect")]
     fn file_select(&mut self, id: u32, path: JsString) -> JsResult<()> {
         self.core
             .file_select(SettingId::from(id), path.to_std_string_lossy())
@@ -262,14 +260,12 @@ impl JsCore {
             .map_err(JsError::from_rust)
     }
 
-    #[boa(name = "boolSelect")]
     fn bool_select(&mut self, id: u32, value: bool) -> JsResult<bool> {
         self.core
             .bool_option(SettingId::from(id), value)
             .map_err(JsError::from_rust)
     }
 
-    #[boa(name = "intSelect")]
     fn int_select(&mut self, id: u32, value: u32) -> JsResult<u32> {
         self.core
             .int_option(SettingId::from(id), value)

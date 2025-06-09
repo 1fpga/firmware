@@ -93,6 +93,7 @@ impl JsImage {
 }
 
 #[boa_class(name = "Image")]
+#[boa(rename = "camelCase")]
 impl JsImage {
     pub fn load(path: JsString, context: &mut Context) -> JsResult<JsObject> {
         let image = image::open(
@@ -166,7 +167,6 @@ impl JsImage {
     }
 
     /// Put the image as the background, if on the menu core.
-    #[boa(name = "sendToBackground")]
     fn send_to_background(
         &self,
         host_data: ContextData<HostData>,

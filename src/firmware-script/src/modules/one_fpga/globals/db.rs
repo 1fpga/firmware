@@ -335,6 +335,7 @@ impl TryIntoJsResult for JsDb {
 }
 
 #[boa_class(name = "Db")]
+#[boa(rename = "camelCase")]
 impl JsDb {
     #[boa(constructor)]
     pub(crate) fn new(name: String) -> JsResult<Self> {
@@ -342,7 +343,6 @@ impl JsDb {
         Self::load_file(path.to_string_lossy().into_owned())
     }
 
-    #[boa(name = "loadFile")]
     pub fn load_file(path: String) -> JsResult<Self> {
         let path = PathBuf::from(path);
         trace!("Opening database at {:?}", path);
@@ -406,7 +406,6 @@ impl JsDb {
             .execute_many(None, &query, bindings, context)
     }
 
-    #[boa(name = "beginTransaction")]
     fn begin_transaction(&self, context: &mut Context) -> JsPromise {
         JsPromise::new(
             move |fns, context| {
@@ -436,6 +435,7 @@ pub struct JsDbTransaction {
 }
 
 #[boa_class(name = "DbTransaction")]
+#[boa(rename = "camelCase")]
 impl JsDbTransaction {
     #[boa(constructor)]
     fn constructor() -> JsResult<Self> {
