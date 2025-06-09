@@ -34,13 +34,10 @@ export async function main() {
     } else if (imageAr < resolutionAr) {
       resolution.height = resolution.width / imageAr;
     }
-    console.log(1);
     image = image.resize(resolution.width, resolution.height);
   }
-  console.log(2);
 
   image.sendToBackground({ position: 'center', clear: true });
-  console.log(3);
   console.log('Background set in', Date.now() - start, 'ms');
 
   const { mainInner } = await import('@/ui/main');
