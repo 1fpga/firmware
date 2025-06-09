@@ -19,14 +19,11 @@ export async function main() {
   let quit = false;
 
   // Log the last time this was started.
-  console.log(0);
   await fs.writeFile('1fpga.start', new Date().toISOString());
-  console.log(0, 1);
 
   const start = Date.now();
   const resolution = video.getResolution();
   let image = await Image.embedded('background');
-  console.log(1);
 
   if (resolution) {
     console.log('Resolution:', resolution.width, 'x', resolution.height);
@@ -37,10 +34,13 @@ export async function main() {
     } else if (imageAr < resolutionAr) {
       resolution.height = resolution.width / imageAr;
     }
+    console.log(1);
     image = image.resize(resolution.width, resolution.height);
   }
+  console.log(2);
 
   image.sendToBackground({ position: 'center', clear: true });
+  console.log(3);
   console.log('Background set in', Date.now() - start, 'ms');
 
   const { mainInner } = await import('@/ui/main');

@@ -1,6 +1,5 @@
-use boa_engine::{js_string, Context, JsResult, Module};
+use boa_engine::{js_string, Context, JsResult, JsString, Module};
 use boa_macros::boa_module;
-use boa_string::JsString;
 
 #[boa_module]
 #[boa(rename = "camelCase")]

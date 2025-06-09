@@ -167,6 +167,7 @@ impl JsImage {
     }
 
     /// Put the image as the background, if on the menu core.
+    #[boa(name = "sendToBackground")]
     fn send_to_background(
         &self,
         host_data: ContextData<HostData>,

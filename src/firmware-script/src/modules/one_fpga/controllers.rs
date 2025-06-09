@@ -6,8 +6,7 @@ use boa_macros::boa_module;
 mod js {
     use crate::HostData;
     use boa_engine::interop::ContextData;
-    use boa_engine::{JsError, JsResult};
-    use boa_string::JsString;
+    use boa_engine::{JsError, JsResult, JsString};
 
     fn load_mapping(ContextData(data): ContextData<HostData>, mapping: JsString) -> JsResult<()> {
         let app = data.app_mut();

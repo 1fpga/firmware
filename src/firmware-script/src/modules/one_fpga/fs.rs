@@ -5,9 +5,8 @@ use boa_macros::boa_module;
 #[boa(rename = "camelCase")]
 mod js {
     use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsPromise, JsUint8Array};
-    use boa_engine::{js_error, Context, JsError, JsResult, JsValue};
+    use boa_engine::{js_error, Context, JsError, JsResult, JsString, JsValue};
     use boa_macros::TryFromJs;
-    use boa_string::JsString;
     use either::Either;
     use sha2::Digest;
     use std::path::PathBuf;
@@ -180,9 +179,9 @@ mod js {
         JsPromise::new(
             |resolvers, context| {
                 let result = if recursive.unwrap_or(false) {
-                    std::fs::remove_dir(&path)
-                } else {
                     std::fs::remove_dir_all(&path)
+                } else {
+                    std::fs::remove_dir(&path)
                 };
 
                 match result {
