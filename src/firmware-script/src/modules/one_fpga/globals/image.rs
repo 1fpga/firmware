@@ -95,6 +95,7 @@ impl JsImage {
 #[boa_class(name = "Image")]
 #[boa(rename = "camelCase")]
 impl JsImage {
+    #[boa(static)]
     pub fn load(path: JsString, context: &mut Context) -> JsResult<JsObject> {
         let image = image::open(
             path.to_std_string()
@@ -130,13 +131,13 @@ impl JsImage {
 
     /// Resize the image, returning a new image.
     pub fn resize(
-        &mut self,
+        &self,
         width: u32,
         height: u32,
-        ar: Option<bool>,
+        keep_aspect_ratio: Option<bool>,
         context: &mut Context,
     ) -> JsResult<JsObject> {
-        let this = Self::new(if ar.unwrap_or(true) {
+        let this = Self::new(if keep_aspect_ratio.unwrap_or(true) {
             self.inner
                 .resize(width, height, image::imageops::FilterType::Nearest)
         } else {
