@@ -1,29 +1,31 @@
-use crate::HostData;
-use boa_engine::{js_string, Context, JsError, JsResult, JsString, Module};
-use boa_interop::{ContextData, IntoJsFunctionCopied, IntoJsModule};
+use boa_engine::{js_string, Context, JsResult, JsString, Module};
+use boa_macros::boa_module;
 
-fn load_mapping_(ContextData(data): ContextData<HostData>, mapping: JsString) -> JsResult<()> {
-    let app = data.app_mut();
+#[boa_module]
+#[boa(rename = "camelCase")]
+mod js {
+    use crate::HostData;
+    use boa_engine::interop::ContextData;
+    use boa_engine::{JsError, JsResult};
+    use boa_string::JsString;
 
-    let mapping = mapping.to_std_string_lossy();
-    let mapping = mapping.as_str();
+    fn load_mapping(ContextData(data): ContextData<HostData>, mapping: JsString) -> JsResult<()> {
+        let app = data.app_mut();
 
-    app.platform_mut()
-        .platform
-        .gamepad
-        .borrow_mut()
-        .add_mapping(mapping)
-        .map_err(JsError::from_rust)?;
+        let mapping = mapping.to_std_string_lossy();
+        let mapping = mapping.as_str();
 
-    Ok(())
+        app.platform_mut()
+            .platform
+            .gamepad
+            .borrow_mut()
+            .add_mapping(mapping)
+            .map_err(JsError::from_rust)?;
+
+        Ok(())
+    }
 }
 
 pub fn create_module(context: &mut Context) -> JsResult<(JsString, Module)> {
-    let module = [(
-        js_string!("loadMapping"),
-        load_mapping_.into_js_function_copied(context),
-    )]
-    .into_js_module(context);
-
-    Ok((js_string!("controllers"), module))
+    Ok((js_string!("controllers"), js::boa_module(None, context)))
 }

@@ -358,7 +358,7 @@ dependencies = [
 [[package]]
 name = "boa_ast"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "bitflags 2.9.1",
  "boa_interner",
@@ -372,7 +372,7 @@ dependencies = [
 [[package]]
 name = "boa_engine"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "arrayvec 0.7.6",
  "bitflags 2.9.1",
@@ -390,7 +390,7 @@ dependencies = [
  "either",
  "fast-float2",
  "futures-lite",
- "hashbrown 0.15.3",
+ "hashbrown 0.15.4",
  "icu_normalizer 1.5.0",
  "indexmap 2.9.0",
  "intrusive-collections",
@@ -418,23 +418,23 @@ dependencies = [
 [[package]]
 name = "boa_gc"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "boa_macros",
  "boa_profiler",
  "boa_string",
- "hashbrown 0.15.3",
+ "hashbrown 0.15.4",
  "thin-vec",
 ]
 
 [[package]]
 name = "boa_interner"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "boa_gc",
  "boa_macros",
- "hashbrown 0.15.3",
+ "hashbrown 0.15.4",
  "indexmap 2.9.0",
  "once_cell",
  "phf",
@@ -445,7 +445,7 @@ dependencies = [
 [[package]]
 name = "boa_interop"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -456,7 +456,7 @@ dependencies = [
 [[package]]
 name = "boa_macros"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "cfg-if",
  "cow-utils",
@@ -469,7 +469,7 @@ dependencies = [
 [[package]]
 name = "boa_parser"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "bitflags 2.9.1",
  "boa_ast",
@@ -487,12 +487,12 @@ dependencies = [
 [[package]]
 name = "boa_profiler"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 
 [[package]]
 name = "boa_runtime"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -504,7 +504,7 @@ dependencies = [
 [[package]]
 name = "boa_string"
 version = "0.20.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 dependencies = [
  "fast-float2",
  "itoa",
@@ -551,9 +551,9 @@ dependencies = [
 
 [[package]]
 name = "bytemuck"
-version = "1.23.0"
+version = "1.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9134a6ef01ce4b366b50689c94f82c14bc72bc5d0386829828a2e2752ef7958c"
+checksum = "5c76a5792e44e4abe34d3abf15636779261d45a7450612059293d1d2cfc63422"
 dependencies = [
  "bytemuck_derive",
 ]
@@ -1471,6 +1471,7 @@ dependencies = [
  "boa_interop",
  "boa_macros",
  "boa_runtime",
+ "boa_string",
  "directories",
  "ed25519",
  "ed25519-dalek",
@@ -1579,9 +1580,9 @@ dependencies = [
 
 [[package]]
 name = "flate2"
-version = "1.1.1"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ced92e76e966ca2fd84c8f7aa01a4aea65b0eb6648d72f7c8f3e2764a67fece"
+checksum = "4a3d7db9596fecd151c5f638c0ee5d5bd487b6e0ea232e5dc96d5250f6f94b1d"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
@@ -2370,9 +2371,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.15.3"
+version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84b26c544d002229e640969970a2e74021aadf6e2f96372b9c58eff97de08eb3"
+checksum = "5971ac85611da7067dbfcabef3c70ebb5606018acd9e2a3903a0da507521e0d5"
 dependencies = [
  "allocator-api2",
  "equivalent",
@@ -2845,9 +2846,9 @@ dependencies = [
 
 [[package]]
 name = "image-webp"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b77d01e822461baa8409e156015a1d91735549f0f2c17691bd2d996bef238f7f"
+checksum = "14d75c7014ddab93c232bc6bb9f64790d3dfd1d605199acd4b40b6d69e691e9f"
 dependencies = [
  "byteorder-lite",
  "quick-error",
@@ -2877,7 +2878,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cea70ddb795996207ad57735b50c5982d8844f38ba9ee5f1aedcfb708a2aa11e"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.3",
+ "hashbrown 0.15.4",
  "serde",
 ]
 
@@ -3941,9 +3942,9 @@ dependencies = [
 
 [[package]]
 name = "psl"
-version = "2.1.117"
+version = "2.1.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8fc27a100a65f00ca032e7770a5e6f877c669eeceb7c8be29edb9021636920c"
+checksum = "d0e49aa528239f2ca13ad87387977c208e59c3fb8c437609f95f1b3898ec6ef1"
 dependencies = [
  "psl-types",
 ]
@@ -4300,7 +4301,7 @@ version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ef7fa9ed0256d64a688a3747d0fef7a88851c18a5e1d57f115f38ec2e09366"
 dependencies = [
- "hashbrown 0.15.3",
+ "hashbrown 0.15.4",
  "memchr",
 ]
 
@@ -4990,7 +4991,7 @@ dependencies = [
 [[package]]
 name = "tag_ptr"
 version = "0.1.0"
-source = "git+https://github.com/hansl/boa.git?branch=class-proc-macro#0867ee18859a56a507bd50f318725267b16b5c24"
+source = "git+https://github.com/hansl/boa.git?branch=module-proc-macro#6fe13d38c90d7d8dbd29dd78a335cb8385a90d48"
 
 [[package]]
 name = "tap"
@@ -6212,9 +6213,9 @@ dependencies = [
 
 [[package]]
 name = "zune-jpeg"
-version = "0.4.16"
+version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e4a518c0ea2576f4da876349d7f67a7be489297cd77c2cf9e04c2e05fcd3974"
+checksum = "0f6fe2e33d02a98ee64423802e16df3de99c43e5cf5ff983767e1128b394c8ac"
 dependencies = [
  "zune-core",
 ]

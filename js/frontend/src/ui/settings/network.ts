@@ -27,7 +27,7 @@ export async function networkSettingsMenu() {
         label: 'Speed Test...',
         select: async () => {
           osd.show('Speed Test', 'Testing download speed...');
-          const url = 'http://cachefly.cachefly.net/10mb.test';
+          const url = 'https://link.testfile.org/15MB';
           try {
             const now = Date.now();
             const destination = await net.download(url);

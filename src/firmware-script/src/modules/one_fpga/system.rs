@@ -1,43 +1,36 @@
 use boa_engine::{js_string, Context, JsResult, JsString, Module};
-use boa_interop::{IntoJsFunctionCopied, IntoJsModule};
+use boa_macros::boa_module;
 
-fn shutdown_() -> JsResult<()> {
-    unsafe {
-        // Make sure everything in memory is committed.
-        nix::libc::sync();
+#[boa_module]
+#[boa(rename = "camelCase")]
+mod js {
+    use boa_engine::JsResult;
 
-        #[cfg(target_os = "linux")]
-        nix::libc::reboot(nix::libc::RB_POWER_OFF);
+    fn shutdown() -> JsResult<()> {
+        unsafe {
+            // Make sure everything in memory is committed.
+            nix::libc::sync();
+
+            #[cfg(target_os = "linux")]
+            nix::libc::reboot(nix::libc::RB_POWER_OFF);
+        }
+
+        Ok(())
     }
 
-    Ok(())
-}
+    fn restart() -> JsResult<()> {
+        unsafe {
+            // Make sure everything in memory is committed.
+            nix::libc::sync();
 
-fn restart_() -> JsResult<()> {
-    unsafe {
-        // Make sure everything in memory is committed.
-        nix::libc::sync();
+            #[cfg(target_os = "linux")]
+            nix::libc::reboot(nix::libc::LINUX_REBOOT_CMD_RESTART);
+        }
 
-        #[cfg(target_os = "linux")]
-        nix::libc::reboot(nix::libc::LINUX_REBOOT_CMD_RESTART);
+        Ok(())
     }
-
-    Ok(())
 }
 
 pub fn create_module(context: &mut Context) -> JsResult<(JsString, Module)> {
-    Ok((
-        js_string!("system"),
-        [
-            (
-                js_string!("shutdown"),
-                shutdown_.into_js_function_copied(context),
-            ),
-            (
-                js_string!("restart"),
-                restart_.into_js_function_copied(context),
-            ),
-        ]
-        .into_js_module(context),
-    ))
+    Ok((js_string!("system"), js::boa_module(None, context)))
 }

@@ -1,14 +1,9 @@
-use crate::HostData;
 use boa_engine::object::builtins::JsFunction;
-use boa_engine::{js_error, js_string, Context, JsResult, JsString, Module};
-use boa_interop::{ContextData, IntoJsFunctionCopied, IntoJsModule};
-use boa_macros::{Finalize, JsData, Trace};
+use boa_engine::{js_string, Context, JsResult, JsString, Module};
+use boa_macros::{boa_module, Finalize, JsData, Trace};
 use firmware_ui::input::commands::CommandId;
-use firmware_ui::input::shortcut::Shortcut;
 use std::collections::HashMap;
-use std::str::FromStr;
 use std::sync::atomic::AtomicUsize;
-use tracing::debug;
 
 #[derive(Default, Trace, Finalize, JsData)]
 pub struct CommandMap {
@@ -40,52 +35,51 @@ impl CommandMap {
     }
 }
 
-fn create_shortcut_(
-    ContextData(data): ContextData<HostData>,
-    shortcut: String,
-    action: JsFunction,
-) -> JsResult<()> {
-    debug!(?shortcut, "Creating shortcut");
-    let shortcut =
-        Shortcut::from_str(&shortcut).map_err(|e| js_error!("Invalid shortcut: {:?}", e))?;
+#[boa_module]
+#[boa(rename = "camelCase")]
+mod js {
+    use crate::HostData;
+    use boa_engine::interop::ContextData;
+    use boa_engine::object::builtins::JsFunction;
+    use boa_engine::{js_error, JsResult};
+    use firmware_ui::input::shortcut::Shortcut;
+    use std::str::FromStr;
+    use tracing::debug;
 
-    let app = data.app_mut();
-    let command_map = data.command_map_mut();
-    let id = command_map.next_id();
-    command_map.insert(id, action);
-    app.add_shortcut(shortcut, id);
+    fn create_shortcut(
+        ContextData(data): ContextData<HostData>,
+        shortcut: String,
+        action: JsFunction,
+    ) -> JsResult<()> {
+        debug!(?shortcut, "Creating shortcut");
+        let shortcut =
+            Shortcut::from_str(&shortcut).map_err(|e| js_error!("Invalid shortcut: {:?}", e))?;
 
-    Ok(())
-}
+        let app = data.app_mut();
+        let command_map = data.command_map_mut();
+        let id = command_map.next_id();
+        command_map.insert(id, action);
+        app.add_shortcut(shortcut, id);
 
-fn remove_shortcut_(ContextData(data): ContextData<HostData>, shortcut: String) -> JsResult<()> {
-    debug!(?shortcut, "Removing shortcut");
-    let shortcut =
-        Shortcut::from_str(&shortcut).map_err(|e| js_error!("Invalid shortcut: {:?}", e))?;
-
-    let app = data.app_mut();
-    let command_map = data.command_map_mut();
-
-    if let Some(command_id) = app.remove_shortcut(&shortcut) {
-        command_map.remove(&command_id);
+        Ok(())
     }
 
-    Ok(())
+    fn remove_shortcut(ContextData(data): ContextData<HostData>, shortcut: String) -> JsResult<()> {
+        debug!(?shortcut, "Removing shortcut");
+        let shortcut =
+            Shortcut::from_str(&shortcut).map_err(|e| js_error!("Invalid shortcut: {:?}", e))?;
+
+        let app = data.app_mut();
+        let command_map = data.command_map_mut();
+
+        if let Some(command_id) = app.remove_shortcut(&shortcut) {
+            command_map.remove(&command_id);
+        }
+
+        Ok(())
+    }
 }
 
 pub fn create_module(context: &mut Context) -> JsResult<(JsString, Module)> {
-    Ok((
-        js_string!("commands"),
-        [
-            (
-                js_string!("createShortcut"),
-                create_shortcut_.into_js_function_copied(context),
-            ),
-            (
-                js_string!("removeShortcut"),
-                remove_shortcut_.into_js_function_copied(context),
-            ),
-        ]
-        .into_js_module(context),
-    ))
+    Ok((js_string!("commands"), js::boa_module(None, context)))
 }

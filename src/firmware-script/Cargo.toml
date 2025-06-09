@@ -14,11 +14,12 @@ time.workspace = true
 strum.workspace = true
 tracing.workspace = true
 
-boa_engine = { git = "https://github.com/hansl/boa.git", branch = "class-proc-macro", features = ["either"] }
-boa_gc = { git = "https://github.com/hansl/boa.git", branch = "class-proc-macro" }
-boa_interop = { git = "https://github.com/hansl/boa.git", branch = "class-proc-macro" }
-boa_macros = { git = "https://github.com/hansl/boa.git", branch = "class-proc-macro" }
-boa_runtime = { git = "https://github.com/hansl/boa.git", branch = "class-proc-macro" }
+boa_engine = { git = "https://github.com/hansl/boa.git", branch = "module-proc-macro", features = ["either"] }
+boa_gc = { git = "https://github.com/hansl/boa.git", branch = "module-proc-macro" }
+boa_interop = { git = "https://github.com/hansl/boa.git", branch = "module-proc-macro" }
+boa_macros = { git = "https://github.com/hansl/boa.git", branch = "module-proc-macro" }
+boa_runtime = { git = "https://github.com/hansl/boa.git", branch = "module-proc-macro" }
+boa_string = { git = "https://github.com/hansl/boa.git", branch = "module-proc-macro" }
 
 directories = "5.0.1"
 ed25519 = "2.2.3"
