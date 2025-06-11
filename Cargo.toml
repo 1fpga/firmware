@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "src/bk2-format",
     "src/cyclone-v",
     "src/de10-nano",
     "src/fce-movie-format",
@@ -11,6 +10,7 @@ members = [
     "src/games-db-converter",
     "src/one-fpga",
     "src/mister-fpga",
+    "src/mister-fpga-ini",
     "src/taser",
 ]
 
@@ -51,15 +51,15 @@ unused_crate_dependencies = "warn"
 image = "0.25"
 ouroboros = "0.18"
 reqwest = { version = "0.12", features = ["blocking", "json", "rustls-tls"], default-features = false }
-strum = { version = "0.26.3", features = ["derive"] }
-thiserror = "2.0.3"
+serde = { version = "1.0.219", features = ["derive"] }
+strum = { version = "0.27.1", features = ["derive"] }
+thiserror = "2.0.12"
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "tracing-log"] }
 time = { version = "0.3", features = ["local-offset"] }
 url = { version = "2.5" }
 
 # Repo crates
-bk2-format = { path = "src/bk2-format" }
 cyclone-v = { path = "src/cyclone-v" }
 de10-nano = { path = "src/de10-nano" }
 fce-movie-format = { path = "src/fce-movie-format" }
@@ -67,14 +67,11 @@ firmware = { path = "src/firmware" }
 firmware-ui = { path = "src/firmware-ui" }
 firmware-script = { path = "src/firmware-script" }
 one-fpga = { path = "src/one-fpga", version = "0.1.0" }
-junior = { path = "src/junior" }
 mister-fpga = { path = "src/mister-fpga" }
-senior = { path = "src/senior" }
+mister-fpga-ini = { path = "src/mister-fpga-ini" }
 taser = { path = "src/taser" }
 
 [workspace.dependencies.sdl3]
-#git = "https://github.com/hansl/sdl3-rs.git"
-#branch = "1fpga-firmware"
 version = "0.14.2"
 features = ["static-link", "build-from-source-static", "build-from-source-unix-console"]
 

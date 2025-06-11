@@ -6,34 +6,36 @@ use cyclone_v::memory::MemoryMapper;
 #[cfg(target_os = "linux")]
 use linux as private;
 
-use crate::config;
-use crate::config::aspect::AspectRatio;
-use crate::config::edid::CustomVideoMode;
-use crate::config::resolution::Resolution;
+use crate::core::video::edid::CustomVideoMode;
 use crate::fpga::user_io::UserIoCommands;
 use crate::fpga::Spi;
+use mister_fpga_ini::aspect::AspectRatio;
+use mister_fpga_ini::resolution::Resolution;
+
+pub mod edid;
 
 #[cfg(target_os = "linux")]
 mod linux;
 
+/// Need an implementation that does nothing, if only for running tests on desktop.
 #[cfg(not(target_os = "linux"))]
 mod private {
     use tracing::debug;
 
     use cyclone_v::memory::MemoryMapper;
 
-    use crate::config;
-    use crate::config::aspect::AspectRatio;
-    use crate::config::edid::CustomVideoMode;
+    use crate::core::video::edid::CustomVideoMode;
     use crate::fpga::Spi;
+    use mister_fpga_ini::aspect::AspectRatio;
+    use mister_fpga_ini::MisterConfig;
 
-    pub fn hdmi_config_init(config: &config::MisterConfig) -> Result<(), String> {
+    pub fn hdmi_config_init(config: &MisterConfig) -> Result<(), String> {
         debug!(?config, "HDMI configuration not supported on this platform");
         Ok(())
     }
 
     pub fn init_mode(
-        options: &config::MisterConfig,
+        options: &mister_fpga_ini::MisterConfig,
         _core: &mut crate::core::MisterFpgaCore,
         _is_menu: bool,
     ) -> Result<(), String> {
@@ -58,7 +60,7 @@ mod private {
 
 /// Initialize the video Hardware configuration.
 // TODO: this should not take the whole config but a subset of it related only to video.
-pub fn init(options: &config::MisterConfig) {
+pub fn init(options: &mister_fpga_ini::MisterConfig) {
     if let Err(error) = private::hdmi_config_init(options) {
         error!("Failed to initialize HDMI configuration: {}", error);
         warn!("This is not a fatal error, the application will continue to run.");
@@ -84,7 +86,7 @@ pub fn select_mode(
 }
 
 pub fn init_mode(
-    options: &config::MisterConfig,
+    options: &mister_fpga_ini::MisterConfig,
     core: &mut crate::core::MisterFpgaCore,
     is_menu: bool,
 ) {

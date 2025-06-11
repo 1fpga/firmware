@@ -27,7 +27,9 @@ pub struct De10Platform {
 impl Default for De10Platform {
     fn default() -> Self {
         if std::env::var_os(SDL_VIDEO_DRIVER_VARNAME).is_none() {
-            std::env::set_var(SDL_VIDEO_DRIVER_VARNAME, SDL_VIDEO_DRIVER_DEFAULT);
+            unsafe {
+                std::env::set_var(SDL_VIDEO_DRIVER_VARNAME, SDL_VIDEO_DRIVER_DEFAULT);
+            }
         }
 
         let mut platform = SdlPlatform::init(SdlInitState::default());

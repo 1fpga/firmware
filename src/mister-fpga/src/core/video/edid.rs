@@ -7,9 +7,9 @@ use tracing::{debug, info, trace, warn};
 
 use cyclone_v::memory::MemoryMapper;
 
-use crate::config::MisterConfig;
 use crate::fpga::user_io::SetVideoMode;
 use crate::fpga::Spi;
+use mister_fpga_ini::MisterConfig;
 
 pub struct Edid {
     inner: [u8; 256],

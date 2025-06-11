@@ -289,9 +289,9 @@ impl<C: PixelColor> DrawBuffer<C> {
         size: Size,
     ) -> Self {
         Self {
-            inner: Rc::new(RefCell::new(DrawBufferInner::from_memory_slice(
-                slice, size,
-            ))),
+            inner: Rc::new(RefCell::new(unsafe {
+                DrawBufferInner::from_memory_slice(slice, size)
+            })),
         }
     }
 

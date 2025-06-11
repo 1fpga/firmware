@@ -8,9 +8,9 @@ mod js {
     use boa_engine::value::TryIntoJs;
     use boa_engine::{js_error, Context, JsError, JsResult, JsString, JsValue};
     use boa_interop::ContextData;
-    use mister_fpga::config::edid::DefaultVideoMode;
-    use mister_fpga::config::resolution;
+    use mister_fpga::core::video::edid::DefaultVideoMode;
     use mister_fpga::core::AsMisterCore;
+    use mister_fpga_ini::resolution;
     use std::str::FromStr;
 
     fn set_mode_(mode: String, ContextData(data): ContextData<HostData>) -> JsResult<()> {

@@ -1,17 +1,15 @@
-use i2cdev::core::I2CDevice;
-use tracing::{debug, error};
-
-use cyclone_v::memory::MemoryMapper;
-
-use crate::config;
-use crate::config::aspect::AspectRatio;
-use crate::config::edid::CustomVideoMode;
-use crate::config::FramebufferSizeConfig;
+use crate::core::video::edid;
 use crate::fpga::user_io::{
     DisableGamma, EnableGamma, IsGammaSupported, SetCustomAspectRatio, SetFramebufferToCore,
     SetFramebufferToLinux,
 };
 use crate::fpga::Spi;
+use cyclone_v::memory::MemoryMapper;
+use i2cdev::core::I2CDevice;
+use mister_fpga_ini;
+use mister_fpga_ini::aspect::AspectRatio;
+use mister_fpga_ini::FramebufferSizeConfig;
+use tracing::{debug, error};
 
 pub struct GammaConfiguration(Vec<(u8, u8, u8)>);
 
@@ -41,7 +39,7 @@ impl GammaConfiguration {
 }
 
 fn video_fb_config(
-    mode: &CustomVideoMode,
+    mode: &edid::CustomVideoMode,
     fb_size: FramebufferSizeConfig,
     vscale_border: u16,
     direct_video: bool,
@@ -91,10 +89,7 @@ fn video_fb_config(
     Ok(())
 }
 
-fn hdmi_config_set_mode(
-    direct_video: bool,
-    mode: &config::video::edid::CustomVideoMode,
-) -> Result<(), String> {
+fn hdmi_config_set_mode(direct_video: bool, mode: &edid::CustomVideoMode) -> Result<(), String> {
     let vic_mode = mode.param.vic as u8;
     let pr_flags = if direct_video {
         0 // Automatic Pixel Repetition.
@@ -123,7 +118,7 @@ fn hdmi_config_set_mode(
 }
 
 pub fn select_mode(
-    mode: CustomVideoMode,
+    mode: edid::CustomVideoMode,
     fb_size: FramebufferSizeConfig,
     vscale_border: u16,
     direct_video: bool,
@@ -165,11 +160,11 @@ pub fn select_mode(
 }
 
 pub fn init_mode(
-    options: &config::MisterConfig,
+    options: &mister_fpga_ini::MisterConfig,
     spi: &mut Spi<impl MemoryMapper>,
     is_menu: bool,
 ) -> Result<(), String> {
-    let mode = config::video::edid::select_video_mode(options)?;
+    let mode = edid::select_video_mode(options)?;
 
     let Some(m) = mode.vmode_def else {
         error!("No video mode selected");

@@ -3,7 +3,6 @@ use num_traits::FloatConst;
 use serde::Deserialize;
 use serde_with::{serde_as, DeserializeFromStr, DurationSeconds};
 use std::collections::HashMap;
-use std::ffi::{c_char, c_int};
 use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -40,97 +39,6 @@ pub use video::*;
 pub use vrr_mode::*;
 pub use vscale_mode::*;
 pub use vsync_adjust::*;
-
-mod cpp {
-    use libc::*;
-
-    #[repr(C)]
-    pub struct CppCfg {
-        pub keyrah_mode: u32,
-        pub forced_scandoubler: u8,
-        pub key_menu_as_rgui: u8,
-        pub reset_combo: u8,
-        pub csync: u8,
-        pub vga_scaler: u8,
-        pub vga_sog: u8,
-        pub hdmi_audio_96k: u8,
-        pub dvi_mode: u8,
-        pub hdmi_limited: u8,
-        pub direct_video: u8,
-        pub video_info: u8,
-        pub refresh_min: c_float,
-        pub refresh_max: c_float,
-        pub controller_info: u8,
-        pub vsync_adjust: u8,
-        pub kbd_nomouse: u8,
-        pub mouse_throttle: u8,
-        pub bootscreen: u8,
-        pub vscale_mode: u8,
-        pub vscale_border: u16,
-        pub rbf_hide_datecode: u8,
-        pub menu_pal: u8,
-        pub bootcore_timeout: i16,
-        pub fb_size: u8,
-        pub fb_terminal: u8,
-        pub osd_rotate: u8,
-        pub osd_timeout: u16,
-        pub gamepad_defaults: u8,
-        pub recents: u8,
-        pub jamma_vid: u16,
-        pub jamma_pid: u16,
-        pub no_merge_vid: u16,
-        pub no_merge_pid: u16,
-        pub no_merge_vidpid: [u32; 256],
-        pub spinner_vid: u16,
-        pub spinner_pid: u16,
-        pub spinner_throttle: c_int,
-        pub spinner_axis: u8,
-        pub sniper_mode: u8,
-        pub browse_expand: u8,
-        pub logo: u8,
-        pub log_file_entry: u8,
-        pub shmask_mode_default: u8,
-        pub bt_auto_disconnect: c_int,
-        pub bt_reset_before_pair: c_int,
-        pub bootcore: [c_char; 256],
-        pub video_conf: [c_char; 1024],
-        pub video_conf_pal: [c_char; 1024],
-        pub video_conf_ntsc: [c_char; 1024],
-        pub font: [c_char; 1024],
-        pub shared_folder: [c_char; 1024],
-        pub waitmount: [c_char; 1024],
-        pub custom_aspect_ratio: [[c_char; 16]; 2],
-        pub afilter_default: [c_char; 1023],
-        pub vfilter_default: [c_char; 1023],
-        pub vfilter_vertical_default: [c_char; 1023],
-        pub vfilter_scanlines_default: [c_char; 1023],
-        pub shmask_default: [c_char; 1023],
-        pub preset_default: [c_char; 1023],
-        pub player_controller: [[[c_char; 256]; 8]; 6],
-        pub rumble: u8,
-        pub wheel_force: u8,
-        pub wheel_range: u16,
-        pub hdmi_game_mode: u8,
-        pub vrr_mode: u8,
-        pub vrr_min_framerate: u8,
-        pub vrr_max_framerate: u8,
-        pub vrr_vesa_framerate: u8,
-        pub video_off: u16,
-        pub disable_autofire: u8,
-        pub video_brightness: u8,
-        pub video_contrast: u8,
-        pub video_saturation: u8,
-        pub video_hue: u16,
-        pub video_gain_offset: [c_char; 256],
-        pub hdr: u8,
-        pub hdr_max_nits: u16,
-        pub hdr_avg_nits: u16,
-        pub vga_mode: [c_char; 16],
-        pub vga_mode_int: c_char,
-        pub ntsc_mode: c_char,
-        pub controller_unique_mapping: [u32; 256],
-    }
-}
 
 #[derive(Error, Debug)]
 #[error(transparent)]
@@ -585,15 +493,15 @@ pub struct MisterConfig {
 
     #[serde(alias = "video_mode")]
     #[merge(strategy = merg::option::overwrite_some)]
-    video_conf: Option<String>,
+    pub video_conf: Option<String>,
 
     #[serde(alias = "video_mode_pal")]
     #[merge(strategy = merg::option::overwrite_some)]
-    video_conf_pal: Option<String>,
+    pub video_conf_pal: Option<String>,
 
     #[serde(alias = "video_mode_ntsc")]
     #[merge(strategy = merg::option::overwrite_some)]
-    video_conf_ntsc: Option<String>,
+    pub video_conf_ntsc: Option<String>,
 
     #[merge(strategy = merg::option::overwrite_some)]
     font: Option<String>,
@@ -1031,7 +939,7 @@ impl Config {
                     "player_6_controller",
                     "controller_unique_mapping",
                 ]
-                    .contains(&name)
+                .contains(&name)
             },
             |name: &str| -> Option<&str> {
                 if name == "ypbpr" {
@@ -1062,173 +970,6 @@ impl Config {
         }
     }
 
-    /// Copy this configuration to the C++ side.
-    ///
-    /// # Safety
-    /// This function is unsafe because it writes to a C++ struct.
-    pub unsafe fn copy_to_cfg_cpp(self, dest: &mut cpp::CppCfg) {
-        unsafe fn copy_string<const N: usize>(dest: &mut [c_char; N], src: &str) {
-            let src = src.as_bytes();
-            let l = src.len().min(N);
-            for i in 0..l {
-                let c = src[i] as c_char;
-                dest[i] = c;
-            }
-            dest[l] = 0;
-        }
-
-        let m = &self.mister;
-
-        dest.keyrah_mode = m.keyrah_mode.unwrap_or_default();
-        dest.forced_scandoubler = m.forced_scandoubler.unwrap_or_default() as u8;
-        dest.key_menu_as_rgui = m.key_menu_as_rgui.unwrap_or_default() as u8;
-        dest.reset_combo = m.reset_combo.unwrap_or_default() as u8;
-        dest.csync = m.composite_sync.unwrap_or_default() as u8;
-        dest.vga_scaler = m.vga_scaler.unwrap_or_default() as u8;
-        dest.vga_sog = m.vga_sog.unwrap_or_default() as u8;
-        dest.hdmi_audio_96k = m.hdmi_audio_96k.unwrap_or_default() as u8;
-        // For some reason, dvi_mode is set to 2 by default in the C++ code, instead of false.
-        dest.dvi_mode = m.dvi_mode.map(|x| x as u8).unwrap_or(2);
-        dest.hdmi_limited = m.hdmi_limited.unwrap_or_default() as u8;
-        dest.direct_video = m.direct_video.unwrap_or_default() as u8;
-        dest.video_info = m.video_info.unwrap_or_default().as_secs() as u8;
-        dest.refresh_min = m.refresh_min.unwrap_or_default();
-        dest.refresh_max = m.refresh_max.unwrap_or_default();
-        dest.controller_info = m.controller_info.unwrap_or_default().as_secs() as u8;
-        dest.vsync_adjust = m.vsync_adjust.unwrap_or_default() as u8;
-        dest.kbd_nomouse = m.kbd_nomouse.unwrap_or_default() as u8;
-        dest.mouse_throttle = m.mouse_throttle.unwrap_or_default();
-        dest.bootscreen = m.bootscreen.unwrap_or_default() as u8;
-        dest.vscale_mode = m.vscale_mode.unwrap_or_default() as u8;
-        dest.vscale_border = m.vscale_border.unwrap_or_default();
-        dest.rbf_hide_datecode = m.rbf_hide_datecode.unwrap_or_default() as u8;
-        dest.menu_pal = m.menu_pal.unwrap_or_default() as u8;
-        dest.bootcore_timeout = m.bootcore_timeout.unwrap_or_default().as_secs() as i16;
-        dest.fb_size = m.fb_size.unwrap_or_default() as u8;
-        dest.fb_terminal = m.fb_terminal.unwrap_or_default() as u8;
-        dest.osd_rotate = m.osd_rotate.unwrap_or_default() as u8;
-        dest.osd_timeout = m.osd_timeout.unwrap_or_default().as_secs() as u16;
-        dest.gamepad_defaults = m.gamepad_defaults.unwrap_or_default() as u8;
-        dest.recents = m.recents.unwrap_or_default() as u8;
-        dest.jamma_vid = m.jamma_vid.unwrap_or_default();
-        dest.jamma_pid = m.jamma_pid.unwrap_or_default();
-        dest.no_merge_vid = m.no_merge_vid.unwrap_or_default();
-        dest.no_merge_pid = m.no_merge_pid.unwrap_or_default();
-        dest.no_merge_vidpid = [0; 256];
-        for (i, vidpid) in m.no_merge_vidpid.iter().enumerate() {
-            dest.no_merge_vidpid[i] = *vidpid;
-        }
-        dest.spinner_vid = m.spinner_vid.unwrap_or_default();
-        dest.spinner_pid = m.spinner_pid.unwrap_or_default();
-        dest.spinner_throttle = m.spinner_throttle.unwrap_or_default() as c_int;
-        dest.spinner_axis = m.spinner_axis.unwrap_or_default();
-        dest.sniper_mode = m.sniper_mode.unwrap_or_default() as u8;
-        dest.browse_expand = m.browse_expand.unwrap_or_default() as u8;
-        dest.logo = m.logo.unwrap_or_default() as u8;
-        dest.log_file_entry = m.log_file_entry.unwrap_or_default() as u8;
-        dest.shmask_mode_default = m.shmask_mode_default.unwrap_or_default();
-        dest.bt_auto_disconnect =
-            (m.bt_auto_disconnect.unwrap_or_default().as_secs() / 60) as c_int;
-        dest.bt_reset_before_pair = m.bt_reset_before_pair.unwrap_or_default() as c_int;
-        copy_string(
-            &mut dest.bootcore,
-            &m.bootcore.clone().unwrap_or_default().to_string(),
-        );
-        copy_string(
-            &mut dest.video_conf,
-            &m.video_conf.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.video_conf_pal,
-            &m.video_conf_pal.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.video_conf_ntsc,
-            &m.video_conf_ntsc.clone().unwrap_or_default(),
-        );
-        copy_string(&mut dest.font, &m.font.clone().unwrap_or_default());
-        copy_string(
-            &mut dest.shared_folder,
-            &m.shared_folder.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.waitmount,
-            &m.waitmount.clone().unwrap_or_default(),
-        );
-        let ar = m.custom_aspect_ratio();
-        let aspect_ratio_1 = ar.first();
-        let aspect_ratio_2 = ar.get(1);
-        if let Some(a1) = aspect_ratio_1 {
-            copy_string(&mut dest.custom_aspect_ratio[0], &a1.to_string());
-        }
-        if let Some(a2) = aspect_ratio_2 {
-            copy_string(&mut dest.custom_aspect_ratio[1], &a2.to_string());
-        }
-        copy_string(
-            &mut dest.afilter_default,
-            &m.afilter_default.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.vfilter_default,
-            &m.vfilter_default.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.vfilter_vertical_default,
-            &m.vfilter_vertical_default.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.vfilter_scanlines_default,
-            &m.vfilter_scanlines_default.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.shmask_default,
-            &m.shmask_default.clone().unwrap_or_default(),
-        );
-        copy_string(
-            &mut dest.preset_default,
-            &m.preset_default.clone().unwrap_or_default(),
-        );
-        let player_controller = m.player_controller();
-        for (i, pc) in player_controller.iter().enumerate().take(6) {
-            for (j, p) in pc.iter().enumerate() {
-                copy_string(&mut dest.player_controller[i][j], p);
-            }
-        }
-        dest.rumble = m.rumble.unwrap_or_default() as u8;
-        dest.wheel_force = m.wheel_force.unwrap_or_default();
-        dest.wheel_range = m.wheel_range.unwrap_or_default();
-        dest.hdmi_game_mode = m.hdmi_game_mode.unwrap_or_default() as u8;
-        dest.vrr_mode = m.vrr_mode.unwrap_or_default() as u8;
-        dest.vrr_min_framerate = m.vrr_min_framerate.unwrap_or_default();
-        dest.vrr_max_framerate = m.vrr_max_framerate.unwrap_or_default();
-        dest.vrr_vesa_framerate = m.vrr_vesa_framerate.unwrap_or_default();
-        dest.video_off = m.video_off.unwrap_or_default().as_secs() as u16;
-        dest.disable_autofire = m.disable_autofire.unwrap_or_default() as u8;
-        dest.video_brightness = m.video_brightness.unwrap_or_default();
-        dest.video_contrast = m.video_contrast.unwrap_or_default();
-        dest.video_saturation = m.video_saturation.unwrap_or_default();
-        dest.video_hue = m.video_hue.unwrap_or_default();
-        copy_string(
-            &mut dest.video_gain_offset,
-            &match m.video_gain_offset.as_ref() {
-                Some(v) => v.to_string(),
-                None => "1, 0, 1, 0, 1, 0".to_string(),
-            },
-        );
-        dest.hdr = m.hdr.unwrap_or_default() as u8;
-        dest.hdr_max_nits = m.hdr_max_nits.unwrap_or_default();
-        dest.hdr_avg_nits = m.hdr_avg_nits.unwrap_or_default();
-        copy_string(
-            &mut dest.vga_mode,
-            &m.vga_mode.unwrap_or_default().to_string(),
-        );
-        dest.vga_mode_int = m.vga_mode.unwrap_or_default() as u8 as c_char;
-        dest.ntsc_mode = m.ntsc_mode.unwrap_or_default() as u8 as c_char;
-        for (i, mapping) in m.controller_unique_mapping.iter().enumerate().take(256) {
-            dest.controller_unique_mapping[i] = *mapping;
-        }
-    }
-
     /// Merge a configuration file with another.
     pub fn merge(&mut self, other: Config) {
         Merge::merge(self, other);
@@ -1237,23 +978,15 @@ impl Config {
 
 #[test]
 fn works_with_empty_file() {
-    unsafe {
-        let mut cpp_cfg: cpp::CppCfg = std::mem::zeroed();
-        let config = Config::from_ini(io::empty()).unwrap();
-        config.copy_to_cfg_cpp(&mut cpp_cfg);
-    }
+    Config::from_ini(io::empty()).unwrap();
 }
 
 #[cfg(test)]
 mod examples {
-    use crate::config::*;
+    use super::*;
 
     #[rstest::rstest]
     fn works_with_example(#[files("tests/assets/config/*.ini")] p: PathBuf) {
-        unsafe {
-            let mut cpp_cfg: cpp::CppCfg = std::mem::zeroed();
-            let config = Config::load(p).unwrap();
-            config.copy_to_cfg_cpp(&mut cpp_cfg);
-        }
+        Config::load(p).unwrap();
     }
 }

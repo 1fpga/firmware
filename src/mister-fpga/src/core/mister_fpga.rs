@@ -10,13 +10,13 @@ use image::DynamicImage;
 use tracing::{debug, info, trace};
 
 use cyclone_v::memory::{DevMemMemoryMapper, MemoryMapper};
+use mister_fpga_ini::{Config, HdmiLimitedConfig, VgaMode};
 use one_fpga::core::{Bios, CoreSettings, Error, MountedFile, Rom, SaveState, SettingId};
 use one_fpga::inputs::gamepad::ButtonSet;
 use one_fpga::inputs::keyboard::ScancodeSet;
 use one_fpga::inputs::{Button, Scancode};
 use one_fpga::Core;
 
-use crate::config::{Config, HdmiLimitedConfig, VgaMode};
 use crate::config_string;
 use crate::config_string::{ConfigMenu, FpgaRamMemoryAddress, LoadFileInfo};
 use crate::core::buttons::ButtonMap;

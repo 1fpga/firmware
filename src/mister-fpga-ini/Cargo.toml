@@ -1,0 +1,22 @@
+[package]
+name = "mister-fpga-ini"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+strum.workspace = true
+
+json5 = "0.4.1"
+merg = { version = "0.1", features = ["num", "derive"] }
+num-traits = "0.2.15"
+serde.workspace = true
+serde_with = "3.6.1"
+thiserror.workspace = true
+tracing.workspace = true
+validator = { version = "0.20.0", features = ["derive"] }
+
+[dev-dependencies]
+rstest = "0.18.2"
+
+[lints]
+workspace = true

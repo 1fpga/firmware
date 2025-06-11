@@ -1,6 +1,6 @@
-use crate::config::edid::CustomVideoMode;
 use crate::core::buttons::ButtonMap;
 use crate::core::file::SdCard;
+use crate::core::video::edid::CustomVideoMode;
 use crate::fpga::feature::SpiFeatureSet;
 use crate::fpga::{IntoLowLevelSpiCommand, SpiCommand, SpiCommandExt};
 use crate::keyboard::Ps2Scancode;

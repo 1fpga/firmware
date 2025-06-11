@@ -5,7 +5,6 @@ use std::fmt;
 use std::str::FromStr;
 
 pub mod aspect;
-pub mod edid;
 pub mod resolution;
 
 #[derive(Clone, Copy, PartialEq)]
