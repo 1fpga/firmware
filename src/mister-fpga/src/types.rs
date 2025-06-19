@@ -64,8 +64,20 @@ impl Default for StatusBitMap {
 }
 
 impl StatusBitMap {
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self(BitArray::ZERO)
+    }
+
+    #[inline]
+    pub fn with(mut self, idx: usize) -> Self {
+        self.0.set(idx, true);
+        self
+    }
+
+    #[inline]
+    pub fn with_range(mut self, range: impl IntoIterator<Item = u8>, value: u32) -> Self {
+        self.set_range(range, value);
+        self
     }
 
     pub fn as_raw_slice(&self) -> &[u16] {
@@ -95,6 +107,7 @@ impl StatusBitMap {
         self.0.is_empty()
     }
 
+    #[inline]
     pub fn get_range(&self, range: impl IntoIterator<Item = u8>) -> u32 {
         let mut result = 0;
         let mut iter = range.into_iter().peekable();
@@ -107,6 +120,7 @@ impl StatusBitMap {
 
     /// Set a range of bits to a value. This cannot do more than 32 bits at a time.
     /// On error, this may panic.
+    #[inline]
     pub fn set_range(&mut self, range: impl IntoIterator<Item = u8>, mut value: u32) {
         for i in range.into_iter() {
             self.set(i as usize, value & 1 != 0);

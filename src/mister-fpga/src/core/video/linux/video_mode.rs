@@ -1,9 +1,10 @@
 use crate::core::video::edid;
 use crate::fpga::user_io::{
     DisableGamma, EnableGamma, IsGammaSupported, SetCustomAspectRatio, SetFramebufferToCore,
-    SetFramebufferToLinux,
+    SetFramebufferToHpsOutput, SetStatusBits,
 };
 use crate::fpga::Spi;
+use crate::types::StatusBitMap;
 use cyclone_v::memory::MemoryMapper;
 use i2cdev::core::I2CDevice;
 use mister_fpga_ini;
@@ -44,7 +45,7 @@ fn video_fb_config(
     vscale_border: u16,
     direct_video: bool,
     spi: &mut Spi<impl MemoryMapper>,
-    _is_menu: bool,
+    is_menu: bool,
 ) -> Result<(), String> {
     let mut fb_scale = fb_size.as_scale() as u32;
 
@@ -76,7 +77,7 @@ fn video_fb_config(
         (0, 0)
     };
 
-    spi.execute(SetFramebufferToLinux {
+    spi.execute(SetFramebufferToHpsOutput {
         n: 1,
         x_offset,
         y_offset,
@@ -85,6 +86,10 @@ fn video_fb_config(
         hact: mode.param.hact as u16,
         vact: mode.param.vact as u16,
     })?;
+
+    if is_menu {
+        spi.execute(SetStatusBits(&StatusBitMap::new()))?;
+    }
 
     Ok(())
 }
@@ -127,6 +132,14 @@ pub fn select_mode(
     spi: &mut Spi<impl MemoryMapper>,
     is_menu: bool,
 ) -> Result<(), String> {
+    debug!(
+        ?mode,
+        ?fb_size,
+        vscale_border,
+        direct_video,
+        is_menu,
+        "Selecting video mode"
+    );
     let mut has_gamma = false;
     spi.execute(IsGammaSupported(&mut has_gamma))?;
 
@@ -149,13 +162,15 @@ pub fn select_mode(
     // TODO: set scaler filter.
     // TODO: set VRR.
 
+    // if is_menu {
+    hdmi_config_set_mode(direct_video, &mode)?;
     mode.send_to_core(direct_video, spi, is_menu)?;
-    if is_menu {
-        hdmi_config_set_mode(direct_video, &mode)?;
-        video_fb_config(&mode, fb_size, vscale_border, direct_video, spi, is_menu)?;
-    } else {
+    video_fb_config(&mode, fb_size, vscale_border, direct_video, spi, is_menu)?;
+    // } else {
+    if !is_menu {
         spi.execute(SetFramebufferToCore)?;
     }
+    // }
     Ok(())
 }
 

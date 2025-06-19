@@ -1,7 +1,7 @@
 use boa_engine::builtins::typed_array::TypedArray;
 use boa_engine::class::Class;
 use boa_engine::object::builtins::{JsArray, JsPromise, JsUint8Array};
-use boa_engine::value::TryFromJs;
+use boa_engine::value::{TryFromJs, TryIntoJs};
 use boa_engine::{
     js_error, Context, JsObject, JsResult, JsString, JsValue, JsVariant, TryIntoJsResult,
 };
@@ -25,15 +25,15 @@ pub enum SqlValue {
     Null,
 }
 
-impl SqlValue {
-    pub fn into_js_value(self, context: &mut Context) -> JsResult<JsValue> {
+impl TryIntoJs for SqlValue {
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
         Ok(match self {
-            SqlValue::String(s) => s.into(),
-            SqlValue::Number(f) => f.into(),
-            SqlValue::Integer(i) => i.into(),
+            SqlValue::String(s) => s.clone().into(),
+            SqlValue::Number(f) => (*f).into(),
+            SqlValue::Integer(i) => (*i).into(),
             SqlValue::Null => JsValue::null(),
-            SqlValue::Binary(b) => JsUint8Array::from_iter(b.into_iter(), context)?.into(),
-            SqlValue::Json(json) => JsValue::from_json(&json, context)?,
+            SqlValue::Binary(b) => JsUint8Array::from_iter(b.iter().cloned(), context)?.into(),
+            SqlValue::Json(json) => JsValue::from_json(json, context)?,
         })
     }
 }
@@ -133,7 +133,7 @@ fn create_row_object<'a>(row: &Row, mappings: &[String], ctx: &mut Context) -> J
 
         row_result.set(
             JsString::from(name.as_str()),
-            value.into_js_value(ctx)?,
+            value.try_into_js(ctx)?,
             true,
             ctx,
         )?;

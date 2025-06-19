@@ -92,7 +92,7 @@ pub struct MisterFpgaCore {
     status: StatusBitMap,
     status_counter: u8,
 
-    framebuffer: crate::framebuffer::FpgaFramebuffer<DevMemMemoryMapper>,
+    pub(crate) framebuffer: crate::framebuffer::FpgaFramebuffer<DevMemMemoryMapper>,
 
     // A cache for the video_info.
     video_info: Option<VideoInfo>,

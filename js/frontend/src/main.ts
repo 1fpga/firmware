@@ -11,8 +11,38 @@ import revision from 'consts:revision';
   now: () => Date.now(),
 };
 
+async function initVideo() {
+  // Initialize the video.
+  let edid = video.readEdid();
+  if (!!edid) {
+    console.log('EDID: ', JSON.stringify(edid));
+    let chosenTiming = null;
+    for (const timing of edid.standardTimings) {
+      console.log(
+        `Resolution: ${timing.horizontalAddrPixelCt}x${timing.verticalAddrPixelCt}@${timing.fieldRefreshRate}`,
+      );
+
+      if (
+        timing.horizontalAddrPixelCt <= 640 &&
+        timing.horizontalAddrPixelCt >= (chosenTiming?.horizontalAddrPixelCt ?? 0) &&
+        timing.fieldRefreshRate >= (chosenTiming?.fieldRefreshRate ?? 0)
+      ) {
+        chosenTiming = timing;
+      }
+    }
+
+    console.log(`Chosen timing: ${JSON.stringify(chosenTiming)}`);
+    if (chosenTiming) {
+      video.setMode(
+        `V${chosenTiming.horizontalAddrPixelCt}x${chosenTiming.verticalAddrPixelCt}r60`,
+      );
+    }
+  }
+}
+
 export async function main() {
   osd.show('1FPGA Booting Up', 'Please wait...');
+  await initVideo();
 
   console.log(`Build: "${revision}" (${production ? 'production' : 'development'})`);
   console.log('1FPGA started. ONE_FPGA =', JSON.stringify(ONE_FPGA));

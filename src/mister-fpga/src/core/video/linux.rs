@@ -409,7 +409,7 @@ fn hdmi_config_set_csc(device: &mut LinuxI2CDevice, options: &MisterConfig) -> R
 
     // Pass to HDMI, use 0xA0 to set a mode of [-2..2] per ADV7513 programming guide
     #[rustfmt::skip]
-        let csc_data: &[(u8, u8)] = &[
+    let csc_data: &[(u8, u8)] = &[
         // csc Coefficients, Channel A
         (0x18, if is_ypbpr { 0x86 } else { 0b10100000 | ((csc_int16[0] >> 8) & 0b00011111) as u8 }),
         (0x19, if is_ypbpr { 0xDF } else { (csc_int16[0]) as u8 }),
@@ -464,7 +464,7 @@ fn hdmi_config_set_hdr(device: &mut LinuxI2CDevice, options: &MisterConfig) -> R
     // 25% of the image to be 1000cd/m2)
     // If HDR == 1, use HLG
     #[rustfmt::skip]
-        let hdr_data: &mut [u8] = &mut [
+    let hdr_data: &mut [u8] = &mut [
         0x87,
         0x01,
         0x1a,

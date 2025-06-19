@@ -10,6 +10,7 @@ endif
 
 build-frontend: js/frontend/dist/main.js
 
+.PHONY: target/armv7-unknown-linux-gnueabihf/release/one_fpga_bin
 .PHONY: target/armv7-unknown-linux-gnueabihf/release/one_fpga
 
 # Do not replace the main.js with a different file or wildcard.

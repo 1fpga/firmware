@@ -151,6 +151,7 @@ impl MisterFpga {
                 error!("{}", MSG);
                 return Err(MSG);
             }
+            INITIALIZED.store(true, Ordering::Relaxed);
 
             info!("Initializing FPGA");
 
@@ -165,7 +166,6 @@ impl MisterFpga {
 
             FPGA_SINGLETON = Some(fpga.clone());
 
-            INITIALIZED.store(true, Ordering::Relaxed);
             Ok(fpga)
         }
     }
@@ -343,7 +343,7 @@ impl MisterFpga {
         let start = Instant::now();
         self.disable_bridge();
 
-        debug!("Initializing FPGA...");
+        debug!("Initializing FPGA (program)");
         self.init_program()?;
         debug!("Writing program...");
         let now = Instant::now();

@@ -10,6 +10,7 @@ use crate::platform::WindowManager;
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::pixelcolor::{BinaryColor, Rgb888};
 use embedded_graphics::Drawable;
+use mister_fpga::core::video::edid::init_video;
 use sdl3::event::Event;
 use sdl3::gamepad::Gamepad;
 use std::collections::HashMap;
@@ -60,7 +61,7 @@ impl OneFpgaApp {
             [NONE; 32]
         };
 
-        Self {
+        let mut app = Self {
             toolbar: Toolbar::new(),
             render_toolbar: true,
             gamepads,
@@ -70,7 +71,10 @@ impl OneFpgaApp {
             input_state: InputState::default(),
             shortcuts: Default::default(),
             ui_settings: UiSettings::default(),
-        }
+        };
+        app.init_platform();
+
+        app
     }
 
     pub fn add_shortcut(&mut self, shortcut: Shortcut, command: CommandId) {
@@ -82,6 +86,8 @@ impl OneFpgaApp {
     }
 
     pub fn init_platform(&mut self) {
+        init_video().expect("Could not init video.");
+
         self.platform.init();
     }
 

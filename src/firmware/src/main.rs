@@ -91,10 +91,8 @@ fn main() {
     }
 
     // Create the application and run it.
-    let start = std::time::Instant::now();
     info!("Starting application...");
-    firmware_script::run(opts.script.as_ref(), application::OneFpgaApp::new())
-        .expect("Failed to run 1fpga");
-    let elapsed = start.elapsed();
-    info!(?elapsed, "Done");
+    let app = application::OneFpgaApp::new();
+    firmware_script::run(opts.script.as_ref(), app).expect("Failed to run 1fpga");
+    info!("Done");
 }

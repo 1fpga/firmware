@@ -100,7 +100,6 @@ pub fn run(
     script: Option<&impl AsRef<Path>>,
     mut app: OneFpgaApp,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    app.init_platform();
     let app = Rc::new((&mut app) as *mut OneFpgaApp);
     let mut command_map = CommandMap::default();
     let host_defined = HostData {

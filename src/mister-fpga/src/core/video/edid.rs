@@ -25,7 +25,7 @@ impl Edid {
     }
 
     #[cfg(target_os = "linux")]
-    pub fn from_i2c() -> Result<Self, String> {
+    pub fn bytes() -> Result<Vec<u8>, String> {
         let mut i2c = create_i2c("/dev/i2c-1", 0x39, false)?;
 
         // Test if adv7513 senses hdmi clock. If not, don't bother with the edid query.
@@ -41,6 +41,7 @@ impl Edid {
                 .map_err(|e| e.to_string())?;
         }
 
+        drop(i2c);
         let mut i2c = create_i2c("/dev/i2c-1", 0x3f, false)?;
 
         // waiting for valid EDID
@@ -52,13 +53,20 @@ impl Edid {
                 .unwrap();
 
             if is_edid_valid(&edid) {
-                info!("EDID Info:\n{}", hexdump(&edid));
-                return Ok(Self::new(edid));
+                return Ok(edid.to_vec());
             }
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
 
-        Err("EDID: No valid EDID header found.".to_string())
+        Err("EDID: Could not read EDID after trying 20 times...".to_string())
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn from_i2c() -> Result<Self, String> {
+        let bytes = Edid::bytes()?;
+
+        info!("EDID Info:\n{}", hexdump(&bytes));
+        return Ok(Self::new(bytes.try_into().unwrap()));
     }
 }
 
@@ -102,7 +110,7 @@ fn get_active_edid_() -> Result<[u8; 256], String> {
     }
 }
 
-fn get_edid_vmode_(options: &MisterConfig) -> Option<CustomVideoMode> {
+fn get_edid_vmode_(dvi: bool) -> Option<CustomVideoMode> {
     let edid = match get_active_edid_() {
         Ok(edid) => edid,
         Err(e) => {
@@ -111,7 +119,7 @@ fn get_edid_vmode_(options: &MisterConfig) -> Option<CustomVideoMode> {
         }
     };
 
-    match parse_edid_vmode_(options, &edid) {
+    match parse_edid_vmode_(dvi, &edid) {
         Ok(vmode) => {
             if vmode.param.hact > 2048 {
                 warn!(
@@ -191,7 +199,7 @@ fn hdmi_config_set_spare(packet: bool, enabled: bool) -> Result<(), String> {
     }
 }
 
-fn parse_edid_vmode_(options: &MisterConfig, edid: &[u8]) -> Result<CustomVideoMode, String> {
+fn parse_edid_vmode_(dvi: bool, edid: &[u8]) -> Result<CustomVideoMode, String> {
     let pixel_clock_khz = ((edid[0x36] as u32 + ((edid[0x37] as u32) << 8)) * 10) as f64;
 
     if pixel_clock_khz < 10000. {
@@ -201,7 +209,7 @@ fn parse_edid_vmode_(options: &MisterConfig, edid: &[u8]) -> Result<CustomVideoM
         ));
     }
 
-    if options.dvi_mode_raw().is_none() {
+    if dvi {
         let dvi_mode = if edid[0x80] == 2 && edid[0x81] == 3 && ((edid[0x83] & 0x40) != 0) {
             0
         } else {
@@ -572,7 +580,7 @@ impl CustomVideoMode {
         }
 
         if !is_menu {
-            info!("Sending HDMI parameters...");
+            info!(?fixed, "Sending HDMI parameters...");
             spi.execute(SetVideoMode(&fixed))?;
         }
 
@@ -654,15 +662,47 @@ pub struct VideoModeDef {
 }
 
 fn parse_custom_video_mode(video_mode: Option<&str>) -> CustomVideoMode {
-    if video_mode.is_none() || matches!(video_mode, Some("auto")) || matches!(video_mode, Some(""))
-    {
-        return DefaultVideoMode::V1920x1080r60.into();
-        // return DefaultVideoMode::V1280x720r60.into();
-        // return DefaultVideoMode::V640x480r60.into();
-    }
-    DefaultVideoMode::V1920x1080r60.into()
+    // if video_mode.is_none() || matches!(video_mode, Some("auto")) || matches!(video_mode, Some(""))
+    // {
+    //     return DefaultVideoMode::V1920x1080r60.into();
+    //     // return DefaultVideoMode::V1280x720r60.into();
+    //     // return DefaultVideoMode::V640x480r60.into();
+    // }
+    // DefaultVideoMode::V1920x1080r60.into()
+
+    DefaultVideoMode::V800x600r60.into()
 
     // todo!("parse_custom_video_mode")
+}
+
+pub fn get_edid() -> Result<Option<liboptic_edid::Edid>, String> {
+    #[cfg(target_os = "linux")]
+    {
+        Ok(Some(
+            liboptic_edid::Edid::new(Edid::bytes()?).map_err(|e| e.to_string())?,
+        ))
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok(None)
+    }
+}
+
+pub fn init_video() -> Result<(), String> {
+    // let edid: Option<Edid> = {
+    //     #[cfg(target_os = "linux")]
+    //     Some(Edid::from_i2c())
+    //
+    //     #[cfg(not(target_os = "linux"))]
+    //     None
+    // };
+    //
+    // if let Some(edid) = edid {
+    //
+    // }
+    //
+    Ok(())
 }
 
 pub fn select_video_mode(options: &MisterConfig) -> Result<VideoModeDef, String> {
@@ -690,18 +730,18 @@ pub fn select_video_mode(options: &MisterConfig) -> Result<VideoModeDef, String>
         //     vmode_ntsc: None,
         // });
 
-        if options.video_conf.is_none()
-            && options.video_conf_pal.is_none()
-            && options.video_conf_ntsc.is_none()
-        {
-            if let Some(vmode) = get_edid_vmode_(options) {
-                return Ok(VideoModeDef {
-                    vmode_def: Some(vmode),
-                    vmode_pal: None,
-                    vmode_ntsc: None,
-                });
-            }
-        }
+        // if options.video_conf.is_none()
+        //     && options.video_conf_pal.is_none()
+        //     && options.video_conf_ntsc.is_none()
+        // {
+        //     if let Some(vmode) = get_edid_vmode_(options.dvi_mode_raw().unwrap_or(false)) {
+        //         return Ok(VideoModeDef {
+        //             vmode_def: Some(vmode),
+        //             vmode_pal: None,
+        //             vmode_ntsc: None,
+        //         });
+        //     }
+        // }
 
         let def = parse_custom_video_mode(options.video_conf.as_deref());
 
@@ -740,7 +780,7 @@ fn parse_4k_hdmi_edid() {
     )
     .unwrap();
 
-    let vmode = parse_edid_vmode_(&MisterConfig::new_defaults(), &edid).unwrap();
+    let vmode = parse_edid_vmode_(false, &edid).unwrap();
     assert_eq!(vmode.param.hact, 3840);
     assert_eq!(vmode.param.vact, 2160);
     assert_eq!(vmode.frame_rate(), 60.);

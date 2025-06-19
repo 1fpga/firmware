@@ -39,7 +39,7 @@ pub struct SdlState {
 }
 
 impl SdlState {
-    pub fn events(&self) -> impl Iterator<Item=Event> + '_ {
+    pub fn events(&self) -> impl Iterator<Item = Event> + '_ {
         self.events.iter().cloned()
     }
 }
@@ -99,8 +99,6 @@ where
         gamepad.add_mapping("030000000d0f00009200000011010000,Hori Pokken Tournament DX Pro,a:b1,b:b2,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,start:b9,x:b0,y:b3,").unwrap();
         gamepad.add_mapping("03004e410d0f00009200000011010000,Hori Pokken Tournament DX Pro,a:b1,b:b2,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b4,lefttrigger:b6,rightshoulder:b5,righttrigger:b7,start:b9,x:b0,y:b3,").unwrap();
 
-        info!("Keyboard: Window Id({:?})", keyboard.focused_window_id());
-
         Self {
             init_state,
             event_pump: Rc::new(RefCell::new(event_pump)),
@@ -117,7 +115,10 @@ where
     fn window(&mut self, title: &str, size: Size) -> Self::Window {
         self.has_windows = true;
         let w = Window::new(self, title, size);
-        info!("Keyboard: Window Id({:?})", self.keyboard.borrow().focused_window_id());
+        info!(
+            "Keyboard: Window Id({:?})",
+            self.keyboard.borrow().focused_window_id()
+        );
 
         w
     }

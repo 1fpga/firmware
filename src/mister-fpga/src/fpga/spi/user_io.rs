@@ -767,7 +767,7 @@ impl SpiCommand for SetFramebufferToCore {
 }
 
 #[derive(Debug)]
-pub struct SetFramebufferToLinux {
+pub struct SetFramebufferToHpsOutput {
     pub n: usize,
     pub x_offset: u16,
     pub y_offset: u16,
@@ -777,9 +777,9 @@ pub struct SetFramebufferToLinux {
     pub vact: u16,
 }
 
-impl SpiCommand for SetFramebufferToLinux {
+impl SpiCommand for SetFramebufferToHpsOutput {
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
-        debug!("Setting framebuffer to Linux: {:?}", self);
+        debug!(?self, "Setting framebuffer to HPS output");
 
         let mut out = 0;
         let mut command = spi.command_read(UserIoCommands::UserIoSetFramebuffer, &mut out);

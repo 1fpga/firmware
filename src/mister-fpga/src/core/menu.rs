@@ -58,9 +58,15 @@ impl MenuCore {
         image: &impl GenericImageView<Pixel = Rgba<u8>>,
         position: (i64, i64),
     ) -> Result<(), String> {
+        self.inner.framebuffer.update_type_from_core();
+
         let mut dest = self.image_buffer()?;
         image::imageops::replace(&mut dest, image, position.0, position.1);
         Ok(())
+    }
+
+    pub fn inner(&mut self) -> &mut MisterFpgaCore {
+        &mut self.inner
     }
 }
 

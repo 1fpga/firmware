@@ -29,16 +29,17 @@ RUN apt-get install --assume-yes libusb-dev
 RUN apt-get install --assume-yes libevdev-dev
 RUN apt-get install --assume-yes libudev-dev
 
-COPY --from=planner /app/recipe.json recipe.json
-
 WORKDIR /app
 COPY build/armv7/config.toml /app/.cargo/config.toml
+COPY rust-toolchain.toml /app/rust-toolchain.toml
+COPY --from=planner /app/recipe.json recipe.json
 
 ENV CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc CC_armv7_unknown_Linux_gnueabihf=arm-linux-gnueabihf-gcc CXX_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-g++
 RUN rustup target add armv7-unknown-linux-gnueabihf
-RUN rustup install nightly
+RUN rustup install
+RUN rustup component add --target armv7-unknown-linux-gnueabihf rust-std
+RUN rustup component add rustfmt rustc rust-std clippy
+
 RUN cargo chef cook --release --target armv7-unknown-linux-gnueabihf --recipe-path recipe.json
-RUN rustup component add --target armv7-unknown-linux-gnueabihf --toolchain nightly rust-std
-RUN rustup component add --toolchain nightly rustfmt rustc rust-std clippy
 
 CMD ["cargo", "build", "--target", "armv7-unknown-linux-gnueabihf", "--release", "--bin", "one_fpga_bin", "--no-default-features", "--features=platform_de10"]
