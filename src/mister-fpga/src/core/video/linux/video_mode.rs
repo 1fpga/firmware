@@ -162,15 +162,13 @@ pub fn select_mode(
     // TODO: set scaler filter.
     // TODO: set VRR.
 
-    // if is_menu {
     hdmi_config_set_mode(direct_video, &mode)?;
     mode.send_to_core(direct_video, spi, is_menu)?;
     video_fb_config(&mode, fb_size, vscale_border, direct_video, spi, is_menu)?;
-    // } else {
+
     if !is_menu {
         spi.execute(SetFramebufferToCore)?;
     }
-    // }
     Ok(())
 }
 
@@ -185,7 +183,6 @@ pub fn init_mode(
         error!("No video mode selected");
         return Err("No video mode selected".to_string());
     };
-    eprintln!("Selected video mode: {:?}", m);
 
     select_mode(
         m,

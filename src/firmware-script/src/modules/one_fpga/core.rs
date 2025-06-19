@@ -16,6 +16,7 @@ mod js {
     use one_fpga::runner::CoreLaunchInfo;
     use serde::Deserialize;
     use std::path::PathBuf;
+    use tracing::info;
 
     /// The core type from JavaScript.
     #[boa(skip)]
@@ -84,7 +85,7 @@ mod js {
             }
         }
 
-        eprintln!("Launching core: {:?}", core_options);
+        info!("Launching core: {:?}", core_options);
         let core = app
             .platform_mut()
             .core_manager_mut()

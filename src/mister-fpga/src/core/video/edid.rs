@@ -722,25 +722,18 @@ pub fn select_video_mode(options: &MisterConfig) -> Result<VideoModeDef, String>
             vmode_ntsc: None,
         })
     } else {
-        eprintln!("select_video_mode: conf: {:?}", options.video_conf);
-        // return Ok(VideoModeDef {
-        //     vmode_def: Some(DefaultVideoMode::V640x480r60.into()),
-        //     vmode_pal: None,
-        //     vmode_ntsc: None,
-        // });
-
-        // if options.video_conf.is_none()
-        //     && options.video_conf_pal.is_none()
-        //     && options.video_conf_ntsc.is_none()
-        // {
-        //     if let Some(vmode) = get_edid_vmode_(options.dvi_mode_raw().unwrap_or(false)) {
-        //         return Ok(VideoModeDef {
-        //             vmode_def: Some(vmode),
-        //             vmode_pal: None,
-        //             vmode_ntsc: None,
-        //         });
-        //     }
-        // }
+        if options.video_conf.is_none()
+            && options.video_conf_pal.is_none()
+            && options.video_conf_ntsc.is_none()
+        {
+            if let Some(vmode) = get_edid_vmode_(options.dvi_mode_raw().unwrap_or(false)) {
+                return Ok(VideoModeDef {
+                    vmode_def: Some(vmode),
+                    vmode_pal: None,
+                    vmode_ntsc: None,
+                });
+            }
+        }
 
         let def = parse_custom_video_mode(options.video_conf.as_deref());
 
