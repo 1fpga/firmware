@@ -1,5 +1,6 @@
 use crate::fpga::feature::SpiFeatureSet;
 use crate::fpga::{IntoLowLevelSpiCommand, SpiCommand, SpiCommandExt};
+use std::fmt::{Debug, Formatter};
 
 /// OSD SPI commands.
 #[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
@@ -32,7 +33,16 @@ impl IntoLowLevelSpiCommand for OsdCommands {
 
 pub struct OsdIoWriteLine<'a>(pub u8, pub &'a [u8]);
 
+// On Debug output, only show the line number, the bytes don't matter.
+impl Debug for OsdIoWriteLine<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.debug_tuple("OsdIoWriteLine").field(&self.0).finish()
+    }
+}
+
 impl SpiCommand for OsdIoWriteLine<'_> {
+    const NAME: &'static str = "OsdIoWriteLine";
+
     #[inline]
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(OsdCommands::WriteLine(self.0))
@@ -42,18 +52,24 @@ impl SpiCommand for OsdIoWriteLine<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct OsdEnable;
 
 impl SpiCommand for OsdEnable {
+    const NAME: &'static str = "OsdEnable";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(OsdCommands::Enable);
         Ok(())
     }
 }
 
+#[derive(Debug)]
 pub struct OsdDisable;
 
 impl SpiCommand for OsdDisable {
+    const NAME: &'static str = "OsdDisable";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(OsdCommands::Disable);
         Ok(())

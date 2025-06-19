@@ -5,7 +5,7 @@ use boa_engine::{Context, JsResult, JsString};
 use boa_gc::Trace;
 use boa_macros::Finalize;
 use boa_runtime::{ConsoleState, Logger};
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 fn stack(context: &mut Context) -> Vec<String> {
     context
@@ -19,6 +19,17 @@ fn stack(context: &mut Context) -> Vec<String> {
 pub struct TracingLogger;
 
 impl Logger for TracingLogger {
+    fn debug(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        let indent = state.indent();
+        if tracing::enabled!(tracing::Level::TRACE) {
+            let stack = stack(context);
+            debug!(?stack, "{msg:>indent$}");
+        } else {
+            debug!("{msg:>indent$}");
+        }
+        Ok(())
+    }
+
     fn log(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
         let indent = state.indent();
         if tracing::enabled!(tracing::Level::TRACE) {
@@ -29,18 +40,6 @@ impl Logger for TracingLogger {
         }
         Ok(())
     }
-
-    // TODO: reenable this when adding support for debug logging
-    // fn debug(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
-    //     let indent = state.indent();
-    //     if tracing::enabled!(tracing::Level::TRACE) {
-    //         let stack = stack(context);
-    //         debug!(?stack, "{msg:>indent$}");
-    //     } else {
-    //         debug!("{msg:>indent$}");
-    //     }
-    //     Ok(())
-    // }
 
     fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
         self.log(msg, state, context)

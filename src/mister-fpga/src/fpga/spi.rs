@@ -45,7 +45,9 @@ pub trait IntoLowLevelSpiCommand {
     fn into_ll_spi_command(self) -> (SpiFeatureSet, u16);
 }
 
-pub trait SpiCommand {
+pub trait SpiCommand: Debug {
+    const NAME: &'static str;
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String>;
 }
 
@@ -60,7 +62,9 @@ impl<'a, S: SpiCommandExt> SpiCommandGuard<'a, S> {
         Self { spi, feature }
     }
 
-    pub fn execute(&mut self, mut command: impl SpiCommand) -> Result<(), String> {
+    pub fn execute<Cmd: SpiCommand>(&mut self, mut command: Cmd) -> Result<(), String> {
+        let _span = tracing::trace_span!("spi::execute", name = Cmd::NAME).entered();
+        trace!(?command, "Command");
         command.execute(self.spi)
     }
 
@@ -234,7 +238,9 @@ impl<M: MemoryMapper> Spi<M> {
     }
 
     #[inline]
-    pub fn execute(&mut self, mut command: impl SpiCommand) -> Result<(), String> {
+    pub fn execute<Cmd: SpiCommand>(&mut self, mut command: Cmd) -> Result<(), String> {
+        let _span = tracing::trace_span!("spi::execute", name = Cmd::NAME).entered();
+        trace!(?command, "Command");
         command.execute(self)
     }
 
@@ -353,12 +359,18 @@ impl<M: MemoryMapper> Spi<M> {
 
         // Send the actual data without the strobe, then wait for the core to get done.
         regs.set_gpo(gpo);
-        loop {
+        let gpi = loop {
             let gpi = regs.gpi();
             if gpi & SSPI_ACK == 0 {
                 break gpi as u16;
             }
-        }
+        };
+        trace!(
+            word = format!("0x{word:04X} ({word})"),
+            gpi = format!("0x{gpi:04X} ({gpi})"),
+            "write"
+        );
+        gpi
     }
 
     #[inline]

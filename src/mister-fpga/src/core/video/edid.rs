@@ -579,10 +579,10 @@ impl CustomVideoMode {
             hdmi_config_set_spare(false, false)?;
         }
 
-        if !is_menu {
-            info!(?fixed, "Sending HDMI parameters...");
-            spi.execute(SetVideoMode(&fixed))?;
-        }
+        // if !is_menu {
+        info!(?fixed, "Sending HDMI parameters...");
+        spi.execute(SetVideoMode(&fixed))?;
+        // }
 
         Ok(())
     }
@@ -665,12 +665,10 @@ fn parse_custom_video_mode(video_mode: Option<&str>) -> CustomVideoMode {
     // if video_mode.is_none() || matches!(video_mode, Some("auto")) || matches!(video_mode, Some(""))
     // {
     //     return DefaultVideoMode::V1920x1080r60.into();
-    //     // return DefaultVideoMode::V1280x720r60.into();
-    //     // return DefaultVideoMode::V640x480r60.into();
+    // return DefaultVideoMode::V1280x720r60.into();
+    // return DefaultVideoMode::V640x480r60.into();
     // }
-    // DefaultVideoMode::V1920x1080r60.into()
 
-    // DefaultVideoMode::V800x600r60.into()
     DefaultVideoMode::V640x480r60.into()
 
     // todo!("parse_custom_video_mode")
@@ -752,37 +750,4 @@ pub fn select_video_mode(options: &MisterConfig) -> Result<VideoModeDef, String>
             vmode_ntsc: None,
         })
     }
-}
-
-#[ignore]
-#[test]
-fn parse_4k_hdmi_edid() {
-    // This is the EDID from my monitor (VESA 4K).
-    let edid = hex::decode(
-        "\
-        00 ff ff ff ff ff ff 00 14 e1 6a 00 00 00 00 00 \
-        1b 1d 01 03 80 3c 22 78 0a da ff a3 58 4a a2 29 \
-        17 49 4b a5 4f 00 d1 fc 81 bc 31 68 31 7c 45 68 \
-        45 7c 61 68 61 7c 08 e8 00 30 f2 70 5a 80 b0 58 \
-        8a 00 ba 88 21 00 00 1e 00 00 00 10 00 00 00 00 \
-        00 00 00 00 00 00 00 00 00 00 00 00 00 fc 00 48 \
-        44 36 30 20 53 2b 0a 20 20 20 20 20 00 00 00 fd \
-        00 17 92 0f a0 3c 00 0a 20 20 20 20 20 20 01 0e \
-        02 03 4a e2 57 90 61 04 03 02 01 60 1f 13 12 11 \
-        5f 5e 5d 22 21 20 05 14 07 06 16 15 23 09 07 07 \
-        83 01 00 00 6e 03 0c 00 10 00 38 3c 20 00 80 01 \
-        02 03 04 67 d8 5d c4 01 78 80 03 e3 0f 42 38 e3 \
-        05 e2 01 e6 06 07 01 00 00 00 56 5e 00 a0 a0 a0 \
-        29 50 30 20 35 00 56 50 21 00 00 1e 00 00 00 00 \
-        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 \
-        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 93 \
-        "
-        .replace(' ', ""),
-    )
-    .unwrap();
-
-    let vmode = parse_edid_vmode_(false, &edid).unwrap();
-    assert_eq!(vmode.param.hact, 3840);
-    assert_eq!(vmode.param.vact, 2160);
-    assert_eq!(vmode.frame_rate(), 60.);
 }

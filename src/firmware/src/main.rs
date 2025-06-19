@@ -66,7 +66,9 @@ fn main() {
             EnvFilter::builder()
                 .with_default_directive(level_filter.into())
                 .from_env_lossy()
-                .add_directive("reqwest=error".parse().unwrap()),
+                .add_directive("reqwest=error".parse().unwrap())
+                .add_directive("tokio=error".parse().unwrap())
+                .add_directive("liboptic_edid=error".parse().unwrap()),
         )
         .with_ansi(true)
         .with_writer(std::io::stderr)

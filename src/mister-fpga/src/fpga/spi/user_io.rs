@@ -141,6 +141,8 @@ impl UserIoButtonSwitch {
 }
 
 impl SpiCommand for UserIoButtonSwitch {
+    const NAME: &'static str = "UserIoButtonSwitch";
+
     #[inline]
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(UserIoCommands::UserIoButtonSwitch)
@@ -170,9 +172,12 @@ impl IntoLowLevelSpiCommand for UserIoSectorRead {
     }
 }
 
+#[derive(Debug)]
 pub struct UserIoJoystick(u8, u32);
 
 impl SpiCommand for UserIoJoystick {
+    const NAME: &'static str = "UserIoJoystick";
+
     #[inline]
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let command = match self.0 {
@@ -204,6 +209,7 @@ impl UserIoJoystick {
     }
 }
 
+#[derive(Debug)]
 pub struct UserIoKeyboardKeyDown(u32);
 
 impl From<Ps2Scancode> for UserIoKeyboardKeyDown {
@@ -219,6 +225,8 @@ impl From<u32> for UserIoKeyboardKeyDown {
 }
 
 impl SpiCommand for UserIoKeyboardKeyDown {
+    const NAME: &'static str = "UserIoKeyboardKeyDown";
+
     #[inline]
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(UserIoCommands::UserIoKeyboard)
@@ -229,6 +237,7 @@ impl SpiCommand for UserIoKeyboardKeyDown {
     }
 }
 
+#[derive(Debug)]
 pub struct UserIoKeyboardKeyUp(u32);
 
 impl From<Ps2Scancode> for UserIoKeyboardKeyUp {
@@ -244,6 +253,8 @@ impl From<u32> for UserIoKeyboardKeyUp {
 }
 
 impl SpiCommand for UserIoKeyboardKeyUp {
+    const NAME: &'static str = "UserIoKeyboardKeyUp";
+
     #[inline]
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(UserIoCommands::UserIoKeyboard)
@@ -254,9 +265,12 @@ impl SpiCommand for UserIoKeyboardKeyUp {
     }
 }
 
+#[derive(Debug)]
 pub struct UserIoGetString<'a>(pub &'a mut String);
 
 impl SpiCommand for UserIoGetString<'_> {
+    const NAME: &'static str = "UserIoGetString";
+
     #[inline]
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoCommands::UserIoGetString);
@@ -275,6 +289,7 @@ impl SpiCommand for UserIoGetString<'_> {
 }
 
 /// Send the current system time to the core.
+#[derive(Debug)]
 pub struct UserIoRtc(pub NaiveDateTime);
 
 impl From<NaiveDateTime> for UserIoRtc {
@@ -290,6 +305,8 @@ impl From<SystemTime> for UserIoRtc {
 }
 
 impl SpiCommand for UserIoRtc {
+    const NAME: &'static str = "UserIoRtc";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         // MSM6242B layout, with 4 bits per digit of sec, min, hour, day, month, year (2 digits),
         // and the weekday.
@@ -317,6 +334,7 @@ impl UserIoRtc {
 }
 
 /// Transmit seconds since Unix epoch.
+#[derive(Debug)]
 pub struct Timestamp(NaiveDateTime);
 
 impl From<NaiveDateTime> for Timestamp {
@@ -332,6 +350,8 @@ impl From<SystemTime> for Timestamp {
 }
 
 impl SpiCommand for Timestamp {
+    const NAME: &'static str = "Timestamp";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let timestamp = self.0.and_utc().timestamp();
         spi.command(UserIoCommands::UserIoRtc)
@@ -343,9 +363,12 @@ impl SpiCommand for Timestamp {
 }
 
 /// Get the status bits.
+#[derive(Debug)]
 pub struct GetStatusBits<'a>(pub &'a mut StatusBitMap, pub &'a mut u8);
 
 impl SpiCommand for GetStatusBits<'_> {
+    const NAME: &'static str = "GetStatusBits";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut stchg = 0;
         let mut command = spi.command_read(UserIoCommands::UserIoGetStatusBits, &mut stchg);
@@ -367,9 +390,12 @@ impl SpiCommand for GetStatusBits<'_> {
 }
 
 /// Send the status bits.
+#[derive(Debug)]
 pub struct SetStatusBits<'a>(pub &'a StatusBitMap);
 
 impl SpiCommand for SetStatusBits<'_> {
+    const NAME: &'static str = "SetStatusBits";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let bits16 = self.0.as_raw_slice();
 
@@ -388,6 +414,7 @@ const CID: [u8; 16] = [
 ];
 
 /// Send SD card configuration (CSD, CID).
+#[derive(Debug)]
 pub struct SetSdConf {
     wide: bool,
     csd: [u8; 16],
@@ -395,6 +422,8 @@ pub struct SetSdConf {
 }
 
 impl SpiCommand for SetSdConf {
+    const NAME: &'static str = "SetSdConf";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoCommands::UserIoSetSdConf);
 
@@ -461,6 +490,8 @@ impl From<&SdCard> for SetSdInfo {
 }
 
 impl SpiCommand for SetSdInfo {
+    const NAME: &'static str = "SetSdInfo";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoCommands::UserIoSetSdInfo);
 
@@ -505,6 +536,8 @@ pub struct SetSdStat {
 }
 
 impl SpiCommand for SetSdStat {
+    const NAME: &'static str = "SetSdStat";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(UserIoCommands::UserIoSetSdStat)
             .write_b((1 << self.index) | if self.writable { 0 } else { 0x80 });
@@ -611,9 +644,12 @@ pub struct SdStatOutput {
     pub block_size: usize,
 }
 
+#[derive(Debug)]
 pub struct GetSdStat<'a>(pub &'a mut SdStatOutput);
 
 impl SpiCommand for GetSdStat<'_> {
+    const NAME: &'static str = "GetSdStat";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut c = 0;
         let mut command = spi.command_read(UserIoCommands::UserIoGetSdStat, &mut c);
@@ -673,6 +709,7 @@ impl SpiCommand for GetSdStat<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct SdRead<'a> {
     data: &'a [u8],
     wide: bool,
@@ -680,6 +717,8 @@ pub struct SdRead<'a> {
 }
 
 impl SpiCommand for SdRead<'_> {
+    const NAME: &'static str = "SdRead";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoSectorRead::Read(self.ack));
 
@@ -698,6 +737,7 @@ impl<'a> SdRead<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct SdWrite<'a> {
     data: &'a mut Vec<u8>,
     wide: bool,
@@ -705,6 +745,8 @@ pub struct SdWrite<'a> {
 }
 
 impl SpiCommand for SdWrite<'_> {
+    const NAME: &'static str = "SdWrite";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoSectorRead::Write(self.ack));
 
@@ -724,9 +766,12 @@ impl<'a> SdWrite<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct SetMemorySize(pub u16);
 
 impl SpiCommand for SetMemorySize {
+    const NAME: &'static str = "SetMemorySize";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(UserIoCommands::UserIoSetMemSz).write(self.0);
         Ok(())
@@ -756,9 +801,12 @@ impl SetMemorySize {
     }
 }
 
+#[derive(Debug)]
 pub struct SetFramebufferToCore;
 
 impl SpiCommand for SetFramebufferToCore {
+    const NAME: &'static str = "SetFramebufferToCore";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         debug!("Setting framebuffer to core");
         spi.command(UserIoCommands::UserIoSetFramebuffer).write(0);
@@ -778,6 +826,8 @@ pub struct SetFramebufferToHpsOutput {
 }
 
 impl SpiCommand for SetFramebufferToHpsOutput {
+    const NAME: &'static str = "SetFramebufferToHpsOutput";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         debug!(?self, "Setting framebuffer to HPS output");
 
@@ -810,9 +860,12 @@ impl SpiCommand for SetFramebufferToHpsOutput {
     }
 }
 
+#[derive(Debug)]
 pub struct IsGammaSupported<'a>(pub &'a mut bool);
 
 impl SpiCommand for IsGammaSupported<'_> {
+    const NAME: &'static str = "IsGammaSupported";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut out = 0;
         spi.command_read(UserIoCommands::UserIoSetGamma, &mut out);
@@ -821,18 +874,24 @@ impl SpiCommand for IsGammaSupported<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct DisableGamma;
 
 impl SpiCommand for DisableGamma {
+    const NAME: &'static str = "DisableGamma";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(UserIoCommands::UserIoSetGamma).write_b(0);
         Ok(())
     }
 }
 
+#[derive(Debug)]
 pub struct EnableGamma<'a>(pub &'a [(u8, u8, u8)]);
 
 impl SpiCommand for EnableGamma<'_> {
+    const NAME: &'static str = "EnableGamma";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoCommands::UserIoSetGamma);
 
@@ -847,6 +906,7 @@ impl SpiCommand for EnableGamma<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct SetCustomAspectRatio(pub (u16, u16), pub (u16, u16));
 
 impl SetCustomAspectRatio {
@@ -862,6 +922,8 @@ impl From<(u16, u16)> for SetCustomAspectRatio {
 }
 
 impl SpiCommand for SetCustomAspectRatio {
+    const NAME: &'static str = "SetCustomAspectRatio";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoCommands::UserIoSetArCust);
 
@@ -875,9 +937,12 @@ impl SpiCommand for SetCustomAspectRatio {
     }
 }
 
+#[derive(Debug)]
 pub struct SetVideoMode<'a>(pub &'a CustomVideoMode);
 
 impl SpiCommand for SetVideoMode<'_> {
+    const NAME: &'static str = "SetVideoMode";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         let mut command = spi.command(UserIoCommands::UserIoSetVideo);
         let m = self.0;
@@ -901,10 +966,10 @@ impl SpiCommand for SetVideoMode<'_> {
 
         // PLL
         for (i, p) in p.pll.iter().copied().enumerate() {
-            if i % 2 != 0 {
+            if i % 2 == 0 {
                 command.write(0x4000 | (p as u16));
             } else {
-                command.write(p as u16).write((p >> 16) as u16);
+                command.write_32(p);
             }
         }
 
@@ -913,9 +978,12 @@ impl SpiCommand for SetVideoMode<'_> {
 }
 
 /// Set the audio volume as the number of bits to shift to the right.
+#[derive(Debug)]
 pub struct SetAudioVolume(pub u8);
 
 impl SpiCommand for SetAudioVolume {
+    const NAME: &'static str = "SetAudioVolume";
+
     fn execute<S: SpiCommandExt>(&mut self, spi: &mut S) -> Result<(), String> {
         spi.command(UserIoCommands::UserIoAudioVolume)
             .write_b(self.0);
