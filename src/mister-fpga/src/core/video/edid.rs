@@ -670,7 +670,8 @@ fn parse_custom_video_mode(video_mode: Option<&str>) -> CustomVideoMode {
     // }
     // DefaultVideoMode::V1920x1080r60.into()
 
-    DefaultVideoMode::V800x600r60.into()
+    // DefaultVideoMode::V800x600r60.into()
+    DefaultVideoMode::V640x480r60.into()
 
     // todo!("parse_custom_video_mode")
 }

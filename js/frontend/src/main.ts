@@ -33,9 +33,9 @@ async function initVideo() {
 
     console.log(`Chosen timing: ${JSON.stringify(chosenTiming)}`);
     if (chosenTiming) {
-      video.setMode(
-        `V${chosenTiming.horizontalAddrPixelCt}x${chosenTiming.verticalAddrPixelCt}r60`,
-      );
+      // video.setMode(
+      //   `V${chosenTiming.horizontalAddrPixelCt}x${chosenTiming.verticalAddrPixelCt}r60`,
+      // );
     }
   }
 }

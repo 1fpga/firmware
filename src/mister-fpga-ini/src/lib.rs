@@ -853,8 +853,8 @@ impl Config {
 
     pub fn base() -> Self {
         let path = Self::root().join("MiSTer.ini");
-        Self::load(&path).unwrap_or_else(|_| {
-            info!(?path, "Failed to load MiSTer.ini, using defaults.");
+        Self::load(&path).unwrap_or_else(|error| {
+            info!(?path, ?error, "Failed to load MiSTer.ini, using defaults.");
             let mut c = Self::default();
             c.mister.set_defaults();
             c
