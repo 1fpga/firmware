@@ -10,7 +10,6 @@ use crate::platform::WindowManager;
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::pixelcolor::{BinaryColor, Rgb888};
 use embedded_graphics::Drawable;
-use mister_fpga::core::video::edid::init_video;
 use sdl3::event::Event;
 use sdl3::gamepad::Gamepad;
 use std::collections::HashMap;
@@ -86,8 +85,6 @@ impl OneFpgaApp {
     }
 
     pub fn init_platform(&mut self) {
-        init_video().expect("Could not init video.");
-
         self.platform.init();
     }
 

@@ -662,12 +662,10 @@ pub struct VideoModeDef {
 }
 
 fn parse_custom_video_mode(video_mode: Option<&str>) -> CustomVideoMode {
-    // if video_mode.is_none() || matches!(video_mode, Some("auto")) || matches!(video_mode, Some(""))
-    // {
-    //     return DefaultVideoMode::V1920x1080r60.into();
-    // return DefaultVideoMode::V1280x720r60.into();
-    // return DefaultVideoMode::V640x480r60.into();
-    // }
+    if video_mode.is_none() || matches!(video_mode, Some("auto")) || matches!(video_mode, Some(""))
+    {
+        return DefaultVideoMode::V640x480r60.into();
+    }
 
     DefaultVideoMode::V640x480r60.into()
 
@@ -686,22 +684,6 @@ pub fn get_edid() -> Result<Option<liboptic_edid::Edid>, String> {
     {
         Ok(None)
     }
-}
-
-pub fn init_video() -> Result<(), String> {
-    // let edid: Option<Edid> = {
-    //     #[cfg(target_os = "linux")]
-    //     Some(Edid::from_i2c())
-    //
-    //     #[cfg(not(target_os = "linux"))]
-    //     None
-    // };
-    //
-    // if let Some(edid) = edid {
-    //
-    // }
-    //
-    Ok(())
 }
 
 pub fn select_video_mode(options: &MisterConfig) -> Result<VideoModeDef, String> {

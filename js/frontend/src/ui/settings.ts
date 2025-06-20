@@ -33,26 +33,34 @@ const DATETIME_FORMAT_LABELS: {
   hidden: 'Hidden',
 };
 
+function setMode(mode: string) {
+  try {
+    video.setMode(mode);
+  } catch (e) {
+    console.error('Could not set video mode: ' + e);
+  }
+}
+
 async function selectVideoMode() {
   await osd.textMenu({
     back: false,
     title: 'Select Video Mode',
     items: [
-      { label: 'V1280x720r60', select: () => video.setMode('V1280x720r60') },
-      { label: 'V1024x768r60', select: () => video.setMode('V1024x768r60') },
-      { label: 'V720x480r60', select: () => video.setMode('V720x480r60') },
-      { label: 'V720x576r50', select: () => video.setMode('V720x576r50') },
-      { label: 'V1280x1024r60', select: () => video.setMode('V1280x1024r60') },
-      { label: 'V800x600r60', select: () => video.setMode('V800x600r60') },
-      { label: 'V640x480r60', select: () => video.setMode('V640x480r60') },
-      { label: 'V1280x720r50', select: () => video.setMode('V1280x720r50') },
-      { label: 'V1920x1080r60', select: () => video.setMode('V1920x1080r60') },
-      { label: 'V1920x1080r50', select: () => video.setMode('V1920x1080r50') },
-      { label: 'V1366x768r60', select: () => video.setMode('V1366x768r60') },
-      { label: 'V1024x600r60', select: () => video.setMode('V1024x600r60') },
-      { label: 'V1920x1440r60', select: () => video.setMode('V1920x1440r60') },
-      { label: 'V2048x1536r60', select: () => video.setMode('V2048x1536r60') },
-      { label: 'V2560x1440r60', select: () => video.setMode('V2560x1440r60') },
+      { label: 'V1280x720r60', select: () => setMode('V1280x720r60') },
+      { label: 'V1024x768r60', select: () => setMode('V1024x768r60') },
+      { label: 'V720x480r60', select: () => setMode('V720x480r60') },
+      { label: 'V720x576r50', select: () => setMode('V720x576r50') },
+      { label: 'V1280x1024r60', select: () => setMode('V1280x1024r60') },
+      { label: 'V800x600r60', select: () => setMode('V800x600r60') },
+      { label: 'V640x480r60', select: () => setMode('V640x480r60') },
+      { label: 'V1280x720r50', select: () => setMode('V1280x720r50') },
+      { label: 'V1920x1080r60', select: () => setMode('V1920x1080r60') },
+      { label: 'V1920x1080r50', select: () => setMode('V1920x1080r50') },
+      { label: 'V1366x768r60', select: () => setMode('V1366x768r60') },
+      { label: 'V1024x600r60', select: () => setMode('V1024x600r60') },
+      { label: 'V1920x1440r60', select: () => setMode('V1920x1440r60') },
+      { label: 'V2048x1536r60', select: () => setMode('V2048x1536r60') },
+      { label: 'V2560x1440r60', select: () => setMode('V2560x1440r60') },
     ],
   });
 }
