@@ -12,6 +12,7 @@ use embedded_graphics::pixelcolor::{BinaryColor, Rgb888};
 use embedded_graphics::Drawable;
 use sdl3::event::Event;
 use sdl3::gamepad::Gamepad;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use tracing::{debug, info, trace, warn};
 
@@ -30,11 +31,11 @@ pub struct OneFpgaApp {
 
     gamepads: [Option<Gamepad>; 32],
 
-    toolbar_buffer: DrawBuffer<BinaryColor>,
-    osd_buffer: DrawBuffer<BinaryColor>,
+    toolbar_buffer: Option<DrawBuffer<BinaryColor>>,
+    osd_buffer: Option<DrawBuffer<BinaryColor>>,
 
     input_state: InputState,
-    shortcuts: HashMap<Shortcut, CommandId>,
+    shortcuts: RefCell<HashMap<Shortcut, CommandId>>,
 
     ui_settings: UiSettings,
 }
@@ -65,8 +66,8 @@ impl OneFpgaApp {
             render_toolbar: true,
             gamepads,
             platform,
-            toolbar_buffer: DrawBuffer::new(toolbar_size),
-            osd_buffer: DrawBuffer::new(osd_size),
+            toolbar_buffer: Some(DrawBuffer::new(toolbar_size)),
+            osd_buffer: Some(DrawBuffer::new(osd_size)),
             input_state: InputState::default(),
             shortcuts: Default::default(),
             ui_settings: UiSettings::default(),
@@ -76,12 +77,12 @@ impl OneFpgaApp {
         app
     }
 
-    pub fn add_shortcut(&mut self, shortcut: Shortcut, command: CommandId) {
-        self.shortcuts.insert(shortcut, command);
+    pub fn add_shortcut(&self, shortcut: Shortcut, command: CommandId) {
+        self.shortcuts.borrow_mut().insert(shortcut, command);
     }
 
-    pub fn remove_shortcut(&mut self, shortcut: &Shortcut) -> Option<CommandId> {
-        self.shortcuts.remove(shortcut)
+    pub fn remove_shortcut(&self, shortcut: &Shortcut) -> Option<CommandId> {
+        self.shortcuts.borrow_mut().remove(shortcut)
     }
 
     pub fn init_platform(&mut self) {
@@ -93,7 +94,10 @@ impl OneFpgaApp {
     }
 
     pub fn osd_buffer(&mut self) -> &mut DrawBuffer<BinaryColor> {
-        &mut self.osd_buffer
+        self.osd_buffer.get_or_insert_with(|| {
+            let osd_size = self.platform.osd_dimensions();
+            DrawBuffer::new(osd_size)
+        })
     }
 
     pub fn platform_mut(&mut self) -> &mut WindowManager {
@@ -117,33 +121,33 @@ impl OneFpgaApp {
     }
 
     fn draw_inner<R>(&mut self, drawer_fn: impl FnOnce(&mut Self) -> R) -> R {
-        self.osd_buffer.clear(BinaryColor::Off).unwrap();
-        let result = drawer_fn(self);
+        if let Some(osd_buffer) = self.osd_buffer.clone().as_mut() {
+            osd_buffer.clear(BinaryColor::Off).unwrap();
+            let result = drawer_fn(self);
 
-        if self.render_toolbar && self.toolbar.update(*self.ui_settings()) {
-            self.toolbar_buffer.clear(BinaryColor::Off).unwrap();
-            self.toolbar.draw(&mut self.toolbar_buffer).unwrap();
+            if self.render_toolbar {
+                if let Some(toolbar_buffer) = self.toolbar_buffer.clone().as_mut() {
+                    toolbar_buffer.clear(BinaryColor::Off).unwrap();
+                    self.toolbar.update(*self.ui_settings());
+                    self.toolbar.draw(toolbar_buffer).unwrap();
 
-            if self.ui_settings.invert_toolbar() {
-                self.toolbar_buffer.invert();
+                    if self.ui_settings.invert_toolbar() {
+                        toolbar_buffer.invert();
+                    }
+
+                    self.platform.update_toolbar(toolbar_buffer);
+                }
             }
 
-            self.platform.update_toolbar(&self.toolbar_buffer);
+            self.platform.update_osd(&osd_buffer);
+            result
+        } else {
+            drawer_fn(self)
         }
-
-        // self.platform.update_menu_framebuffer();
-        self.platform.update_osd(&self.osd_buffer);
-
-        result
     }
 
     pub fn draw<R>(&mut self, drawer_fn: impl FnOnce(&mut Self) -> R) -> R {
-        self.platform.start_loop();
-
-        let result = self.draw_inner(drawer_fn);
-
-        self.platform.end_loop();
-        result
+        self.draw_inner(drawer_fn)
     }
 
     pub fn draw_loop<R>(
@@ -235,7 +239,7 @@ impl OneFpgaApp {
                 }
             }
             if check_shortcuts {
-                for (s, id) in &self.shortcuts {
+                for (s, id) in self.shortcuts.borrow().iter() {
                     if s.matches(&self.input_state) {
                         if triggered_commands.contains(id) {
                             continue;

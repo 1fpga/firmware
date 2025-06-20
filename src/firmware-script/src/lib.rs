@@ -6,6 +6,7 @@ use boa_engine::{js_string, Context, JsObject, JsResult, JsValue, Module, Source
 use boa_macros::{js_str, Finalize, JsData, Trace};
 use boa_runtime::RegisterOptions;
 use firmware_ui::application::OneFpgaApp;
+use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::rc::Rc;
 use std::time::Instant;
@@ -19,7 +20,7 @@ mod modules;
 
 /// The application type for HostDefined information.
 #[derive(Clone, Trace, Finalize, JsData)]
-pub(crate) struct HostData {
+pub(crate) struct AppRef {
     // TODO: remove the pointer. This is safe because the JS code
     //       stops execution before the App is dropped, but it would
     //       be better to have a safe way to handle this.
@@ -27,35 +28,29 @@ pub(crate) struct HostData {
     /// The 1FPGA application.
     #[unsafe_ignore_trace]
     app: Rc<*mut OneFpgaApp>,
-
-    /// A command map that needs to be shared.
-    #[unsafe_ignore_trace]
-    command_map: Rc<*mut CommandMap>,
 }
 
-impl std::fmt::Debug for HostData {
+impl std::fmt::Debug for AppRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("HostData").finish()
     }
 }
 
-impl HostData {
-    pub fn app(&self) -> &OneFpgaApp {
+impl Deref for AppRef {
+    type Target = OneFpgaApp;
+    fn deref(&self) -> &Self::Target {
         unsafe { self.app.as_ref().as_ref().unwrap() }
     }
+}
 
-    pub fn app_mut(&self) -> &mut OneFpgaApp {
+impl DerefMut for AppRef {
+    fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.app.as_mut().unwrap() }
-    }
-
-    pub fn command_map_mut(&self) -> &mut CommandMap {
-        unsafe { self.command_map.as_mut().unwrap() }
     }
 }
 
 fn create_context(
     script: Option<&impl AsRef<Path>>,
-    host_defined: HostData,
 ) -> JsResult<(Context, Rc<OneFpgaModuleLoader>)> {
     let loader = match script {
         Some(p) => {
@@ -67,16 +62,15 @@ fn create_context(
     };
 
     let mut context = Context::builder().module_loader(loader.clone()).build()?;
-    context.insert_data(host_defined);
 
     let version = {
-        let major = (env!("CARGO_PKG_VERSION_MAJOR"))
+        let major = env!("CARGO_PKG_VERSION_MAJOR")
             .parse::<u32>()
             .expect("Invalid major version");
-        let minor = (env!("CARGO_PKG_VERSION_MINOR"))
+        let minor = env!("CARGO_PKG_VERSION_MINOR")
             .parse::<u32>()
             .expect("Invalid major version");
-        let patch = (env!("CARGO_PKG_VERSION_PATCH"))
+        let patch = env!("CARGO_PKG_VERSION_PATCH")
             .parse::<u32>()
             .expect("Invalid major version");
 
@@ -96,21 +90,18 @@ fn create_context(
     Ok((context, loader))
 }
 
-pub fn run(
-    script: Option<&impl AsRef<Path>>,
-    mut app: OneFpgaApp,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(script: Option<&impl AsRef<Path>>) -> Result<(), Box<dyn std::error::Error>> {
+    let mut app = OneFpgaApp::new();
     let app = Rc::new((&mut app) as *mut OneFpgaApp);
-    let mut command_map = CommandMap::default();
-    let host_defined = HostData {
-        app,
-        command_map: Rc::new(&mut command_map as *mut CommandMap),
-    };
+    let host_defined = AppRef { app };
 
     debug!("Loading JavaScript...");
     let start = Instant::now();
 
-    let (mut context, loader) = create_context(script, host_defined)?;
+    let (mut context, loader) = create_context(script)?;
+    context.insert_data(CommandMap::default());
+    context.insert_data(host_defined);
+
     boa_runtime::register(
         &mut context,
         RegisterOptions::new().with_console_logger(TracingLogger),

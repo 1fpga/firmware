@@ -37,6 +37,7 @@ COPY --from=planner /app/recipe.json recipe.json
 ENV CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc CC_armv7_unknown_Linux_gnueabihf=arm-linux-gnueabihf-gcc CXX_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-g++
 RUN rustup target add armv7-unknown-linux-gnueabihf
 RUN rustup component add --target armv7-unknown-linux-gnueabihf rust-std
+RUN rustup component add rustfmt rustc rust-std clippy
 
 RUN cargo chef cook --release --target armv7-unknown-linux-gnueabihf --recipe-path recipe.json
 

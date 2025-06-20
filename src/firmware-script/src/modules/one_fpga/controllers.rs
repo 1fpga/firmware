@@ -4,13 +4,11 @@ use boa_macros::boa_module;
 #[boa_module]
 #[boa(rename = "camelCase")]
 mod js {
-    use crate::HostData;
+    use crate::AppRef;
     use boa_engine::interop::ContextData;
     use boa_engine::{JsError, JsResult, JsString};
 
-    fn load_mapping(ContextData(data): ContextData<HostData>, mapping: JsString) -> JsResult<()> {
-        let app = data.app_mut();
-
+    fn load_mapping(ContextData(mut app): ContextData<AppRef>, mapping: JsString) -> JsResult<()> {
         let mapping = mapping.to_std_string_lossy();
         let mapping = mapping.as_str();
 

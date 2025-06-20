@@ -95,10 +95,6 @@ impl De10Platform {
         &mut self.platform
     }
 
-    pub fn start_loop(&mut self) {}
-
-    pub fn end_loop(&mut self) {}
-
     pub fn core_manager_mut(&mut self) -> &mut CoreManager {
         &mut self.core_manager
     }

@@ -52,7 +52,7 @@ pub fn maybe_call_command(
     let start = Instant::now();
     if let Some(command) = command_map.get(id) {
         trace!("Calling command: {:?}", id);
-        match call_command_inner(app, command, context) {
+        match call_command_inner(app, &command, context) {
             Ok(_) => {
                 debug!(elapsed = ?start.elapsed(), "Command executed successfully.");
                 Ok(())

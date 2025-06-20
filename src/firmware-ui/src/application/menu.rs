@@ -13,11 +13,9 @@ use std::fmt::Debug;
 use tracing::info;
 use u8g2_fonts::types::{HorizontalAlignment, VerticalPosition};
 
-// pub use cores::cores_menu_panel;
-pub use item::*;
-pub use options::*;
-
-use crate::application::menu::style::{MenuReturn, SdlMenuAction, SectionSeparator};
+use crate::application::menu::style::{
+    MenuReturn, MenuStyleOptions, SdlMenuAction, SectionSeparator,
+};
 use crate::application::menu::style::{OptionalMenuItem, RectangleIndicator};
 use crate::application::widgets::controller::ControllerButton;
 use crate::application::widgets::menu::SizedMenu;
@@ -26,6 +24,10 @@ use crate::application::widgets::text::FontRendererView;
 use crate::application::widgets::EmptyView;
 use crate::application::OneFpgaApp;
 use crate::input::commands::CommandId;
+use crate::macguiver::buffer::DrawBuffer;
+
+pub use item::*;
+pub use options::*;
 
 pub mod filesystem;
 pub mod item;
@@ -80,13 +82,21 @@ pub fn bottom_bar<'a>(
     .arrange()
 }
 
-pub fn text_menu<'a, C, R: MenuReturn + Copy, E: Debug>(
+pub fn text_menu_inner<
+    'a,
+    Cmd,
+    Color: PixelColor + From<Rgb888> + From<BinaryColor>,
+    R: MenuReturn + Copy,
+    E: Debug,
+>(
+    mut buffer: DrawBuffer<Color>,
+    style: MenuStyleOptions,
     app: &mut OneFpgaApp,
     title: &str,
     items: &'a [impl IntoTextMenuItem<'a, R>],
     options: TextMenuOptions<'a, R>,
-    context: &mut C,
-    mut shortcut_handler: impl FnMut(&mut OneFpgaApp, CommandId, &mut C) -> Result<(), E>,
+    context: &mut Cmd,
+    mut shortcut_handler: impl FnMut(&mut OneFpgaApp, CommandId, &mut Cmd) -> Result<(), E>,
 ) -> Result<(R, OneFpgaMenuState<R>), E> {
     let TextMenuOptions {
         show_back_menu,
@@ -107,7 +117,6 @@ pub fn text_menu<'a, C, R: MenuReturn + Copy, E: Debug>(
     let show_details = detail_label.is_some();
     let show_sort = show_sort.unwrap_or(true) && R::sort().is_some();
 
-    let mut buffer = app.osd_buffer().clone();
     let display_area = buffer.bounding_box();
 
     let mut prefix_items = prefix
@@ -146,7 +155,7 @@ pub fn text_menu<'a, C, R: MenuReturn + Copy, E: Debug>(
     let show2 = !items_items.is_empty() && !suffix_items.is_empty();
     let show3 = show_back;
 
-    let mut menu_style = style::menu_style(app.ui_settings().menu_style_options());
+    let mut menu_style = style::menu_style(style);
     if let Some(font) = title_font {
         menu_style = menu_style.with_title_font(font);
     }
@@ -264,7 +273,7 @@ pub fn text_menu<'a, C, R: MenuReturn + Copy, E: Debug>(
                 if let Some(action) = menu.interact(ev.clone()) {
                     match action {
                         SdlMenuAction::Back => {
-                            return R::back().map(|b| Ok((Some(b), menu.state())))
+                            return R::back().map(|b| Ok((Some(b), menu.state())));
                         }
                         SdlMenuAction::Select(result) => {
                             return Some(Ok((Some(result), menu.state())));
@@ -312,4 +321,24 @@ pub fn text_menu<'a, C, R: MenuReturn + Copy, E: Debug>(
         }
         menu_state = new_state;
     }
+}
+
+pub fn text_menu_osd<'a, C, R: MenuReturn + Copy, E: Debug>(
+    app: &mut OneFpgaApp,
+    title: &str,
+    items: &'a [impl IntoTextMenuItem<'a, R>],
+    options: TextMenuOptions<'a, R>,
+    context: &mut C,
+    shortcut_handler: impl FnMut(&mut OneFpgaApp, CommandId, &mut C) -> Result<(), E>,
+) -> Result<(R, OneFpgaMenuState<R>), E> {
+    text_menu_inner(
+        app.osd_buffer().clone(),
+        app.ui_settings().menu_style_options(),
+        app,
+        title,
+        items,
+        options,
+        context,
+        shortcut_handler,
+    )
 }

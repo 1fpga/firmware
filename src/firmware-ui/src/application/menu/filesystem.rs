@@ -7,7 +7,7 @@ use embedded_graphics::mono_font::ascii;
 use regex::Regex;
 
 use crate::application::menu::style::MenuReturn;
-use crate::application::menu::{text_menu, TextMenuOptions};
+use crate::application::menu::{text_menu_osd, TextMenuOptions};
 use crate::application::OneFpgaApp;
 use crate::input::commands::CommandId;
 
@@ -277,7 +277,7 @@ pub fn select_file_path_menu<C, E: Debug>(
             menu_options = menu_options.with_suffix(&select_curr_dir);
         }
 
-        let (selection, _new_state) = text_menu(
+        let (selection, _new_state) = text_menu_osd(
             app,
             &title,
             entries_items.as_slice(),

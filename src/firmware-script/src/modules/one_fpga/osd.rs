@@ -7,7 +7,8 @@ mod filesystem;
 #[boa(rename = "camelCase")]
 mod js {
     use crate::commands::maybe_call_command;
-    use crate::HostData;
+    use crate::modules::CommandMap;
+    use crate::AppRef;
     use boa_engine::object::builtins::{JsArray, JsPromise};
     use boa_engine::value::TryFromJs;
     use boa_engine::{
@@ -23,10 +24,18 @@ mod js {
         title: String,
         initial_dir: String,
         options: super::filesystem::SelectFileOptions,
-        context_data: ContextData<HostData>,
+        command_map_data: ContextData<CommandMap>,
+        app_data: ContextData<AppRef>,
         context: &mut Context,
     ) -> JsPromise {
-        super::filesystem::select(title, initial_dir, options, context_data, context)
+        super::filesystem::select(
+            title,
+            initial_dir,
+            options,
+            command_map_data,
+            app_data,
+            context,
+        )
     }
 
     #[boa(skip)]
@@ -191,11 +200,10 @@ mod js {
 
     fn text_menu(
         mut options: UiMenuOptions,
-        ContextData(host_defined): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
+        ContextData(command_map): ContextData<CommandMap>,
         mut context: &mut Context,
     ) -> JsResult<JsPromise> {
-        let app = host_defined.app_mut();
-
         let mut state = menu::OneFpgaMenuState::default();
         loop {
             for (i, item) in options.items.iter_mut().enumerate() {
@@ -231,12 +239,12 @@ mod js {
                     MenuAction::Noop
                 }
             } else {
-                let (result, new_state) = menu::text_menu(
-                    app,
+                let (result, new_state) = menu::text_menu_osd(
+                    &mut app,
                     &options.title.clone().unwrap_or_default(),
                     options.items.as_slice(),
                     menu_options,
-                    &mut (host_defined.command_map_mut(), &mut context),
+                    &mut (command_map.clone(), &mut context),
                     |app, id, (command_map, context)| -> JsResult<()> {
                         maybe_call_command(app, id, command_map, context)
                     },
@@ -353,7 +361,7 @@ mod js {
     fn alert(
         message: Either<String, AlertOptions>,
         title: Option<String>,
-        ContextData(host_defined): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         context: &mut Context,
     ) -> JsPromise {
         let (message, title, choices) = match message {
@@ -376,9 +384,8 @@ mod js {
             ),
         };
 
-        let app = host_defined.app_mut();
         let result = firmware_ui::application::panels::alert::alert(
-            app,
+            &mut app,
             &title,
             &message,
             &choices.iter().map(String::as_str).collect::<Vec<_>>(),
@@ -398,7 +405,7 @@ mod js {
     fn prompt(
         message: Either<String, PromptOptions>,
         maybe_message: Option<String>,
-        ContextData(data): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         context: &mut Context,
     ) -> JsPromise {
         let (message, title, default) = match message {
@@ -417,13 +424,12 @@ mod js {
             }) => (message, title.as_ref(), default.clone()),
         };
 
-        let app = data.app_mut();
         let result = firmware_ui::application::panels::prompt::prompt(
             title.map(String::as_str).unwrap_or(""),
             message,
             default.unwrap_or_default(),
             512,
-            app,
+            &mut app,
         )
         .map(JsString::from);
         JsPromise::resolve(result.map_or(JsValue::null(), JsValue::from), context)
@@ -433,11 +439,10 @@ mod js {
         title: String,
         message: String,
         length: u8,
-        ContextData(data): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         context: &mut Context,
     ) -> JsPromise {
-        let app = data.app_mut();
-        let result = enter_password(app, &title, &message, length);
+        let result = enter_password(&mut app, &title, &message, length);
 
         if let Some(result) = result {
             JsPromise::resolve(
@@ -452,11 +457,7 @@ mod js {
         }
     }
 
-    fn show(
-        message: String,
-        title: Option<String>,
-        ContextData(host_defined): ContextData<HostData>,
-    ) {
+    fn show(message: String, title: Option<String>, ContextData(mut app): ContextData<AppRef>) {
         // Swap title and message if title is specified.
         let (message, title) = if let Some(t) = title {
             (t, message)
@@ -464,15 +465,14 @@ mod js {
             (message, "".to_string())
         };
 
-        let app = host_defined.app_mut();
-        firmware_ui::application::panels::alert::show(app, &title, &message);
+        firmware_ui::application::panels::alert::show(&mut app, &title, &message);
     }
 
     fn qr_code(
         url: String,
         message: String,
         title: Option<String>,
-        ContextData(host_defined): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
     ) {
         // Swap title and message if title is specified. This is a JavaScript function,
         // so we need to do this here.
@@ -482,29 +482,23 @@ mod js {
             (message, "".to_string())
         };
 
-        let app = host_defined.app_mut();
-        firmware_ui::application::panels::qrcode::qrcode_alert(app, &title, &message, &url);
+        firmware_ui::application::panels::qrcode::qrcode_alert(&mut app, &title, &message, &url);
     }
 
-    fn input_tester(
-        ContextData(host_defined): ContextData<HostData>,
-        ctx: &mut Context,
-    ) -> JsPromise {
-        let app = host_defined.app_mut();
-        firmware_ui::application::panels::input_tester::input_tester(app);
+    fn input_tester(ContextData(mut app): ContextData<AppRef>, ctx: &mut Context) -> JsPromise {
+        firmware_ui::application::panels::input_tester::input_tester(&mut app);
 
         JsPromise::resolve(JsValue::undefined(), ctx)
     }
 
     fn prompt_shortcut(
-        ContextData(host_defined): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         title: Option<String>,
         message: Option<String>,
         context: &mut Context,
     ) -> JsPromise {
-        let app = host_defined.app_mut();
         let result = firmware_ui::application::panels::shortcut::prompt_shortcut(
-            app,
+            &mut app,
             title.unwrap_or("Pick a shortcut".to_string()).as_str(),
             message.as_deref(),
         );
@@ -516,20 +510,12 @@ mod js {
         }
     }
 
-    fn hide_osd(
-        ContextData(host_defined): ContextData<HostData>,
-        context: &mut Context,
-    ) -> JsPromise {
-        let app = host_defined.app_mut();
+    fn hide_osd(ContextData(mut app): ContextData<AppRef>, context: &mut Context) -> JsPromise {
         app.platform_mut().core_manager_mut().hide_osd();
         JsPromise::resolve(JsValue::undefined(), context)
     }
 
-    fn show_osd(
-        ContextData(host_defined): ContextData<HostData>,
-        context: &mut Context,
-    ) -> JsPromise {
-        let app = host_defined.app_mut();
+    fn show_osd(ContextData(mut app): ContextData<AppRef>, context: &mut Context) -> JsPromise {
         app.platform_mut().core_manager_mut().show_osd();
         JsPromise::resolve(JsValue::undefined(), context)
     }

@@ -5,7 +5,7 @@ use boa_macros::boa_module;
 #[boa(rename = "camelCase")]
 mod js {
     use crate::modules::JsCore;
-    use crate::HostData;
+    use crate::AppRef;
     use boa_engine::class::Class;
     use boa_engine::interop::ContextData;
     use boa_engine::value::TryFromJs;
@@ -58,10 +58,9 @@ mod js {
 
     fn load(
         options: RunOptions,
-        host_data: ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let app = host_data.0.app_mut();
         let mut core_options = match &options.core {
             CoreType::Path { path } => CoreLaunchInfo::rbf(PathBuf::from(path)),
         };

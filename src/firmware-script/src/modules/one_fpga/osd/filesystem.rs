@@ -1,7 +1,9 @@
+use std::ops::DerefMut;
 use std::path::Path;
 
 use crate::commands::maybe_call_command;
-use crate::HostData;
+use crate::modules::CommandMap;
+use crate::AppRef;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::TryFromJs;
 use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, JsValue, TryIntoJsResult};
@@ -61,19 +63,17 @@ pub fn select(
     title: String,
     initial_dir: String,
     options: SelectFileOptions,
-    ContextData(data): ContextData<HostData>,
+    ContextData(command_map): ContextData<CommandMap>,
+    ContextData(mut app): ContextData<AppRef>,
     context: &mut Context,
 ) -> JsPromise {
     JsPromise::new(
         move |fns, mut context| {
-            let command_map = data.command_map_mut();
-            let app = data.app_mut();
-
             let result = options
                 .try_into()
                 .and_then(|options| {
                     select_file_path_menu(
-                        app,
+                        app.deref_mut(),
                         &title,
                         Path::new(&initial_dir),
                         options,

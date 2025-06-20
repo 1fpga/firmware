@@ -1,7 +1,6 @@
 use clap::Parser;
 use clap_verbosity_flag::Level as VerbosityLevel;
 use clap_verbosity_flag::{LogLevel, Verbosity};
-use firmware_ui::application;
 use std::io::Read;
 use std::path::PathBuf;
 use tracing::{info, warn};
@@ -94,7 +93,6 @@ fn main() {
 
     // Create the application and run it.
     info!("Starting application...");
-    let app = application::OneFpgaApp::new();
-    firmware_script::run(opts.script.as_ref(), app).expect("Failed to run 1fpga");
+    firmware_script::run(opts.script.as_ref()).expect("Failed to run 1fpga");
     info!("Done");
 }

@@ -1,6 +1,7 @@
 use crate::commands::maybe_call_command;
 use crate::modules::one_fpga::globals::classes::JsImage;
-use crate::HostData;
+use crate::modules::CommandMap;
+use crate::AppRef;
 use boa_engine::class::Class;
 use boa_engine::object::builtins::{JsFunction, JsPromise, JsUint8Array};
 use boa_engine::value::TryFromJs;
@@ -60,9 +61,8 @@ impl JsCore {
 #[boa(rename = "camelCase")]
 impl JsCore {
     #[boa(constructor)]
-    fn constructor(ContextData(data): ContextData<HostData>) -> JsResult<Self> {
-        let core = data
-            .app_mut()
+    fn constructor(ContextData(mut app): ContextData<AppRef>) -> JsResult<Self> {
+        let core = app
             .platform_mut()
             .core_manager_mut()
             .get_current_core()
@@ -133,12 +133,11 @@ impl JsCore {
     #[boa(method)]
     fn run_loop(
         this: JsClass<JsCore>,
-        ContextData(host_defined): ContextData<HostData>,
+        ContextData(command_map): ContextData<CommandMap>,
+        ContextData(mut app): ContextData<AppRef>,
         options: Option<LoopOptions>,
         context: &mut Context,
     ) -> JsResult<JsPromise> {
-        let app = host_defined.app_mut();
-        let command_map = host_defined.command_map_mut();
         let mut core = this.borrow().core.clone();
 
         let events = this.borrow().events.clone();
@@ -147,10 +146,10 @@ impl JsCore {
         let cx = RefCell::new(context);
 
         let result = run_core_loop(
-            app,
+            &mut app,
             &mut core,
             |app, _core, id| -> JsResult<()> {
-                maybe_call_command(app, id, command_map, *cx.borrow_mut())
+                maybe_call_command(app, id, &command_map, *cx.borrow_mut())
             },
             |_app, _core, screenshot, slot, savestate| {
                 for handler in events.borrow()[Events::SaveState].iter() {
@@ -197,11 +196,10 @@ impl JsCore {
 
     fn show_osd(
         this: JsClass<JsCore>,
-        ContextData(host_defined): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         handler: JsFunction,
         context: &mut Context,
     ) -> JsResult<()> {
-        let app = host_defined.app_mut();
         app.platform_mut().core_manager_mut().show_osd();
 
         // Update saves on Mister Cores.

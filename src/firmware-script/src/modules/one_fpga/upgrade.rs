@@ -26,7 +26,7 @@ fn verify_inner_(path: String, signature: JsUint8Array, context: &mut Context) -
 #[boa(rename = "camelCase")]
 mod js {
     use super::verify_inner_;
-    use crate::HostData;
+    use crate::AppRef;
     use boa_engine::interop::ContextData;
     use boa_engine::object::builtins::{JsPromise, JsUint8Array};
     use boa_engine::{js_error, Context, JsError, JsValue};
@@ -45,7 +45,7 @@ mod js {
     }
 
     fn upgrade_(
-        ContextData(host_data): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         name: String,
         path: String,
         signature: Option<JsUint8Array>,
@@ -69,7 +69,7 @@ mod js {
         } else {
             // No signature provided, double check with the user.
             let choice = alert(
-                host_data.app_mut(),
+                &mut app,
                 "No signature provided",
                 "\
                 1FPGA cannot verify the upgrade. \

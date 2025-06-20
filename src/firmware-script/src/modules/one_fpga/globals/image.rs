@@ -1,4 +1,4 @@
-use crate::HostData;
+use crate::AppRef;
 use boa_engine::class::Class;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::TryFromJs;
@@ -171,10 +171,9 @@ impl JsImage {
     #[boa(name = "sendToBackground")]
     fn send_to_background(
         &self,
-        host_data: ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         options: Option<SendToBackgroundOptions>,
     ) {
-        let app = host_data.0.app_mut();
         let Some(mut maybe_core) = app.platform_mut().core_manager_mut().get_current_core() else {
             return;
         };

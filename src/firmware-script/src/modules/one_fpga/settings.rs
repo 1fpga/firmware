@@ -4,7 +4,7 @@ use boa_macros::boa_module;
 #[boa_module]
 #[boa(rename = "camelCase")]
 mod js {
-    use crate::HostData;
+    use crate::AppRef;
     use boa_engine::interop::ContextData;
     use boa_engine::object::builtins::JsDate;
     use boa_engine::value::TryFromJs;
@@ -106,40 +106,37 @@ mod js {
         }
     }
 
-    fn set_font_size(ContextData(data): ContextData<HostData>, size: FontSize) {
-        data.app_mut()
-            .ui_settings_mut()
-            .set_menu_font_size(size.into());
+    fn set_font_size(ContextData(mut app): ContextData<AppRef>, size: FontSize) {
+        app.ui_settings_mut().set_menu_font_size(size.into());
     }
 
-    fn font_size(ContextData(data): ContextData<HostData>) -> FontSize {
-        data.app().ui_settings().menu_font_size().into()
+    fn font_size(ContextData(app): ContextData<AppRef>) -> FontSize {
+        app.ui_settings().menu_font_size().into()
     }
 
-    fn set_datetime_format(ContextData(data): ContextData<HostData>, datetime: JsDatetimeFormat) {
-        data.app_mut()
-            .ui_settings_mut()
+    fn set_datetime_format(ContextData(mut app): ContextData<AppRef>, datetime: JsDatetimeFormat) {
+        app.ui_settings_mut()
             .set_toolbar_datetime_format(datetime.0);
     }
 
-    fn datetime_format(ContextData(data): ContextData<HostData>) -> JsDatetimeFormat {
-        JsDatetimeFormat(data.app().ui_settings().toolbar_datetime_format())
+    fn datetime_format(ContextData(app): ContextData<AppRef>) -> JsDatetimeFormat {
+        JsDatetimeFormat(app.ui_settings().toolbar_datetime_format())
     }
 
-    fn set_show_fps(ContextData(data): ContextData<HostData>, show: bool) {
-        data.app_mut().ui_settings_mut().set_show_fps(show);
+    fn set_show_fps(ContextData(mut app): ContextData<AppRef>, show: bool) {
+        app.ui_settings_mut().set_show_fps(show);
     }
 
-    fn show_fps(ContextData(data): ContextData<HostData>) -> bool {
-        data.app().ui_settings().show_fps()
+    fn show_fps(ContextData(app): ContextData<AppRef>) -> bool {
+        app.ui_settings().show_fps()
     }
 
-    fn set_invert_toolbar(ContextData(data): ContextData<HostData>, show: bool) {
-        data.app_mut().ui_settings_mut().set_invert_toolbar(show);
+    fn set_invert_toolbar(ContextData(mut app): ContextData<AppRef>, show: bool) {
+        app.ui_settings_mut().set_invert_toolbar(show);
     }
 
-    fn invert_toolbar(ContextData(data): ContextData<HostData>) -> bool {
-        data.app().ui_settings().invert_toolbar()
+    fn invert_toolbar(ContextData(app): ContextData<AppRef>) -> bool {
+        app.ui_settings().invert_toolbar()
     }
 
     fn list_time_zones() -> Vec<JsString> {

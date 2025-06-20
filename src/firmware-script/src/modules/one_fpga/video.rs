@@ -98,7 +98,7 @@ impl TryIntoJsResult for Edid {
 #[boa_module]
 #[boa(rename = "camelCase")]
 mod js {
-    use crate::HostData;
+    use crate::AppRef;
     use boa_engine::value::TryIntoJs;
     use boa_engine::{js_error, Context, JsError, JsResult, JsString, JsValue};
     use boa_interop::ContextData;
@@ -116,8 +116,7 @@ mod js {
         Ok(edid)
     }
 
-    fn set_mode(mode: String, ContextData(data): ContextData<HostData>) -> JsResult<()> {
-        let app = data.app_mut();
+    fn set_mode(mode: String, ContextData(mut app): ContextData<AppRef>) -> JsResult<()> {
         let mut core = app
             .platform_mut()
             .core_manager_mut()
@@ -168,10 +167,9 @@ mod js {
     }
 
     fn get_resolution(
-        ContextData(data): ContextData<HostData>,
+        ContextData(mut app): ContextData<AppRef>,
         context: &mut Context,
     ) -> JsResult<Option<JsValue>> {
-        let app = data.app_mut();
         let mut core = app
             .platform_mut()
             .core_manager_mut()
