@@ -151,6 +151,9 @@ impl MisterFpgaCore {
         })
     }
 
+    pub fn spi(&mut self) -> crate::fpga::Spi<DevMemMemoryMapper> {
+        self.fpga.spi().clone()
+    }
     pub fn spi_mut(&mut self) -> &mut crate::fpga::Spi<DevMemMemoryMapper> {
         self.fpga.spi_mut()
     }

@@ -3,9 +3,22 @@ use boa_engine::{js_string, Context, JsResult, JsString, JsValue, Module, TryInt
 use boa_macros::{boa_module, Finalize, Trace};
 use liboptic_edid::structures::id::{Date, Manufacturer};
 use liboptic_edid::structures::std_timings::{STiming, StandardAspectRatio};
+use std::os::fd::AsRawFd;
+
+nix::ioctl_write_int_bad!(vt_activate, 22022);
+nix::ioctl_write_int_bad!(vt_waitactive, 22023);
+
+fn switch_to_vt(n: u8) -> Result<(), String> {
+    let tty = std::fs::File::open("/dev/tty0").map_err(|s| s.to_string())?;
+    let fd = tty.as_raw_fd();
+
+    unsafe { vt_activate(fd, n.into()).map_err(|s| s.to_string())? };
+    unsafe { vt_waitactive(fd, n.into()).map_err(|s| s.to_string())? };
+    Ok(())
+}
 
 #[derive(Debug, Clone, Trace, Finalize, TryIntoJs)]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 struct StandardTiming {
     pub vertical_addr_pixel_ct: u16,
     pub horizontal_addr_pixel_ct: u16,
@@ -36,7 +49,7 @@ impl From<STiming> for StandardTiming {
 }
 
 #[derive(Debug, Clone, Trace, Finalize, TryIntoJs)]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 struct VendorProductId {
     manufacturer: String,
     product_code: u16,
@@ -45,7 +58,7 @@ struct VendorProductId {
 }
 
 #[derive(Debug, Clone, Trace, Finalize, TryIntoJs)]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 struct Edid {
     vendor_product_info: VendorProductId,
     version: String,
@@ -96,14 +109,15 @@ impl TryIntoJsResult for Edid {
 }
 
 #[boa_module]
-#[boa(rename = "camelCase")]
 mod js {
     use crate::AppRef;
     use boa_engine::value::TryIntoJs;
     use boa_engine::{js_error, Context, JsError, JsResult, JsString, JsValue};
     use boa_interop::ContextData;
+    use firmware_gui::{EventState, Hooks};
     use mister_fpga::core::video::edid::{get_edid, DefaultVideoMode};
     use mister_fpga::core::AsMisterCore;
+    use mister_fpga::fpga::user_io::SetFramebufferToHpsOutput;
     use mister_fpga_ini::resolution;
     use std::str::FromStr;
     use tracing::{debug, info};
@@ -117,19 +131,17 @@ mod js {
     }
 
     fn set_mode(mode: String, ContextData(mut app): ContextData<AppRef>) -> JsResult<()> {
-        let mut core = app
-            .platform_mut()
-            .core_manager_mut()
-            .get_current_core()
-            .ok_or_else(|| js_error!("No core loaded"))?;
+        let mut core = app.platform_mut().core_manager_mut().get_current_core();
 
-        let core = match core.as_mister_core_mut() {
-            Some(core) => core,
-            None => match core.as_menu_core_mut() {
-                Some(menu) => menu.inner(),
-                None => {
+        let core = match core.as_mut().map(|c| c.as_mister_core_mut()) {
+            Some(Some(core)) => Some(core),
+            None => None,
+            Some(None) => match core.as_mut().map(|c| c.as_menu_core_mut()) {
+                Some(Some(menu)) => Some(menu.inner()),
+                Some(None) => {
                     return Err(js_error!("Core is not a MisterFpgaCore"));
                 }
+                None => unreachable!(),
             },
         };
 
@@ -142,7 +154,7 @@ mod js {
             false,
             None,
             None,
-            core.spi_mut(),
+            core.map(|c| c.spi()),
             true,
         )
         .map_err(|e| JsError::from_opaque(JsString::from(e.to_string()).into()))?;
@@ -186,6 +198,64 @@ mod js {
 
         let resolution = video_info.fb_resolution();
         Ok(Some(Resolution::from(resolution).try_into_js(context)?))
+    }
+
+    fn switch_to_core(ContextData(mut app): ContextData<AppRef>) -> JsResult<()> {
+        if let Some(mut core) = app.platform_mut().core_manager_mut().get_current_core() {
+            if let Some(menu) = core.as_menu_core_mut() {
+                let mut spi = menu.inner().spi_mut();
+
+                spi.execute(SetFramebufferToHpsOutput {
+                    n: 1,
+                    height: 640,
+                    width: 480,
+                    hact: 640,
+                    vact: 480,
+                    x_offset: 0,
+                    y_offset: 0,
+                })
+                .expect("Uh...");
+            }
+        }
+
+        super::switch_to_vt(0).map_err(|s| JsError::from_opaque(JsString::from(s).into()))
+    }
+
+    fn switch_to_term(ContextData(mut app): ContextData<AppRef>) -> JsResult<()> {
+        app.platform_mut().core_manager_mut().hide_osd();
+        if let Some(mut core) = app.platform_mut().core_manager_mut().get_current_core() {
+            if let Some(menu) = core.as_menu_core_mut() {
+                let mut spi = menu.inner().spi_mut();
+
+                spi.execute(SetFramebufferToHpsOutput {
+                    n: 0,
+                    height: 640,
+                    width: 480,
+                    hact: 640,
+                    vact: 480,
+                    x_offset: 0,
+                    y_offset: 0,
+                })
+                .expect("Uh...");
+            }
+        }
+
+        super::switch_to_vt(1).map_err(|s| JsError::from_opaque(JsString::from(s).into()))
+    }
+
+    fn run() -> JsResult<()> {
+        struct GuiHooks;
+        impl Hooks for GuiHooks {
+            fn key_down(
+                &self,
+                key: firmware_gui::events::Key,
+                state: &mut EventState,
+            ) -> Result<(), String> {
+                todo!()
+            }
+        }
+
+        firmware_gui::r#loop(GuiHooks).map_err(|s| JsError::from_opaque(JsString::from(s).into()))
     }
 }
 

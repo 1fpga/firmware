@@ -10,6 +10,7 @@ mod controllers;
 mod core;
 mod db;
 mod fs;
+mod gui;
 mod net;
 mod osd;
 mod settings;
@@ -33,6 +34,7 @@ pub(super) fn register_modules(
         core::create_module,
         db::create_module,
         fs::create_module,
+        gui::create_module,
         net::create_module,
         settings::create_module,
         system::create_module,

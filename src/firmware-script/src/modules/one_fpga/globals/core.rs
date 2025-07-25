@@ -57,8 +57,8 @@ impl JsCore {
     }
 }
 
-#[boa_class(name = "OneFpgaCore")]
-#[boa(rename = "camelCase")]
+#[boa_class(rename = "OneFpgaCore")]
+#[boa(rename_all = "camelCase")]
 impl JsCore {
     #[boa(constructor)]
     fn constructor(ContextData(mut app): ContextData<AppRef>) -> JsResult<Self> {
@@ -98,7 +98,7 @@ impl JsCore {
     }
 
     #[boa(setter)]
-    #[boa(name = "statusBits")]
+    #[boa(rename = "statusBits")]
     fn set_status_bits(
         this: JsClass<JsCore>,
         bits: JsUint8Array,
@@ -119,7 +119,7 @@ impl JsCore {
     }
 
     #[boa(setter)]
-    #[boa(name = "volume")]
+    #[boa(rename = "volume")]
     fn set_volume(&mut self, volume: f64) -> JsResult<()> {
         let value = (volume * 255.0) as u8;
         self.core.set_volume(value).map_err(JsError::from_rust)
@@ -129,7 +129,7 @@ impl JsCore {
         self.core.reset().map_err(JsError::from_rust)
     }
 
-    #[boa(name = "loop")]
+    #[boa(rename = "loop")]
     #[boa(method)]
     fn run_loop(
         this: JsClass<JsCore>,

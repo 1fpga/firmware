@@ -37,4 +37,10 @@ declare module '1fpga:video' {
    * will return undefined.
    */
   export function getResolution(): { width: number; height: number } | undefined;
+
+  export function switchToTerm(): void;
+
+  export function switchToCore(): void;
+
+  export function run(): void;
 }

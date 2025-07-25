@@ -28,6 +28,10 @@ RUN apt-get install --assume-yes libdbus-1-dev
 RUN apt-get install --assume-yes libusb-dev
 RUN apt-get install --assume-yes libevdev-dev
 RUN apt-get install --assume-yes libudev-dev
+RUN apt-get install --assume-yes libclang-dev
+RUN apt-get install --assume-yes linux-headers-5.10.0-35-common
+
+RUN ln -s /usr/include/asm-generic /usr/include/asm
 
 WORKDIR /app
 COPY build/armv7/config.toml /app/.cargo/config.toml

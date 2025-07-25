@@ -334,8 +334,8 @@ impl TryIntoJsResult for JsDb {
     }
 }
 
-#[boa_class(name = "Db")]
-#[boa(rename = "camelCase")]
+#[boa_class(rename = "Db")]
+#[boa(rename_all = "camelCase")]
 impl JsDb {
     #[boa(constructor)]
     pub(crate) fn new(name: String) -> JsResult<Self> {
@@ -434,8 +434,8 @@ pub struct JsDbTransaction {
     tx_id: u32,
 }
 
-#[boa_class(name = "DbTransaction")]
-#[boa(rename = "camelCase")]
+#[boa_class(rename = "DbTransaction")]
+#[boa(rename_all = "camelCase")]
 impl JsDbTransaction {
     #[boa(constructor)]
     fn constructor() -> JsResult<Self> {

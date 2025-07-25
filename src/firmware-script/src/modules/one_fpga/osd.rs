@@ -4,7 +4,7 @@ use boa_macros::boa_module;
 mod filesystem;
 
 #[boa_module]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 mod js {
     use crate::commands::maybe_call_command;
     use crate::modules::CommandMap;

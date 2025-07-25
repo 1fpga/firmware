@@ -1,11 +1,12 @@
 use embedded_graphics::image::GetPixel;
 use embedded_graphics::pixelcolor::raw::ToBytes;
-use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::pixelcolor::{BinaryColor, Rgb888};
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::Rectangle;
 use std::cell::RefCell;
 use std::convert::{Infallible, TryFrom};
 use std::fmt::{Debug, Formatter};
+use std::ops::DerefMut;
 use std::rc::Rc;
 
 enum DrawBufferInner<C: 'static> {
@@ -44,15 +45,7 @@ impl<C: PixelColor> DrawBufferInner<C> {
         )
     }
 
-    pub unsafe fn from_memory_slice<const N: usize>(
-        slice: &'static mut [C; N],
-        size: Size,
-    ) -> Self {
-        assert_eq!(
-            size.width as usize * size.height as usize,
-            N,
-            "Size of slice and buffer must match"
-        );
+    pub unsafe fn from_memory_slice(slice: &'static mut [C], size: Size) -> Self {
         Self::MemoryBuffer(slice, size)
     }
 
@@ -284,10 +277,7 @@ impl<C: PixelColor> DrawBuffer<C> {
     }
 
     /// Creates a buffer that references an existing memory region.
-    pub unsafe fn from_memory_slice<const N: usize>(
-        slice: &'static mut [C; N],
-        size: Size,
-    ) -> Self {
+    pub unsafe fn from_memory_slice(slice: &'static mut [C], size: Size) -> Self {
         Self {
             inner: Rc::new(RefCell::new(unsafe {
                 DrawBufferInner::from_memory_slice(slice, size)
@@ -326,6 +316,20 @@ impl<C: PixelColor> DrawBuffer<C> {
                     intersection,
                 ))),
             }
+        }
+    }
+}
+
+impl DrawBuffer<Rgb888> {
+    pub fn from_framebuffer(fb: &mut linuxfb::Framebuffer) -> Self {
+        let size = Size::from(fb.get_size());
+        let mut mmap = fb.map().expect("Could not map framebuffer");
+        let bytes = mmap.deref_mut();
+        unsafe {
+            Self::from_memory_slice(
+                std::slice::from_raw_parts_mut(bytes.as_mut_ptr() as *mut Rgb888, bytes.len()),
+                size,
+            )
         }
     }
 }

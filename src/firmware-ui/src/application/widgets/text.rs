@@ -1,6 +1,6 @@
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::geometry::Dimensions;
-use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::Point;
 use embedded_graphics::primitives::Rectangle;
 use embedded_graphics::transform::Transform;
@@ -9,16 +9,18 @@ use u8g2_fonts::types::{FontColor, HorizontalAlignment, VerticalPosition};
 use u8g2_fonts::{Font, FontRenderer};
 
 #[derive(Clone)]
-pub struct FontRendererView<'s> {
+pub struct FontRendererView<'s, C: PixelColor> {
     pub top_left: Point,
     pub vertical_position: VerticalPosition,
     pub alignment: HorizontalAlignment,
     pub text: &'s str,
     pub renderer: FontRenderer,
+    pub color: C,
 }
 
-impl<'s> FontRendererView<'s> {
+impl<'s, C: PixelColor> FontRendererView<'s, C> {
     pub fn new<F: Font>(
+        color: C,
         vertical_position: VerticalPosition,
         alignment: HorizontalAlignment,
         text: &'s str,
@@ -30,11 +32,12 @@ impl<'s> FontRendererView<'s> {
             alignment,
             text,
             renderer: FontRenderer::new::<F>(),
+            color,
         }
     }
 }
 
-impl Dimensions for FontRendererView<'_> {
+impl<C: PixelColor> Dimensions for FontRendererView<'_, C> {
     fn bounding_box(&self) -> Rectangle {
         self.renderer
             .get_rendered_dimensions(self.text, self.top_left, self.vertical_position)
@@ -44,7 +47,7 @@ impl Dimensions for FontRendererView<'_> {
     }
 }
 
-impl Transform for FontRendererView<'_> {
+impl<C: PixelColor> Transform for FontRendererView<'_, C> {
     fn translate(&self, by: Point) -> Self {
         Self {
             top_left: self.top_left + by,
@@ -59,8 +62,8 @@ impl Transform for FontRendererView<'_> {
     }
 }
 
-impl Drawable for FontRendererView<'_> {
-    type Color = BinaryColor;
+impl<C: PixelColor> Drawable for FontRendererView<'_, C> {
+    type Color = C;
     type Output = ();
 
     fn draw<D>(&self, target: &mut D) -> Result<Self::Output, D::Error>
@@ -102,7 +105,7 @@ impl Drawable for FontRendererView<'_> {
                 self.text,
                 position,
                 VerticalPosition::Baseline,
-                FontColor::Transparent(BinaryColor::On),
+                FontColor::Transparent(self.color),
                 target,
             )
             .map_err(|e| match e {

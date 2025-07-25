@@ -20,15 +20,15 @@ mod modules;
 
 /// The application type for HostDefined information.
 #[derive(Clone, Trace, Finalize, JsData)]
-pub(crate) struct AppRef {
+pub(crate) struct AppRef(
     // TODO: remove the pointer. This is safe because the JS code
     //       stops execution before the App is dropped, but it would
     //       be better to have a safe way to handle this.
     //       A RefCell isn't good enough because it's recursive.
     /// The 1FPGA application.
     #[unsafe_ignore_trace]
-    app: Rc<*mut OneFpgaApp>,
-}
+    Rc<*mut OneFpgaApp>,
+);
 
 impl std::fmt::Debug for AppRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -39,13 +39,13 @@ impl std::fmt::Debug for AppRef {
 impl Deref for AppRef {
     type Target = OneFpgaApp;
     fn deref(&self) -> &Self::Target {
-        unsafe { self.app.as_ref().as_ref().unwrap() }
+        unsafe { self.0.as_ref().as_ref().unwrap() }
     }
 }
 
 impl DerefMut for AppRef {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.app.as_mut().unwrap() }
+        unsafe { self.0.as_mut().unwrap() }
     }
 }
 
@@ -93,7 +93,7 @@ fn create_context(
 pub fn run(script: Option<&impl AsRef<Path>>) -> Result<(), Box<dyn std::error::Error>> {
     let mut app = OneFpgaApp::new();
     let app = Rc::new((&mut app) as *mut OneFpgaApp);
-    let host_defined = AppRef { app };
+    let host_defined = AppRef(app);
 
     debug!("Loading JavaScript...");
     let start = Instant::now();

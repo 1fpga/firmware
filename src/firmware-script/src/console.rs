@@ -58,12 +58,8 @@ impl Logger for TracingLogger {
 
     fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
         let indent = state.indent();
-        if tracing::enabled!(tracing::Level::TRACE) {
-            let stack = stack(context);
-            error!(?stack, "{msg:>indent$}");
-        } else {
-            error!("{msg:>indent$}");
-        }
+        let stack = stack(context);
+        error!(?stack, "{msg:>indent$}");
         Ok(())
     }
 }

@@ -2,7 +2,7 @@ use boa_engine::{js_string, Context, JsResult, JsString, Module};
 use boa_macros::boa_module;
 
 #[boa_module]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 mod js {
     use boa_engine::JsResult;
 

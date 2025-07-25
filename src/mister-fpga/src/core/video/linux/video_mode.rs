@@ -129,7 +129,7 @@ pub fn select_mode(
     direct_video: bool,
     aspect_ratio_1: Option<AspectRatio>,
     aspect_ratio_2: Option<AspectRatio>,
-    spi: &mut Spi<impl MemoryMapper>,
+    mut spi: Option<Spi<impl MemoryMapper>>,
     is_menu: bool,
 ) -> Result<(), String> {
     debug!(
@@ -140,41 +140,46 @@ pub fn select_mode(
         is_menu,
         "Selecting video mode"
     );
-    let mut has_gamma = false;
-    spi.execute(IsGammaSupported(&mut has_gamma))?;
 
-    if has_gamma {
-        let mut gamma = GammaConfiguration::new();
-        // TODO: get gamma configuration from options/database.
-        gamma.add_grayscale(0);
-        gamma.add_grayscale(0x7F);
-        gamma.add_grayscale(0xFF);
-        gamma.set(spi)?;
-    }
+    if let Some(ref mut spi) = spi {
+        let mut has_gamma = false;
+        spi.execute(IsGammaSupported(&mut has_gamma))?;
+        if has_gamma {
+            let mut gamma = GammaConfiguration::new();
+            // TODO: get gamma configuration from options/database.
+            gamma.add_grayscale(0);
+            gamma.add_grayscale(0x7F);
+            gamma.add_grayscale(0xFF);
+            gamma.set(spi)?;
+        }
 
-    if aspect_ratio_1.or(aspect_ratio_2).is_some() {
-        let first = aspect_ratio_1.unwrap_or_else(AspectRatio::zero);
-        let second = aspect_ratio_2.unwrap_or_else(AspectRatio::zero);
+        if aspect_ratio_1.or(aspect_ratio_2).is_some() {
+            let first = aspect_ratio_1.unwrap_or_else(AspectRatio::zero);
+            let second = aspect_ratio_2.unwrap_or_else(AspectRatio::zero);
 
-        spi.execute(SetCustomAspectRatio(first.into(), second.into()))?;
+            spi.execute(SetCustomAspectRatio(first.into(), second.into()))?;
+        }
     }
 
     // TODO: set scaler filter.
     // TODO: set VRR.
 
     hdmi_config_set_mode(direct_video, &mode)?;
-    mode.send_to_core(direct_video, spi, is_menu)?;
-    video_fb_config(&mode, fb_size, vscale_border, direct_video, spi, is_menu)?;
+    if let Some(ref mut spi) = spi {
+        mode.send_to_core(direct_video, spi, is_menu)?;
+        video_fb_config(&mode, fb_size, vscale_border, direct_video, spi, is_menu)?;
 
-    if !is_menu {
-        spi.execute(SetFramebufferToCore)?;
+        if !is_menu {
+            spi.execute(SetFramebufferToCore)?;
+        }
     }
+
     Ok(())
 }
 
 pub fn init_mode(
     options: &mister_fpga_ini::MisterConfig,
-    spi: &mut Spi<impl MemoryMapper>,
+    spi: Option<Spi<impl MemoryMapper>>,
     is_menu: bool,
 ) -> Result<(), String> {
     let mode = edid::select_video_mode(options)?;

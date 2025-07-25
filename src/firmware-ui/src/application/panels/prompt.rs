@@ -89,7 +89,7 @@ pub fn prompt(
     let mut result = text;
     let start = Instant::now();
 
-    app.draw_loop(move |app, state| {
+    app.run_draw_loop(move |app, state| {
         let mut text_box = Text::new(&result, Point::zero(), text_style);
         let text_box_size = text_box.bounding_box().size;
         let layout_bounds = layout.bounds();

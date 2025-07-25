@@ -6,6 +6,7 @@ use boa_engine::module::{ModuleLoader, Referrer, SimpleModuleLoader};
 use boa_engine::{Context, JsResult, JsString, Module};
 use boa_interop::embed_module;
 use boa_interop::loaders::HashMapModuleLoader;
+use boa_interop::loaders::embedded::EmbeddedModuleLoader;
 
 fn create_root_dirs() -> Result<(), std::io::Error> {
     std::fs::create_dir_all("/media/fat/1fpga/scripts/")?;
@@ -16,13 +17,14 @@ fn create_root_dirs() -> Result<(), std::io::Error> {
 /// A module loader that also understands "freestanding" modules and
 /// special resolution.
 pub struct OneFpgaModuleLoader {
-    named_modules: Rc<RefCell<HashMapModuleLoader>>,
-    inner: Rc<dyn ModuleLoader>,
+    named_modules: RefCell<Rc<HashMapModuleLoader>>,
+    embedded: Rc<EmbeddedModuleLoader>,
+    root: Option<Rc<SimpleModuleLoader>>,
 
     #[allow(unused)]
-    scripts: Rc<dyn ModuleLoader>,
+    scripts: Rc<SimpleModuleLoader>,
     #[allow(unused)]
-    plugins: Rc<dyn ModuleLoader>,
+    plugins: Rc<SimpleModuleLoader>,
 }
 
 impl Default for OneFpgaModuleLoader {
@@ -30,8 +32,9 @@ impl Default for OneFpgaModuleLoader {
         let _ = create_root_dirs();
 
         Self {
-            named_modules: Rc::new(RefCell::new(HashMapModuleLoader::default())),
-            inner: Rc::new(embed_module!("../../js/frontend/dist/")),
+            named_modules: RefCell::new(Rc::new(HashMapModuleLoader::default())),
+            embedded: Rc::new(embed_module!("../../js/frontend/dist/")),
+            root: None,
             scripts: Rc::new(SimpleModuleLoader::new("/media/fat/1fpga/scripts/").unwrap()),
             plugins: Rc::new(SimpleModuleLoader::new("/media/fat/1fpga/plugins/").unwrap()),
         }
@@ -43,10 +46,11 @@ impl OneFpgaModuleLoader {
         let _ = create_root_dirs();
 
         Self {
-            named_modules: Rc::new(RefCell::new(HashMapModuleLoader::default())),
-            inner: Rc::new(
+            named_modules: RefCell::new(Rc::new(HashMapModuleLoader::default())),
+            embedded: Rc::new(EmbeddedModuleLoader::from_iter(vec![])),
+            root: Some(Rc::new(
                 SimpleModuleLoader::new(root).expect("Could not find the script folder."),
-            ),
+            )),
             scripts: Rc::new(SimpleModuleLoader::new("/media/fat/1fpga/scripts/").unwrap()),
             plugins: Rc::new(SimpleModuleLoader::new("/media/fat/1fpga/plugins/").unwrap()),
         }
@@ -65,34 +69,31 @@ impl OneFpgaModuleLoader {
 }
 
 impl ModuleLoader for OneFpgaModuleLoader {
-    fn load_imported_module(
-        &self,
+    async fn load_imported_module(
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        let inner = self.inner.clone();
-        self.named_modules.borrow().load_imported_module(
-            referrer.clone(),
-            specifier.clone(),
-            Box::new(move |module, context| {
-                if module.is_ok() {
-                    finish_load(module, context);
-                } else {
-                    inner
-                        .as_ref()
-                        .load_imported_module(referrer, specifier, finish_load, context);
-                }
-            }),
-            context,
-        );
-    }
-
-    fn get_module(&self, specifier: JsString) -> Option<Module> {
-        self.named_modules
+        context: &RefCell<&mut Context>,
+    ) -> JsResult<Module> {
+        if let Ok(module) = self
+            .named_modules
             .borrow()
-            .get_module(specifier.clone())
-            .or_else(|| self.inner.as_ref().get_module(specifier))
+            .clone()
+            .load_imported_module(referrer.clone(), specifier.clone(), context)
+            .await
+        {
+            Ok(module)
+        } else if let Some(ref root_loader) = self.root {
+            // If there is a root_loader, completely ignore the embedded module.
+            root_loader
+                .clone()
+                .load_imported_module(referrer.clone(), specifier.clone(), context)
+                .await
+        } else {
+            self.embedded
+                .clone()
+                .load_imported_module(referrer, specifier, context)
+                .await
+        }
     }
 }

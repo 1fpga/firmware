@@ -38,12 +38,8 @@ pub struct OneFpgaApp {
     shortcuts: RefCell<HashMap<Shortcut, CommandId>>,
 
     ui_settings: UiSettings,
-}
-
-impl Default for OneFpgaApp {
-    fn default() -> Self {
-        Self::new()
-    }
+    // framebuffer: linuxfb::double::Buffer,
+    framebuffer: linuxfb::Framebuffer,
 }
 
 impl OneFpgaApp {
@@ -71,6 +67,7 @@ impl OneFpgaApp {
             input_state: InputState::default(),
             shortcuts: Default::default(),
             ui_settings: UiSettings::default(),
+            framebuffer: linuxfb::Framebuffer::new("/dev/fb0").unwrap(),
         };
         app.init_platform();
 
@@ -139,25 +136,33 @@ impl OneFpgaApp {
                 }
             }
 
-            self.platform.update_osd(&osd_buffer);
+            // self.platform.update_osd(&osd_buffer);
+            // self.platform
+            //     .osd_buffer
+            //     .draw(&mut self.platform.main_buffer().color_converted())
+            //     .unwrap();
+            let bytes = osd_buffer.to_be_bytes();
+            self.framebuffer.map().unwrap()[..bytes.len()].copy_from_slice(&bytes);
+
+            // self.framebuffer.flip().unwrap();
             result
         } else {
             drawer_fn(self)
         }
     }
 
-    pub fn draw<R>(&mut self, drawer_fn: impl FnOnce(&mut Self) -> R) -> R {
+    pub fn draw_once<R>(&mut self, drawer_fn: impl FnOnce(&mut Self) -> R) -> R {
         self.draw_inner(drawer_fn)
     }
 
-    pub fn draw_loop<R>(
+    pub fn run_draw_loop<R>(
         &mut self,
         mut loop_fn: impl FnMut(&mut Self, EventLoopState) -> Option<R>,
     ) -> R {
-        self.event_loop(|s, state| s.draw(|s| loop_fn(s, state)))
+        self.run_event_loop(|s, state| s.draw_inner(|s| loop_fn(s, state)))
     }
 
-    pub fn event_loop<R>(
+    pub fn run_event_loop<R>(
         &mut self,
         mut loop_fn: impl FnMut(&mut Self, EventLoopState) -> Option<R>,
     ) -> R {

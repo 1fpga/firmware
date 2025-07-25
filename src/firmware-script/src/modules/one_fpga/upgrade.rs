@@ -23,7 +23,7 @@ fn verify_inner_(path: String, signature: JsUint8Array, context: &mut Context) -
 }
 
 #[boa_module]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 mod js {
     use super::verify_inner_;
     use crate::AppRef;

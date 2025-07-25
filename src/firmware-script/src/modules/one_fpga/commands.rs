@@ -47,7 +47,7 @@ impl CommandMap {
 }
 
 #[boa_module]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 mod js {
     use crate::modules::CommandMap;
     use crate::AppRef;

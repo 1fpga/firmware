@@ -93,6 +93,8 @@ fn main() {
 
     // Create the application and run it.
     info!("Starting application...");
-    firmware_script::run(opts.script.as_ref()).expect("Failed to run 1fpga");
+    if let Err(e) = firmware_script::run(opts.script.as_ref()) {
+        warn!("Failed to execute script: {:#?}", e);
+    }
     info!("Done");
 }

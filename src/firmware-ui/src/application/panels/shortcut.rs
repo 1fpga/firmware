@@ -24,7 +24,7 @@ pub fn prompt_shortcut(
 
     let mut shortcut = Shortcut::default();
 
-    app.draw_loop(move |app, state| {
+    app.run_draw_loop(move |app, state| {
         let character_style = u8g2_fonts::U8g2TextStyle::new(
             u8g2_fonts::fonts::u8g2_font_haxrcorp4089_t_cyrillic,
             BinaryColor::On,
@@ -101,7 +101,7 @@ pub fn prompt_shortcut(
                     shortcut.add_gamepad_button(*button);
                 }
                 Event::ControllerButtonUp { .. } if !shortcut.is_empty() => {
-                    return Some(Some(shortcut.clone()))
+                    return Some(Some(shortcut.clone()));
                 }
                 Event::ControllerAxisMotion { axis, value, .. } => {
                     shortcut.add_axis(*axis, *value);

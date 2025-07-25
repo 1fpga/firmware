@@ -134,7 +134,7 @@ pub fn show(app: &mut OneFpgaApp, title: &str, message: &str) {
     .into_inner();
 
     // Only show once, return immediately.
-    app.draw(move |app| {
+    app.draw_once(move |app| {
         let buffer = app.osd_buffer();
         let _ = buffer.clear(BinaryColor::Off);
         let _ = layout.draw(buffer);
@@ -196,7 +196,7 @@ pub fn alert(app: &mut OneFpgaApp, title: &str, message: &str, choices: &[&str])
     .align_to(&display_area, horizontal::Center, vertical::Top)
     .into_inner();
 
-    app.draw_loop(move |app, state| {
+    app.run_draw_loop(move |app, state| {
         let buffer = app.osd_buffer();
         let _ = buffer.clear(BinaryColor::Off);
         let _ = layout.draw(buffer);

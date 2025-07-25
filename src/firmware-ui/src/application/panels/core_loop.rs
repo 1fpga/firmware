@@ -24,7 +24,7 @@ fn core_loop<E: Debug>(
 
     // This is a special loop that forwards everything to the core,
     // except for the menu button(s).
-    app.event_loop(move |app, state| {
+    app.run_event_loop(move |app, state| {
         i += 1;
 
         for ev in state.events() {

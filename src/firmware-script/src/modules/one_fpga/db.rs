@@ -2,7 +2,7 @@ use boa_engine::{js_string, Context, JsResult, JsString, Module};
 use boa_macros::boa_module;
 
 #[boa_module]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 mod db {
     use crate::modules::one_fpga::globals::classes::JsDb;
     use boa_engine::class::Class;

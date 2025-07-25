@@ -564,7 +564,7 @@ pub fn init_mode(
     core: &mut crate::core::MisterFpgaCore,
     is_menu: bool,
 ) -> Result<(), String> {
-    video_mode::init_mode(options, core.spi_mut(), is_menu)
+    video_mode::init_mode(options, Some(core.spi()), is_menu)
 }
 
 pub fn select_mode(
@@ -572,7 +572,7 @@ pub fn select_mode(
     direct_video: bool,
     aspect_ratio_1: Option<AspectRatio>,
     aspect_ratio_2: Option<AspectRatio>,
-    spi: &mut Spi<impl MemoryMapper>,
+    spi: Option<Spi<impl MemoryMapper>>,
     is_menu: bool,
 ) -> Result<(), String> {
     video_mode::select_mode(

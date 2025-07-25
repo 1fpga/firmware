@@ -1,7 +1,7 @@
 use crate::fpga::feature::{SpiFeature, SpiFeatureSet};
 use cyclone_v::memory::MemoryMapper;
 use cyclone_v::SocFpga;
-use std::cell::UnsafeCell;
+use std::cell::{RefCell, UnsafeCell};
 use std::fmt::Debug;
 use std::sync::Arc;
 use tracing::trace;
@@ -209,17 +209,18 @@ pub struct Spi<M: MemoryMapper> {
     // Ref counting features to prevent double enable (performance) and double
     // disable (error). We only actually enable if the refcount is 0, and disable
     // if the refcount is 1.
-    features: fixed_map::Map<SpiFeature, u32>,
+    features: Arc<RefCell<fixed_map::Map<SpiFeature, u32>>>,
 }
 unsafe impl<M: MemoryMapper> Send for Spi<M> {}
 unsafe impl<M: MemoryMapper> Sync for Spi<M> {}
 
+// We don't store the memory mapper, so it's safe to implement Clone.
 impl<M: MemoryMapper> Clone for Spi<M> {
     #[inline]
     fn clone(&self) -> Self {
         Self {
             soc: self.soc.clone(),
-            features: self.features,
+            features: self.features.clone(),
         }
     }
 }
@@ -248,7 +249,8 @@ impl<M: MemoryMapper> Spi<M> {
     pub(super) fn enable_u32(&mut self, mask: u32) {
         let mut new_mask = 0;
         SpiFeatureSet::from(mask).iter().for_each(|feature| {
-            let count = self.features.entry(feature).or_default();
+            let mut features = self.features.borrow_mut();
+            let count = features.entry(feature).or_default();
             if *count == 0 {
                 new_mask |= feature.as_u32();
             }
@@ -267,7 +269,8 @@ impl<M: MemoryMapper> Spi<M> {
     pub(super) fn disable_u32(&mut self, mask: u32) {
         let mut new_mask = 0;
         SpiFeatureSet::from(mask).iter().for_each(|feature| {
-            let count = self.features.entry(feature).or_default();
+            let mut features = self.features.borrow_mut();
+            let count = features.entry(feature).or_default();
             if *count == 1 {
                 new_mask |= feature.as_u32();
                 *count = 0;
@@ -504,5 +507,5 @@ pub fn features_refcount() {
     spi.disable(SpiFeatureSet::FPGA);
     spi.disable(SpiFeatureSet::IO);
 
-    assert_eq!(spi.features.get(SpiFeature::Fpga), Some(&1));
+    assert_eq!(spi.features.borrow().get(SpiFeature::Fpga), Some(&1));
 }

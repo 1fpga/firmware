@@ -22,6 +22,7 @@ pub struct De10Platform {
     osd_display: OsdDisplay,
     core_manager: CoreManager,
     core_framebuffer: DrawBuffer<Rgb888>,
+    _framebuffer: linuxfb::Framebuffer,
 }
 
 impl Default for De10Platform {
@@ -48,7 +49,9 @@ impl Default for De10Platform {
         }
 
         let core_manager = CoreManager::new(fpga);
-        let core_framebuffer = DrawBuffer::new(sizes::MAIN);
+        // let core_framebuffer = DrawBuffer::new(sizes::MAIN);
+        let mut fb = linuxfb::Framebuffer::new("/dev/fb0").unwrap();
+        let core_framebuffer = DrawBuffer::from_framebuffer(&mut fb);
 
         Self {
             platform,
@@ -57,6 +60,7 @@ impl Default for De10Platform {
             osd_display: OsdDisplay::main(),
             core_manager,
             core_framebuffer,
+            _framebuffer: fb,
         }
     }
 }

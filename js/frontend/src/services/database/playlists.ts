@@ -1,6 +1,5 @@
 import { Row } from '1fpga:db';
 
-import * as services from '@/services';
 import * as user from '@/services/user';
 import { assert, sql } from '@/utils';
 
@@ -74,8 +73,8 @@ export async function count(options: ListOptions = {}) {
 }
 
 export async function removeGame(playlist: PlaylistsRow, game: { id: number }) {
-  const user = services.user.User.loggedInUser(true);
-  assert.assert(playlist.usersId === user.id || user.admin);
+  const u = user.User.loggedInUser(true);
+  assert.assert(playlist.usersId === u.id || u.admin);
 
   await sql`DELETE
             FROM PlaylistsGames
@@ -84,8 +83,8 @@ export async function removeGame(playlist: PlaylistsRow, game: { id: number }) {
 }
 
 export async function addGame(playlist: PlaylistsRow, game: { id: number }, priority?: number) {
-  const user = services.user.User.loggedInUser(true);
-  assert.assert(playlist.usersId === user.id || user.admin);
+  const u = user.User.loggedInUser(true);
+  assert.assert(playlist.usersId === u.id || u.admin);
 
   await sql`INSERT INTO PlaylistsGames ${sql.insertValues({
     playlistsId: playlist.id,
@@ -97,8 +96,8 @@ export async function addGame(playlist: PlaylistsRow, game: { id: number }, prio
 }
 
 export async function delete_(playlist: PlaylistsRow) {
-  const user = services.user.User.loggedInUser(true);
-  assert.assert(playlist.usersId === user.id || user.admin);
+  const u = user.User.loggedInUser(true);
+  assert.assert(playlist.usersId === u.id || u.admin);
 
   await sql`DELETE
             FROM Playlists

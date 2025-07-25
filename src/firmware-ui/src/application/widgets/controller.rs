@@ -1,7 +1,7 @@
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::geometry::{Dimensions, Point};
 use embedded_graphics::mono_font::{MonoFont, MonoTextStyle};
-use embedded_graphics::pixelcolor::{BinaryColor, PixelColor};
+use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::primitives::{Circle, Primitive, PrimitiveStyle, Rectangle, Styled};
 use embedded_graphics::text::Text;
 use embedded_graphics::transform::Transform;
@@ -19,16 +19,21 @@ where
     circle: Styled<Circle, PrimitiveStyle<C>>,
 }
 
-impl<'l> ControllerButton<'l, BinaryColor> {
-    pub fn new(label: &'l str, font: &'l MonoFont<'l>) -> Self {
+impl<'l, C: PixelColor> ControllerButton<'l, C> {
+    pub fn new_colored(
+        color: impl Into<C>,
+        bg: impl Into<C>,
+        label: &'l str,
+        font: &'l MonoFont<'l>,
+    ) -> Self {
         let top_left = Point::zero();
         let circle = Circle::new(top_left, font.character_size.width + 4);
-        let circle = circle.into_styled(PrimitiveStyle::with_fill(BinaryColor::On));
+        let circle = circle.into_styled(PrimitiveStyle::with_fill(color.into()));
 
         Self {
             label,
             font,
-            label_color: BinaryColor::Off,
+            label_color: bg.into(),
             circle,
         }
     }

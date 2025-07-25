@@ -51,7 +51,7 @@ mod private {
         _direct_video: bool,
         _aspect_ratio_1: Option<AspectRatio>,
         _aspect_ratio_2: Option<AspectRatio>,
-        _spi: &mut Spi<impl MemoryMapper>,
+        _spi: Option<Spi<impl MemoryMapper>>,
         _is_menu: bool,
     ) -> Result<(), String> {
         Ok(())
@@ -72,7 +72,7 @@ pub fn select_mode(
     direct_video: bool,
     aspect_ratio_1: Option<AspectRatio>,
     aspect_ratio_2: Option<AspectRatio>,
-    spi: &mut Spi<impl MemoryMapper>,
+    spi: Option<Spi<impl MemoryMapper>>,
     is_menu: bool,
 ) -> Result<(), String> {
     private::select_mode(

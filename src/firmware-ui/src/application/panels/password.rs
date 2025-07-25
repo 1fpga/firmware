@@ -23,7 +23,7 @@ pub fn enter_password(
     let mut password = InputPassword::new();
     let text_style = MonoTextStyle::new(&ascii::FONT_10X20, BinaryColor::On);
 
-    app.draw_loop(move |app, state| {
+    app.run_draw_loop(move |app, state| {
         let mut password_str = String::new();
         for _ in 0..password.len() {
             password_str.push_str("* ");

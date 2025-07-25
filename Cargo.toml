@@ -5,6 +5,7 @@ members = [
     "src/de10-nano",
     "src/fce-movie-format",
     "src/firmware",
+    "src/firmware-gui",
     "src/firmware-script",
     "src/firmware-ui",
     "src/games-db-converter",
@@ -48,7 +49,15 @@ pre-build = [
 unused_crate_dependencies = "warn"
 
 [workspace.dependencies]
+embedded-graphics = "0.8.1"
+embedded-graphics-framebuf = "0.5.0"
+embedded-layout = "0.4.2"
+embedded-menu = "0.6.1"
+embedded-text = "0.7.2"
+
 image = "0.25"
+libc = "1.0.0-alpha.1"
+linuxfb = "0.3.1"
 ouroboros = "0.18"
 reqwest = { version = "0.12", features = ["blocking", "json", "rustls-tls"], default-features = false }
 serde = { version = "1.0.219", features = ["derive"] }
@@ -64,6 +73,7 @@ cyclone-v = { path = "src/cyclone-v" }
 de10-nano = { path = "src/de10-nano" }
 fce-movie-format = { path = "src/fce-movie-format" }
 firmware = { path = "src/firmware" }
+firmware-gui = { path = "src/firmware-gui" }
 firmware-ui = { path = "src/firmware-ui" }
 firmware-script = { path = "src/firmware-script" }
 one-fpga = { path = "src/one-fpga", version = "0.1.0" }

@@ -37,20 +37,21 @@ pub mod style;
 pub type OneFpgaMenuState<R> =
     MenuState<style::SdlMenuInputAdapter<R>, AnimatedPosition, RectangleIndicator>;
 
-fn bottom_bar_button<'a>(
+fn bottom_bar_button<'a, C: PixelColor + From<Rgb888> + 'a>(
     name: &'a str,
     label: Option<&'a str>,
-) -> impl embedded_layout::view_group::ViewGroup + 'a + Drawable<Color = BinaryColor> {
+) -> impl embedded_layout::view_group::ViewGroup + 'a + Drawable<Color = C> {
     type Font = u8g2_fonts::fonts::u8g2_font_haxrcorp4089_t_cyrillic;
 
     LinearLayout::horizontal(
         Chain::new(OptionalView::new(
             label.is_some(),
-            ControllerButton::new(name, &ascii::FONT_6X10),
+            ControllerButton::new_colored(Rgb888::BLACK, Rgb888::BLUE, name, &ascii::FONT_6X10),
         ))
         .append(OptionalView::new(
             label.is_some(),
-            FontRendererView::new::<Font>(
+            FontRendererView::<C>::new::<Font>(
+                C::from(Rgb888::RED),
                 VerticalPosition::Baseline,
                 HorizontalAlignment::Left,
                 label.unwrap_or(name),
@@ -61,22 +62,22 @@ fn bottom_bar_button<'a>(
     .arrange()
 }
 
-pub fn bottom_bar<'a>(
+pub fn bottom_bar<'a, C: PixelColor + From<Rgb888> + 'a>(
     a_button: Option<&'a str>,
     b_button: Option<&'a str>,
     x_button: Option<&'a str>,
     y_button: Option<&'a str>,
     l_button: Option<&'a str>,
     r_button: Option<&'a str>,
-) -> impl embedded_layout::view_group::ViewGroup + 'a + Drawable<Color = BinaryColor> {
+) -> impl embedded_layout::view_group::ViewGroup + 'a + Drawable<Color = C> {
     LinearLayout::horizontal(
-        Chain::<EmptyView>::new(EmptyView::default())
-            .append(bottom_bar_button("a", a_button))
-            .append(bottom_bar_button("b", b_button))
-            .append(bottom_bar_button("x", x_button))
-            .append(bottom_bar_button("y", y_button))
-            .append(bottom_bar_button("l", l_button))
-            .append(bottom_bar_button("r", r_button)),
+        Chain::<EmptyView<C>>::new(EmptyView::default())
+            .append(bottom_bar_button::<C>("a", a_button))
+            .append(bottom_bar_button::<C>("b", b_button))
+            .append(bottom_bar_button::<C>("x", x_button))
+            .append(bottom_bar_button::<C>("y", y_button))
+            .append(bottom_bar_button::<C>("l", l_button))
+            .append(bottom_bar_button::<C>("r", r_button)),
     )
     .with_spacing(spacing::FixedMargin(2))
     .arrange()
@@ -171,7 +172,7 @@ pub fn text_menu_inner<
             sort_by.map(|f| format!(" - {f}")).unwrap_or("".to_string())
         );
 
-        let bottom_bar = bottom_bar(
+        let bottom_bar = bottom_bar::<Color>(
             Some("Select"),
             show_back_button.then_some("Back"),
             show_details.then_some(()).and(detail_label),
@@ -192,7 +193,8 @@ pub fn text_menu_inner<
 
         let curr_filter_label = filter.clone();
         type Font = u8g2_fonts::fonts::u8g2_font_haxrcorp4089_t_cyrillic;
-        let mut filter_bar = FontRendererView::new::<Font>(
+        let mut filter_bar = FontRendererView::<Rgb888>::new::<Font>(
+            Rgb888::YELLOW,
             VerticalPosition::Top,
             HorizontalAlignment::Left,
             curr_filter_label.as_str(),
@@ -241,13 +243,13 @@ pub fn text_menu_inner<
                     Point::new(0, 0),
                     Point::new(display_area.size.width as i32, 0),
                 )
-                .into_styled(PrimitiveStyle::with_stroke(BinaryColor::On, 1)),
+                .into_styled(PrimitiveStyle::with_stroke(BinaryColor::On.into(), 1)),
             ),
         )
         .with_alignment(horizontal::Left)
         .arrange();
 
-        let (result, new_state) = app.draw_loop(|app, state| {
+        let (result, new_state) = app.run_draw_loop(|app, state| {
             let _ = buffer.clear(Rgb888::BLACK.into());
 
             {

@@ -18,10 +18,10 @@ pub fn input_tester(app: &mut OneFpgaApp) {
     let bounds = app.main_buffer().bounding_box();
 
     let mut current = InputState::default();
-    app.draw_loop(move |app, state| {
+    app.run_draw_loop(move |app, state| {
         let character_style = u8g2_fonts::U8g2TextStyle::new(
             u8g2_fonts::fonts::u8g2_font_haxrcorp4089_t_cyrillic,
-            BinaryColor::On,
+            BinaryColor::On.into(),
         );
         let textbox_style = TextBoxStyleBuilder::new()
             .height_mode(HeightMode::FitToText)
@@ -37,14 +37,14 @@ pub fn input_tester(app: &mut OneFpgaApp) {
             Chain::new(Text::new(
                 "Press ESCAPE to cancel.",
                 Point::zero(),
-                MonoTextStyle::new(&ascii::FONT_8X13_BOLD, BinaryColor::On),
+                MonoTextStyle::new(&ascii::FONT_8X13_BOLD, BinaryColor::On.into()),
             ))
             .append(
                 Line::new(
                     Point::zero(),
                     Point::new(display_area.bounding_box().size.width as i32, 0),
                 )
-                .into_styled(PrimitiveStyle::with_stroke(BinaryColor::On, 1)),
+                .into_styled(PrimitiveStyle::with_stroke(BinaryColor::On.into(), 1)),
             )
             .append(text_box),
         )
@@ -53,8 +53,8 @@ pub fn input_tester(app: &mut OneFpgaApp) {
         .arrange()
         .align_to(&display_area, horizontal::Center, vertical::Top);
 
-        let buffer = app.osd_buffer();
-        let _ = buffer.clear(BinaryColor::Off);
+        let buffer = app.main_buffer();
+        let _ = buffer.clear(BinaryColor::Off.into());
         let _ = layout.draw(buffer);
 
         for e in state.events() {
