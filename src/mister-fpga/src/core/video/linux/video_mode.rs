@@ -39,7 +39,7 @@ impl GammaConfiguration {
     }
 }
 
-fn video_fb_config(
+pub fn video_fb_config(
     mode: &edid::CustomVideoMode,
     fb_size: FramebufferSizeConfig,
     vscale_border: u16,
@@ -47,6 +47,15 @@ fn video_fb_config(
     spi: &mut Spi<impl MemoryMapper>,
     is_menu: bool,
 ) -> Result<(), String> {
+    debug!(
+        ?mode,
+        ?fb_size,
+        vscale_border,
+        direct_video,
+        is_menu,
+        "video_fb_config()"
+    );
+
     let mut fb_scale = fb_size.as_scale() as u32;
 
     if fb_scale <= 1 {

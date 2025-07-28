@@ -13,6 +13,7 @@ embedded-text.workspace = true
 libc.workspace = true
 linuxfb = "0.3.1"
 memmap = "0.7.0"
+tracing.workspace = true
 
 one-fpga.workspace = true
 

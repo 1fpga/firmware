@@ -225,18 +225,30 @@ mod js {
         app.platform_mut().core_manager_mut().hide_osd();
         if let Some(mut core) = app.platform_mut().core_manager_mut().get_current_core() {
             if let Some(menu) = core.as_menu_core_mut() {
-                let mut spi = menu.inner().spi_mut();
+                let mister_core = menu.inner();
+                let mut spi = mister_core.spi_mut();
+
+                let vinfo = mister_fpga::core::video::VideoInfo::create(spi)
+                    .map_err(|e| JsError::from_opaque(JsString::from(e).into()))?;
+                info!(?vinfo, "vinfo");
 
                 spi.execute(SetFramebufferToHpsOutput {
                     n: 0,
-                    height: 640,
-                    width: 480,
-                    hact: 640,
+                    height: 480,
+                    width: 640,
                     vact: 480,
+                    hact: 640,
                     x_offset: 0,
                     y_offset: 0,
                 })
                 .expect("Uh...");
+
+                let vinfo = mister_fpga::core::video::VideoInfo::create(spi);
+                info!(?vinfo, "vinfo 2");
+
+                let mut bits = *mister_core.read_status_bits();
+                bits.set_range(5..8, 0x160);
+                mister_core.send_status_bits(bits);
             }
         }
 

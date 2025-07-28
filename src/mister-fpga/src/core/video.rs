@@ -175,7 +175,7 @@ impl VideoInfo {
     }
 
     /// Create a video info from the FPGA.
-    pub(crate) fn create(spi: &mut Spi<impl MemoryMapper>) -> Result<Self, String> {
+    pub fn create(spi: &mut Spi<impl MemoryMapper>) -> Result<Self, String> {
         let mut result = VideoInfo::default();
         result.read_video(spi)?;
         result.read_fb_param(spi)?;

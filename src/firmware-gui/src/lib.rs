@@ -8,6 +8,7 @@ use embedded_graphics_framebuf::backends::FrameBufferBackend;
 use embedded_graphics_framebuf::FrameBuf;
 use linuxfb::TerminalMode;
 use std::time::Duration;
+use tracing::debug;
 
 pub mod events;
 
@@ -126,6 +127,7 @@ pub fn r#loop(_hooks: impl Hooks) -> Result<(), String> {
         .expect("Failed to insert an end source");
 
     let fb = Framebuffer::new("/dev/fb0").expect("Failed to create a framebuffer");
+    debug!(size = ?fb.size(), "Framebuffer");
     let mut state = EventState {
         signal: event_loop.get_signal(),
         fb,
