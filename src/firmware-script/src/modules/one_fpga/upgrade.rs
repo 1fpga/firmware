@@ -77,6 +77,8 @@ mod js {
                 Do you want to continue with the upgrade?
             ",
                 &["Cancel the upgrade", "Trust the source and continue"],
+                None,
+                None,
             );
 
             // We do not error on cancel.

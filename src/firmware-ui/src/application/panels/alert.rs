@@ -18,6 +18,7 @@ use embedded_menu::Menu;
 use embedded_text::style::{HeightMode, TextBoxStyleBuilder};
 use embedded_text::TextBox;
 use std::convert::identity;
+use std::time::{Duration, Instant};
 use tracing::error;
 use url::Url;
 
@@ -71,6 +72,8 @@ pub fn show_error(app: &mut OneFpgaApp, error: impl std::error::Error, recoverab
                 "An error occurred",
                 &error_str,
                 &["Report", "Reboot", "Back"],
+                None,
+                None,
             ) {
                 None | Some(2) => break false,
                 Some(1) => break true,
@@ -79,7 +82,7 @@ pub fn show_error(app: &mut OneFpgaApp, error: impl std::error::Error, recoverab
             }
         }
     } else {
-        let _ = alert(app, "Error", &error_str, &["Report"]);
+        let _ = alert(app, "Error", &error_str, &["Report"], None, None);
         true
     };
 
@@ -141,7 +144,14 @@ pub fn show(app: &mut OneFpgaApp, title: &str, message: &str) {
     });
 }
 
-pub fn alert(app: &mut OneFpgaApp, title: &str, message: &str, choices: &[&str]) -> Option<usize> {
+pub fn alert(
+    app: &mut OneFpgaApp,
+    title: &str,
+    message: &str,
+    choices: &[&str],
+    selected: Option<usize>,
+    timeout: Option<Duration>,
+) -> Option<usize> {
     let display_area = app.main_buffer().bounding_box();
 
     let mut choices = choices
@@ -150,7 +160,7 @@ pub fn alert(app: &mut OneFpgaApp, title: &str, message: &str, choices: &[&str])
         .map(|(i, ch)| MenuItem::new(ch, MenuAction::Select(i)).with_value_converter(identity))
         .collect::<Vec<_>>();
 
-    let menu = SizedMenu::new(
+    let mut menu = SizedMenu::new(
         Size::new(display_area.size.width - 12, 32),
         Menu::with_style(
             "",
@@ -159,6 +169,18 @@ pub fn alert(app: &mut OneFpgaApp, title: &str, message: &str, choices: &[&str])
         .add_menu_items(&mut choices)
         .build(),
     );
+
+    if let Some(selected) = selected {
+        let selected = selected;
+        menu.interact(sdl3::event::Event::User {
+            timestamp: 0,
+            window_id: 0,
+            type_: 0,
+            code: selected as i32,
+            data1: std::ptr::null_mut(),
+            data2: std::ptr::null_mut(),
+        });
+    }
 
     let character_style = u8g2_fonts::U8g2TextStyle::new(
         u8g2_fonts::fonts::u8g2_font_haxrcorp4089_t_cyrillic,
@@ -196,6 +218,8 @@ pub fn alert(app: &mut OneFpgaApp, title: &str, message: &str, choices: &[&str])
     .align_to(&display_area, horizontal::Center, vertical::Top)
     .into_inner();
 
+    let start = Instant::now();
+
     app.run_draw_loop(move |app, state| {
         let buffer = app.osd_buffer();
         let _ = buffer.clear(BinaryColor::Off);
@@ -210,6 +234,13 @@ pub fn alert(app: &mut OneFpgaApp, title: &str, message: &str, choices: &[&str])
             }
         }
         menu.update();
+
+        // Check if we're timing out...
+        if let Some(timeout) = timeout.as_ref() {
+            if start.elapsed().ge(timeout) {
+                return Some(None);
+            }
+        }
 
         None
     })

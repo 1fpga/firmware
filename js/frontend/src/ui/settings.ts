@@ -1,8 +1,9 @@
+import { oneLine } from 'common-tags';
+
 import * as osd from '1fpga:osd';
 import * as oneFpgaSettings from '1fpga:settings';
-import * as video from '1fpga:video';
 
-import { db, settings, user } from '@/services';
+import { db, settings, user, video } from '@/services';
 import { pickGame } from '@/ui/games';
 import { accountsSettingsMenu } from '@/ui/settings/accounts';
 import { assert } from '@/utils';
@@ -33,9 +34,27 @@ const DATETIME_FORMAT_LABELS: {
   hidden: 'Hidden',
 };
 
-function setMode(mode: string) {
+async function setMode(mode: string) {
+  const previousMode = await video.getVideoMode();
   try {
-    video.setMode(mode);
+    await video.setVideoMode(mode);
+
+    let result = await osd.alert({
+      title: 'Video mode set',
+      message: oneLine`Video mode: ${mode}\n
+          If you can see this message, select Ok to confirm. 
+          After 15 seconds, the video will revert to the previous known working one.
+        `,
+      choices: ['Revert', 'Ok'],
+      timeout: 15,
+    });
+    if (result === 1) {
+      // At this point, the mode has been validated. Commit to settings.
+      const s = await settings.GlobalSettings.create();
+      await s.setVideoMode(mode);
+    } else if (previousMode !== null) {
+      await video.setVideoMode(previousMode);
+    }
   } catch (e) {
     console.error('Could not set video mode: ' + e);
   }

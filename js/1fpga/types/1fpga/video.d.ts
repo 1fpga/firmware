@@ -17,6 +17,24 @@ declare module '1fpga:video' {
       aspectRatio: '16x10' | '4x3' | '5x4' | '16x9';
       fieldRefreshRate: number;
     }>;
+
+    basicDisplayInfo: {
+      inputDefinition: {
+        type: 'Analog' | 'Digital';
+      };
+      screenSizeOrAspectRatio:
+        | undefined
+        | {
+            type: 'ScreenSize';
+            horizontalCm: number;
+            verticalCm: number;
+          }
+        | {
+            type: 'AspectRatio';
+            horizontal: number;
+            vertical: number;
+          };
+    };
   }
 
   /**
@@ -30,7 +48,7 @@ declare module '1fpga:video' {
    * Set the video mode.
    * @param mode A string representing the video mode to set.
    */
-  export function setMode(mode: string): void;
+  export async function setMode(mode: string): Promise<void>;
 
   /**
    * Get the current video resolution. When not in the menu core, this

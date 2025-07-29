@@ -93,6 +93,10 @@ declare module '1fpga:osd' {
     title?: string;
     message: string;
     choices?: string[];
+    selected?: number;
+    // Timeout in seconds before `null` is returned. If missing, there's no
+    // timeout.
+    timeout?: number;
   }): Promise<null | number>;
 
   /**

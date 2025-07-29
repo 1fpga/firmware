@@ -6,4 +6,5 @@ export * as local from './local';
 export * as remote from './remote';
 export * as settings from './settings';
 export * as storage from './storage';
+export * as video from './video';
 export * as user from './user';

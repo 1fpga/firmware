@@ -1,6 +1,8 @@
 use boa_engine::value::TryIntoJs;
 use boa_engine::{js_string, Context, JsResult, JsString, JsValue, Module, TryIntoJsResult};
-use boa_macros::{boa_module, Finalize, Trace};
+use boa_macros::{boa_module, js_value, Finalize, Trace};
+use liboptic_edid::structures::basic_info::vsi::VideoSignalInterface;
+use liboptic_edid::structures::basic_info::SizeOrRatio;
 use liboptic_edid::structures::id::{Date, Manufacturer};
 use liboptic_edid::structures::std_timings::{STiming, StandardAspectRatio};
 use std::os::fd::AsRawFd;
@@ -57,12 +59,52 @@ struct VendorProductId {
     date: String,
 }
 
+#[derive(Debug, Clone, Trace, Finalize)]
+struct BasicDisplayInfo(
+    #[unsafe_ignore_trace] liboptic_edid::structures::basic_info::BasicDisplayInfo,
+);
+
+impl TryIntoJs for BasicDisplayInfo {
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        Ok(js_value!({
+            "inputDefinition": match self.0.input_definition {
+                VideoSignalInterface::Analog{ .. } => {
+                    js_value!({"type": "Analog"}, context)
+                },
+                VideoSignalInterface::Digital{ .. } => {
+                    js_value!({"type": "Digital"}, context)},
+            },
+            "screenSizeOrAspectRatio": match self.0.screen_size_or_aspect_ratio {
+                Some(
+                SizeOrRatio::ScreenSize {
+                    horizontal_cm,
+                    vertical_cm,
+                }) => js_value!({
+                    "type": "ScreenSize",
+                    "horizontalCm": horizontal_cm,
+                    "verticalCm": vertical_cm,
+                }, context),
+                Some(SizeOrRatio::AspectRatio {
+                    horizontal,
+                    vertical,
+                }) => js_value!({
+                    "type": "AspectRatio",
+                    "horizontal": horizontal,
+                    "vertical": vertical,
+                }, context),
+                None => JsValue::null(),
+            }
+        }, context))
+    }
+}
+
 #[derive(Debug, Clone, Trace, Finalize, TryIntoJs)]
 #[boa(rename_all = "camelCase")]
 struct Edid {
     vendor_product_info: VendorProductId,
     version: String,
     standard_timings: Vec<StandardTiming>,
+    basic_display_info: BasicDisplayInfo,
 }
 
 impl From<liboptic_edid::Edid> for Edid {
@@ -98,6 +140,7 @@ impl From<liboptic_edid::Edid> for Edid {
             .flatten()
             .map(Into::into)
             .collect(),
+            basic_display_info: BasicDisplayInfo(value.basic_display_info),
         }
     }
 }
@@ -203,18 +246,23 @@ mod js {
     fn switch_to_core(ContextData(mut app): ContextData<AppRef>) -> JsResult<()> {
         if let Some(mut core) = app.platform_mut().core_manager_mut().get_current_core() {
             if let Some(menu) = core.as_menu_core_mut() {
-                let mut spi = menu.inner().spi_mut();
+                let mister_core = menu.inner();
+                let mut spi = mister_core.spi_mut();
 
                 spi.execute(SetFramebufferToHpsOutput {
                     n: 1,
-                    height: 640,
-                    width: 480,
+                    width: 640,
+                    height: 480,
                     hact: 640,
                     vact: 480,
                     x_offset: 0,
                     y_offset: 0,
                 })
                 .expect("Uh...");
+
+                let mut bits = *mister_core.read_status_bits();
+                bits.set_range(5..8, 0);
+                mister_core.send_status_bits(bits);
             }
         }
 
@@ -242,9 +290,6 @@ mod js {
                     y_offset: 0,
                 })
                 .expect("Uh...");
-
-                let vinfo = mister_fpga::core::video::VideoInfo::create(spi);
-                info!(?vinfo, "vinfo 2");
 
                 let mut bits = *mister_core.read_status_bits();
                 bits.set_range(5..8, 0x160);

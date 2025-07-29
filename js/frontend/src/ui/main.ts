@@ -4,7 +4,6 @@ import { stripIndents } from 'common-tags';
 import * as osd from '1fpga:osd';
 import { TextMenuItem } from '1fpga:osd';
 import * as system from '1fpga:system';
-import * as video from '1fpga:video';
 
 import { MainMenuAction } from '@/actions/main_menu';
 import { StartGameAction } from '@/actions/start_game';
@@ -267,6 +266,15 @@ export async function mainInner(): Promise<boolean> {
     }
   }
 
+  let mode = await global.getVideoMode();
+  console.log('Global setting mode: ', mode);
+  if (mode === undefined) {
+    mode = await services.video.findDefaultVideoMode();
+  }
+  if (mode !== undefined) {
+    await services.video.setVideoMode(mode);
+  }
+
   let startOn = await settings.startOn();
 
   console.log('Starting on:', JSON.stringify(startOn));
@@ -274,49 +282,49 @@ export async function mainInner(): Promise<boolean> {
 
   let action = undefined;
 
-  try {
-    console.log(Object.getOwnPropertyNames(video));
-    (video as any)['switchToterm']();
-    video.run();
-  } catch (e) {
-    console.error(e);
-  }
-
-  return true;
-
-  // while (true) {
-  //   try {
-  //     if (action === undefined) {
-  //       return await mainMenu(user, startOn, settings);
-  //     } else if (action instanceof StartGameAction) {
-  //       await services.launch.game(action.game);
-  //     }
-  //     action = undefined;
-  //     startOn = { kind: services.settings.StartOnKind.MainMenu };
-  //   } catch (e: any) {
-  //     action = undefined;
-  //     startOn = { kind: services.settings.StartOnKind.MainMenu };
-  //     if (e instanceof StartGameAction) {
-  //       // Set the action for the next round.
-  //       action = e;
-  //     } else if (e instanceof MainMenuAction) {
-  //       // There is a quirk here that if the StartOn is GameLibrary, we will go back
-  //       // to the game library instead of the main menu.
-  //       switch ((await settings.startOn()).kind) {
-  //         case services.settings.StartOnKind.GameLibrary:
-  //           startOn = { kind: services.settings.StartOnKind.GameLibrary };
-  //       }
-  //     } else {
-  //       // Rethrow to show the user the actual error.
-  //       let choice = await osd.alert({
-  //         title: 'An error happened',
-  //         message: (e as Error)?.message ?? JSON.stringify(e),
-  //         choices: ['Restart', 'Quit'],
-  //       });
-  //       if (choice === 1) {
-  //         return true;
-  //       }
-  //     }
-  //   }
+  // try {
+  //   console.log(Object.getOwnPropertyNames(video));
+  //   (video as any)['switchToterm']();
+  //   video.run();
+  // } catch (e) {
+  //   console.error(e);
   // }
+  //
+  // return true;
+
+  while (true) {
+    try {
+      if (action === undefined) {
+        return await mainMenu(user, startOn, settings);
+      } else if (action instanceof StartGameAction) {
+        await services.launch.game(action.game);
+      }
+      action = undefined;
+      startOn = { kind: services.settings.StartOnKind.MainMenu };
+    } catch (e: any) {
+      action = undefined;
+      startOn = { kind: services.settings.StartOnKind.MainMenu };
+      if (e instanceof StartGameAction) {
+        // Set the action for the next round.
+        action = e;
+      } else if (e instanceof MainMenuAction) {
+        // There is a quirk here that if the StartOn is GameLibrary, we will go back
+        // to the game library instead of the main menu.
+        switch ((await settings.startOn()).kind) {
+          case services.settings.StartOnKind.GameLibrary:
+            startOn = { kind: services.settings.StartOnKind.GameLibrary };
+        }
+      } else {
+        // Rethrow to show the user the actual error.
+        let choice = await osd.alert({
+          title: 'An error happened',
+          message: (e as Error)?.message ?? JSON.stringify(e),
+          choices: ['Restart', 'Quit'],
+        });
+        if (choice === 1) {
+          return true;
+        }
+      }
+    }
+  }
 }

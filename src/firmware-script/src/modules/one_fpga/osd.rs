@@ -19,6 +19,7 @@ mod js {
     use either::Either;
     use firmware_ui::application::menu;
     use firmware_ui::application::panels::password::enter_password;
+    use std::time::Duration;
 
     fn select_file(
         title: String,
@@ -356,6 +357,8 @@ mod js {
         message: String,
         title: Option<String>,
         choices: Option<Vec<String>>,
+        selected: Option<usize>,
+        timeout: Option<f64>,
     }
 
     fn alert(
@@ -364,23 +367,26 @@ mod js {
         ContextData(mut app): ContextData<AppRef>,
         context: &mut Context,
     ) -> JsPromise {
-        let (message, title, choices) = match message {
+        let (message, title, choices, selected, timeout) = match message {
             Either::Left(message) => {
                 if let Some(real_message) = title {
-                    (real_message, message, vec!["OK".to_string()])
+                    (real_message, message, vec!["OK".to_string()], None, None)
                 } else {
-                    (message, "".to_string(), vec!["OK".to_string()])
+                    (message, "".to_string(), vec!["OK".to_string()], None, None)
                 }
             }
             Either::Right(AlertOptions {
                 message,
                 title,
                 choices: options,
-                ..
+                selected,
+                timeout,
             }) => (
                 message,
                 title.unwrap_or_default(),
                 options.unwrap_or_else(|| vec!["OK".to_string()]),
+                selected,
+                timeout.map(|s| Duration::from_secs_f64(s)),
             ),
         };
 
@@ -389,6 +395,8 @@ mod js {
             &title,
             &message,
             &choices.iter().map(String::as_str).collect::<Vec<_>>(),
+            selected,
+            timeout,
         );
 
         JsPromise::resolve(result.map_or(JsValue::null(), JsValue::from), context)

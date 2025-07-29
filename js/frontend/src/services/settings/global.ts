@@ -40,6 +40,7 @@ const TIMEZONE_KEY = 'timezone';
 const DATETIME_UPDATE_KEY = 'datetimeUpdate';
 const LAST_CATALOG_CHECK_DATE_KEY = 'lastCatalogCheck';
 const CATALOG_CHECK_FREQUENCY_KEY = 'catalogCheckFrequency';
+const VIDEO_MODE_KEY = 'videoMode';
 
 export class GlobalSettings {
   public static async create() {
@@ -75,7 +76,7 @@ export class GlobalSettings {
 
   public async setFontSize(value: FontSize): Promise<void> {
     assert.oneOfEnum(value, FontSize, 'Invalid font size');
-    
+
     await this.storage_.set(FONT_SIZE_KEY, value);
     settings.setFontSize(value);
   }
@@ -144,6 +145,19 @@ export class GlobalSettings {
 
   public async getDateTimeUpdate() {
     return await getOrFail(this.storage_, DATETIME_UPDATE_KEY, DatetimeUpdate.Manual);
+  }
+
+  public async setVideoMode(value: string) {
+    await this.storage_.set(VIDEO_MODE_KEY, value);
+  }
+
+  public async getVideoMode() {
+    let mode = await this.storage_.get(VIDEO_MODE_KEY);
+    if (typeof mode === 'string') {
+      return mode;
+    } else {
+      return undefined;
+    }
   }
 
   public async getCatalogCheckFrequency() {

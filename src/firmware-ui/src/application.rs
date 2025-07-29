@@ -9,6 +9,7 @@ use crate::platform::de10::De10Platform;
 use crate::platform::WindowManager;
 use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::pixelcolor::{BinaryColor, Rgb888};
+use embedded_graphics::prelude::DrawTargetExt;
 use embedded_graphics::Drawable;
 use sdl3::event::Event;
 use sdl3::gamepad::Gamepad;
@@ -38,8 +39,6 @@ pub struct OneFpgaApp {
     shortcuts: RefCell<HashMap<Shortcut, CommandId>>,
 
     ui_settings: UiSettings,
-    // framebuffer: linuxfb::double::Buffer,
-    framebuffer: linuxfb::Framebuffer,
 }
 
 impl OneFpgaApp {
@@ -67,7 +66,6 @@ impl OneFpgaApp {
             input_state: InputState::default(),
             shortcuts: Default::default(),
             ui_settings: UiSettings::default(),
-            framebuffer: linuxfb::Framebuffer::new("/dev/fb0").unwrap(),
         };
         app.init_platform();
 
@@ -136,15 +134,11 @@ impl OneFpgaApp {
                 }
             }
 
-            // self.platform.update_osd(&osd_buffer);
-            // self.platform
-            //     .osd_buffer
-            //     .draw(&mut self.platform.main_buffer().color_converted())
-            //     .unwrap();
-            let bytes = osd_buffer.to_be_bytes();
-            self.framebuffer.map().unwrap()[..bytes.len()].copy_from_slice(&bytes);
+            self.platform.update_osd(&osd_buffer);
+            osd_buffer
+                .draw(&mut self.platform.main_buffer().color_converted())
+                .unwrap();
 
-            // self.framebuffer.flip().unwrap();
             result
         } else {
             drawer_fn(self)

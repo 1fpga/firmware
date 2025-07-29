@@ -94,9 +94,6 @@ pub struct MisterFpgaCore {
 
     pub(crate) framebuffer: crate::framebuffer::FpgaFramebuffer<DevMemMemoryMapper>,
 
-    // A cache for the video_info.
-    video_info: Option<VideoInfo>,
-
     // Whether we should quit.
     should_quit: bool,
 }
@@ -146,7 +143,6 @@ impl MisterFpgaCore {
             status: Default::default(),
             status_counter: 0,
             framebuffer: crate::framebuffer::FpgaFramebuffer::default(),
-            video_info: None,
             should_quit: false,
         })
     }
@@ -251,13 +247,7 @@ impl MisterFpgaCore {
 
     /// Return the video info of the core.
     pub fn video_info(&mut self) -> Result<VideoInfo, String> {
-        if let Some(video_info) = self.video_info {
-            return Ok(video_info);
-        }
-
-        let video_info = VideoInfo::create(self.spi_mut())?;
-        self.video_info = Some(video_info);
-        Ok(video_info)
+        VideoInfo::create(self.spi_mut())
     }
 
     pub fn status_mask(&self) -> StatusBitMap {
