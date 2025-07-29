@@ -1,7 +1,5 @@
 import * as schemas from '@1fpga/schemas';
 
-import * as video from '1fpga:video';
-
 import { GameSortOrder } from '@/services/database/games';
 import { getOrFail } from '@/services/settings/utils';
 

@@ -21,8 +21,15 @@ struct LinuxFramebufferInner {
 }
 
 impl LinuxFramebufferInner {
+    /// Creates a new Linux framebuffer instance.
+    ///
+    /// # SAFETY
+    /// - The `_mmap` field must never be moved or dropped while `slice` exists
+    /// - The struct must be pinned in memory once created
+    /// - The slice lifetime is tied to the struct lifetime through the 'static bound
     fn new(path: impl AsRef<std::path::Path>) -> Result<Self, String> {
-        let tty = std::fs::File::open("/dev/tty1").unwrap();
+        let tty = std::fs::File::open("/dev/tty1")
+            .map_err(|e| format!("Failed to open /dev/tty1: {e}"))?;
         linuxfb::set_terminal_mode(&tty, TerminalMode::Graphics).map_err(|e| format!("{e:?}"))?;
         drop(tty);
 
@@ -50,7 +57,7 @@ impl LinuxFramebufferInner {
     }
 
     fn flip(&mut self) -> Result<(), String> {
-        // self.buffer.flip().map_err(|e| format!("{e:?}"))?;
+        // self.buffer.flip().map_err(|e| format!("{e:?}"))
         Ok(())
     }
 }
@@ -65,8 +72,8 @@ impl Framebuffer {
         Ok(Self { inner })
     }
 
-    pub fn flip(&mut self) {
-        self.inner.flip().unwrap()
+    pub fn flip(&mut self) -> Result<(), String> {
+        self.inner.flip()
     }
 
     pub fn size(&self) -> Size {
@@ -152,7 +159,8 @@ pub fn r#loop(_hooks: impl Hooks) -> Result<(), String> {
                 .into_styled(PrimitiveStyle::with_fill(Rgb888::WHITE))
                 .draw(&mut fb)
                 .expect("Could not draw");
-            // state.fb.flip();
+
+            state.fb.flip()?;
         })
         .expect("Error during loop!");
 

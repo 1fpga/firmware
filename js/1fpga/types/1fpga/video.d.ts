@@ -48,7 +48,7 @@ declare module '1fpga:video' {
    * Set the video mode.
    * @param mode A string representing the video mode to set.
    */
-  export async function setMode(mode: string): Promise<void>;
+  export function setMode(mode: string): Promise<void>;
 
   /**
    * Get the current video resolution. When not in the menu core, this
