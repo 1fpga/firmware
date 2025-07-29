@@ -160,7 +160,7 @@ pub fn r#loop(_hooks: impl Hooks) -> Result<(), String> {
                 .draw(&mut fb)
                 .expect("Could not draw");
 
-            state.fb.flip()?;
+            state.fb.flip().expect("Failed to flip");
         })
         .expect("Error during loop!");
 
