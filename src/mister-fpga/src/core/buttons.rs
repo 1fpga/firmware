@@ -215,7 +215,7 @@ impl ButtonMap {
         let mut s = String::new();
         for (i, btn) in self.map.iter().enumerate() {
             if self.bits.get(i).as_deref() == Some(&true) {
-                s.push_str(&format!("{:?} ", btn));
+                s.push_str(&format!("{btn:?} "));
             }
         }
         s

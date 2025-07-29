@@ -66,10 +66,7 @@ impl Write for SdMountFileInner {
             } => {
                 if let Some(m) = max_size {
                     if buf.len() > *m as usize {
-                        return Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "Buffer is larger than max size",
-                        ));
+                        return Err(std::io::Error::other("Buffer is larger than max size"));
                     }
                 }
 
@@ -83,10 +80,7 @@ impl Write for SdMountFileInner {
                 };
                 result
             }
-            SdMountFileInner::File { .. } => Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "File is not writable",
-            )),
+            SdMountFileInner::File { .. } => Err(std::io::Error::other("File is not writable")),
         }
     }
 
@@ -119,10 +113,7 @@ impl Seek for SdMountFileInner {
                 };
                 result
             }
-            SdMountFileInner::File { .. } => Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "File is not writable",
-            )),
+            SdMountFileInner::File { .. } => Err(std::io::Error::other("File is not writable")),
         }
     }
 }
@@ -143,7 +134,7 @@ impl SdCard {
         let mut writeable = true;
         let file = if !path.exists() {
             std::fs::create_dir_all(path.parent().unwrap())
-                .map_err(|e| format!("Failed to create directory: {}", e))?;
+                .map_err(|e| format!("Failed to create directory: {e}"))?;
             None
         } else if let Ok(f) = OpenOptions::new().write(true).read(true).open(&path) {
             writeable = true;

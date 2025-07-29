@@ -4,6 +4,7 @@ use std::fmt::{Debug, Formatter};
 
 #[derive(Debug, Clone, Copy, PartialEq, strum::Display)]
 #[repr(u16)]
+#[allow(clippy::enum_variant_names)]
 enum Commands {
     FileTx = 0x53,
     FileTxDat = 0x54,

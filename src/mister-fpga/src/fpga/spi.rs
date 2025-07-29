@@ -76,7 +76,6 @@ impl<'a, S: SpiCommandExt> SpiCommandGuard<'a, S> {
 
     #[inline]
     pub fn write_nz(&mut self, word: u16) -> &mut Self {
-        let word = word;
         if word != 0 {
             self.spi.write(word);
         }

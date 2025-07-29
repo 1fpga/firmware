@@ -304,7 +304,7 @@ fn hexdump(data: &[u8]) -> String {
     let mut s = String::new();
 
     while size > 0 {
-        s.push_str(&format!("{:04x}: ", n));
+        s.push_str(&format!("{n:04x}: "));
 
         let b2c = size.min(16);
         let sub = &data[n..n + b2c];

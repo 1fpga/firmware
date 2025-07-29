@@ -1,5 +1,5 @@
 use std::cell::UnsafeCell;
-use std::io::Read;
+use std::io::{BufReader, Read};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -416,7 +416,8 @@ impl MisterFpga {
     /// Write the RBF program to the FPGA.
     #[inline(never)]
     pub fn write_program(&mut self, program: impl Read) -> Result<(), FpgaError> {
-        let program = program
+        let reader = BufReader::new(program);
+        let program = reader
             .bytes()
             .collect::<Result<Vec<u8>, _>>()
             .map_err(|_err| FpgaError::IoError)?;

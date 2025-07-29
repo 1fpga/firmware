@@ -693,7 +693,7 @@ impl SpiCommand for GetSdStat<'_> {
             } else if c & 0x2400 != 0 {
                 (3, SdOp::from(c & 0x0400 == 0))
             } else {
-                return Err(format!("Invalid status: {:04X}", c));
+                return Err(format!("Invalid status: {c:04X}"));
             };
 
             self.0.ack = if c & 4 != 0 {
@@ -723,7 +723,7 @@ impl SpiCommand for SdRead<'_> {
         let mut command = spi.command(UserIoSectorRead::Read(self.ack));
 
         if self.wide {
-            command.write_buffer_w(unsafe { transmute::<_, &[u16]>(self.data) });
+            command.write_buffer_w(unsafe { transmute::<&[u8], &[u16]>(self.data) });
         } else {
             command.write_buffer_b(self.data);
         }
@@ -751,7 +751,9 @@ impl SpiCommand for SdWrite<'_> {
         let mut command = spi.command(UserIoSectorRead::Write(self.ack));
 
         if self.wide {
-            command.read_buffer_w(unsafe { transmute::<_, &mut [u16]>(self.data.as_mut_slice()) });
+            command.read_buffer_w(unsafe {
+                transmute::<&mut [u8], &mut [u16]>(self.data.as_mut_slice())
+            });
         } else {
             command.read_buffer_b(self.data.as_mut_slice());
         }

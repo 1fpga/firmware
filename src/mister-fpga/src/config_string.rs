@@ -306,7 +306,7 @@ impl ConfigMenu {
             }
             ConfigMenu::Info(_) => vec![],
             ConfigMenu::Version(v) => {
-                vec![CoreSettingItem::label(false, &format!("Version: {}", v))]
+                vec![CoreSettingItem::label(false, &format!("Version: {v}"))]
             }
             _ => vec![],
         }
@@ -499,12 +499,11 @@ impl FromStr for Config {
 
     fn from_str(cfg_string: &str) -> Result<Self, Self::Err> {
         let (rest, (name, settings, menu)) =
-            parser::parse_config_menu(cfg_string.into()).map_err(|e| e.to_string())?;
+            parser::parse_config_menu(cfg_string).map_err(|e| e.to_string())?;
 
         if !rest.is_empty() {
             return Err(format!(
-                "Did not parse config string to the end. Rest: '{}'",
-                rest
+                "Did not parse config string to the end. Rest:\n'{rest}'",
             ));
         }
 
