@@ -141,7 +141,7 @@ impl From<u8> for FceInputButton {
             0x20 => FceInputButton::Down,
             0x40 => FceInputButton::Left,
             0x80 => FceInputButton::Right,
-            _ => panic!("Invalid FceInputButton value: {}", value),
+            _ => panic!("Invalid FceInputButton value: {value}"),
         }
     }
 }
@@ -299,7 +299,7 @@ impl From<u8> for FceFrameCommand {
             0x04 => FceFrameCommand::FdsDiskInsert,
             0x08 => FceFrameCommand::FdsDiskEject,
             0x10 => FceFrameCommand::VsInsertCoin,
-            _ => panic!("Invalid FceFrameCommand value: {}", value),
+            _ => panic!("Invalid FceFrameCommand value: {value}"),
         }
     }
 }

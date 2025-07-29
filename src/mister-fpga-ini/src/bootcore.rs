@@ -30,7 +30,7 @@ impl Display for BootCoreConfig {
             BootCoreConfig::None => write!(f, ""),
             BootCoreConfig::LastCore => write!(f, "lastcore"),
             BootCoreConfig::ExactLastCore => write!(f, "exactlastcore"),
-            BootCoreConfig::CoreName(name) => write!(f, "{}", name),
+            BootCoreConfig::CoreName(name) => write!(f, "{name}"),
         }
     }
 }

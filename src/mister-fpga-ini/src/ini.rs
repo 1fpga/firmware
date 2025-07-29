@@ -124,14 +124,14 @@ impl<'a> Ini<'a> {
                 .collect::<BTreeMap<_, _>>();
 
             for (key, value) in entries {
-                json.push_str(&format!("\"{}\":", key));
+                json.push_str(&format!("\"{key}\":"));
                 if is_seq(key) {
                     json.push('[');
                     for v in value {
                         if let Some(v) = tx(key, v) {
                             json.push_str(&v);
                         } else {
-                            json.push_str(&format!("{:?},", v));
+                            json.push_str(&format!("{v:?},"));
                         }
                     }
                     json.pop();
@@ -150,7 +150,7 @@ impl<'a> Ini<'a> {
         json.push_str("{ ");
         output_section(&self.root, &tx, &is_seq, &aliases);
         for (name, section) in self.sections() {
-            json.push_str(&format!("\"{}\":{{ ", name));
+            json.push_str(&format!("\"{name}\":{{ "));
             json.push_str(&output_section(section, &tx, &is_seq, &aliases));
             json.pop();
             json.push_str("},");
@@ -177,7 +177,7 @@ pub fn parse<'a>(mut input: &'a str) -> Result<Ini<'a>, Error> {
         let line = &input[..i];
         let line = line.split(';').next().unwrap_or(line).trim();
         if line.is_empty() {
-            input = &input[i..].strip_prefix('\n').unwrap_or("");
+            input = input[i..].strip_prefix('\n').unwrap_or("");
         } else if let Some(l) = input.strip_prefix('[') {
             // Find the `]` in the rest of the input.
             let Some((name, after_category)) = l.split_once(']') else {
@@ -187,7 +187,7 @@ pub fn parse<'a>(mut input: &'a str) -> Result<Ini<'a>, Error> {
 
             if let Some(s) = current_section.take() {
                 // Split the section name and clone it if necessary.
-                sections.extend(split_section_header(&s.0).map(|name| (name, s.1.clone())));
+                sections.extend(split_section_header(s.0).map(|name| (name, s.1.clone())));
             }
 
             let name = name.trim();
@@ -208,7 +208,7 @@ pub fn parse<'a>(mut input: &'a str) -> Result<Ini<'a>, Error> {
     }
 
     if let Some(s) = current_section.take() {
-        sections.extend(split_section_header(&s.0).map(|name| (name, s.1.clone())));
+        sections.extend(split_section_header(s.0).map(|name| (name, s.1.clone())));
     }
 
     Ok(Ini {

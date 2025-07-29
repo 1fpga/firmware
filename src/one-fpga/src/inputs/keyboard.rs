@@ -32,7 +32,7 @@ impl std::str::FromStr for Scancode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         sdl3::keyboard::Scancode::from_name(s)
             .map(Scancode)
-            .ok_or_else(|| format!("Could not parse scancode: {}", s))
+            .ok_or_else(|| format!("Could not parse scancode: {s}"))
     }
 }
 

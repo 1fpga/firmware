@@ -43,7 +43,7 @@ impl Datafile {
             }
 
             if game_files.is_empty() {
-                eprintln!("No files for game: {:?}", game);
+                eprintln!("No files for game: {game:?}");
                 game.sources = vec![];
             } else {
                 game.sources = vec![Source {
@@ -63,7 +63,7 @@ impl Datafile {
                     let hash = (&file.size, &file.sha256, &file.extension);
                     if let Some(other) = hashes.get(&hash) {
                         eprintln!("Duplicate games: {:?} {:?}", game.name, other);
-                        eprintln!("      with hash: {:?}", hash);
+                        eprintln!("      with hash: {hash:?}");
                         errored = true;
                     } else {
                         hashes.insert(hash, &game.name);
@@ -262,7 +262,7 @@ fn convert_htgb<R: BufRead>(reader: R) -> Datafile {
                 record.get(4).unwrap().to_string(),
                 record.get(5).unwrap().parse::<u32>().unwrap_or(0),
             ),
-            l => panic!("Invalid number of columns: {}", l),
+            l => panic!("Invalid number of columns: {l}"),
         };
 
         let file_name = PathBuf::from(path);

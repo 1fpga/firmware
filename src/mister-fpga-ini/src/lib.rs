@@ -124,8 +124,7 @@ mod mister_hexa {
                     Ok(Some(T::zero()))
                 } else {
                     Err(serde::de::Error::custom(format!(
-                        "Invalid hexadecimal value: {}",
-                        s
+                        "Invalid hexadecimal value: {s}"
                     )))
                 }
             } else {
@@ -154,8 +153,7 @@ mod mister_hexa_seq {
                         Ok(T::zero())
                     } else {
                         Err(serde::de::Error::custom(format!(
-                            "Invalid hexadecimal value: {}",
-                            s
+                            "Invalid hexadecimal value: {s}"
                         )))
                     }
                 })
@@ -887,7 +885,7 @@ impl Config {
 
     pub fn merge_video_override(&mut self, resolution: Resolution) {
         // Try to get `123x456@78` format first.
-        let video_str = format!("video={}", resolution);
+        let video_str = format!("video={resolution}");
         if let Some(o) = self.overrides.get(&video_str) {
             self.mister.merge(o.clone());
         }
