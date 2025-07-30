@@ -83,18 +83,20 @@ export async function game(gameRow: db.games.ExtendedGamesRow) {
 
     if (sessionId) {
       clearInterval(sessionId);
+      sessionId = undefined;
     }
     // Start recording the session.
     const id = await db.sessions.create(user, gameRow);
     const start = Date.now();
     sessionId = setInterval(() => {
       db.sessions.update(id, Math.floor((Date.now() - start) / 1000));
-    }, 5000);
+    }, 1000);
 
     await c.loop();
   } finally {
     if (sessionId) {
       clearInterval(sessionId);
+      sessionId = undefined;
     }
     runningGame = null;
     runningCore = null;
