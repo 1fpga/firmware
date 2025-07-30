@@ -325,7 +325,7 @@ dependencies = [
 [[package]]
 name = "boa_ast"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "bitflags 2.9.1",
  "boa_interner",
@@ -339,7 +339,7 @@ dependencies = [
 [[package]]
 name = "boa_engine"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "arrayvec 0.7.6",
  "bitflags 2.9.1",
@@ -386,7 +386,7 @@ dependencies = [
 [[package]]
 name = "boa_gc"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "boa_macros",
  "boa_string",
@@ -397,7 +397,7 @@ dependencies = [
 [[package]]
 name = "boa_interner"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "boa_gc",
  "boa_macros",
@@ -412,7 +412,7 @@ dependencies = [
 [[package]]
 name = "boa_interop"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -423,7 +423,7 @@ dependencies = [
 [[package]]
 name = "boa_macros"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "cfg-if",
  "cow-utils",
@@ -436,7 +436,7 @@ dependencies = [
 [[package]]
 name = "boa_parser"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "bitflags 2.9.1",
  "boa_ast",
@@ -453,7 +453,7 @@ dependencies = [
 [[package]]
 name = "boa_runtime"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -465,7 +465,7 @@ dependencies = [
 [[package]]
 name = "boa_string"
 version = "0.20.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "fast-float2",
  "itoa",
@@ -973,23 +973,23 @@ dependencies = [
 
 [[package]]
 name = "directories"
-version = "5.0.1"
+version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a49173b84e034382284f27f1af4dcbbd231ffa358c0fe316541a7337f376a35"
+checksum = "16f5094c54661b38d03bd7e50df373292118db60b585c08a411c6d840017fe7d"
 dependencies = [
  "dirs-sys",
 ]
 
 [[package]]
 name = "dirs-sys"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
+checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
 dependencies = [
  "libc 0.2.174",
  "option-ext",
  "redox_users",
- "windows-sys 0.48.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1390,7 +1390,7 @@ dependencies = [
  "linuxfb",
  "mister-fpga",
  "mister-fpga-ini",
- "nix 0.29.0",
+ "nix 0.30.1",
  "one-fpga",
  "ouroboros",
  "ping",
@@ -2270,11 +2270,11 @@ dependencies = [
 
 [[package]]
 name = "hashlink"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ba4ff7128dee98c7dc9794b6a411377e1404dba1c97deb8d1a55297bd25d8af"
+checksum = "7382cf6263419f2d8df38c55d7da83da5c18aef87fc7a7fc1fb1e344edfe14c1"
 dependencies = [
- "hashbrown 0.14.5",
+ "hashbrown 0.15.4",
 ]
 
 [[package]]
@@ -2870,9 +2870,9 @@ dependencies = [
 
 [[package]]
 name = "libsqlite3-sys"
-version = "0.30.1"
+version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e99fb7a497b1e3339bc746195567ed8d3e24945ecd636e3619d20b9de9e9149"
+checksum = "133c182a6a2c87864fe97778797e46c7e999672690dc9fa3ee8e241aa4a9c13f"
 dependencies = [
  "cc",
  "pkg-config",
@@ -3130,6 +3130,18 @@ name = "nix"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71e2746dc3a24dd78b3cfcb7be93368c6de9963d30f43a6a73998a9cf4b17b46"
+dependencies = [
+ "bitflags 2.9.1",
+ "cfg-if",
+ "cfg_aliases",
+ "libc 0.2.174",
+]
+
+[[package]]
+name = "nix"
+version = "0.30.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74523f3a35e05aba87a1d978330aef40f67b0304ac79c1c00b294c9830543db6"
 dependencies = [
  "bitflags 2.9.1",
  "cfg-if",
@@ -3537,9 +3549,9 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "ping"
-version = "0.5.2"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "122ee1f5a6843bec84fcbd5c6ba3622115337a6b8965b93a61aad347648f4e8d"
+checksum = "2e6a3edd965f05ef07cbeb254129e3fdd97c0ea4110bef39cf2c1fa3307ce605"
 dependencies = [
  "rand 0.8.5",
  "socket2 0.4.10",
@@ -4061,13 +4073,13 @@ dependencies = [
 
 [[package]]
 name = "redox_users"
-version = "0.4.6"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
+checksum = "dd6f9d3d47bdd2ad6945c5015a226ec6155d0bcdfd8f7cd29f86b71f8de99d2b"
 dependencies = [
  "getrandom 0.2.16",
  "libredox",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -4265,9 +4277,9 @@ dependencies = [
 
 [[package]]
 name = "rusqlite"
-version = "0.32.1"
+version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7753b721174eb8ff87a9a0e799e2d7bc3749323e773db92e0984debb00019d6e"
+checksum = "165ca6e57b20e1351573e3729b958bc62f0e48025386970b6e4d29e7a7e71f3f"
 dependencies = [
  "bitflags 2.9.1",
  "fallible-iterator",
@@ -4353,9 +4365,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.29"
+version = "0.23.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2491382039b29b9b11ff08b76ff6c97cf287671dbb74f0be44bda389fffe9bd1"
+checksum = "c0ebcbd2f03de0fc1122ad9bb24b127a5a6cd51d72604a3f3c50ac459762b6cc"
 dependencies = [
  "once_cell",
  "ring",
@@ -4708,7 +4720,7 @@ checksum = "04dc19736151f35336d325007ac991178d504a119863a2fcb3758cdb5e52c50d"
 [[package]]
 name = "small_btree"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 dependencies = [
  "arrayvec 0.7.6",
 ]
@@ -4862,7 +4874,7 @@ dependencies = [
 [[package]]
 name = "tag_ptr"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/boa.git?rev=33050a73ace57900828ceb831ac52ca2d3ed0cd3#33050a73ace57900828ceb831ac52ca2d3ed0cd3"
+source = "git+https://github.com/boa-dev/boa.git?rev=8c057dc14af5696aff9065035951f5989ae68460#8c057dc14af5696aff9065035951f5989ae68460"
 
 [[package]]
 name = "tap"
@@ -5622,15 +5634,6 @@ dependencies = [
 
 [[package]]
 name = "windows-sys"
-version = "0.48.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "677d2418bec65e3338edb076e806bc1ec15693c5d0104683f2efe857f61056a9"
-dependencies = [
- "windows-targets 0.48.5",
-]
-
-[[package]]
-name = "windows-sys"
 version = "0.52.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "282be5f36a8ce781fad8c8ae18fa3f9beff57ec1b52cb3de0789201425d9a33d"
@@ -5654,21 +5657,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
 dependencies = [
  "windows-targets 0.53.3",
-]
-
-[[package]]
-name = "windows-targets"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a2fa6e2155d7247be68c096456083145c183cbbbc2764150dda45a87197940c"
-dependencies = [
- "windows_aarch64_gnullvm 0.48.5",
- "windows_aarch64_msvc 0.48.5",
- "windows_i686_gnu 0.48.5",
- "windows_i686_msvc 0.48.5",
- "windows_x86_64_gnu 0.48.5",
- "windows_x86_64_gnullvm 0.48.5",
- "windows_x86_64_msvc 0.48.5",
 ]
 
 [[package]]
@@ -5706,12 +5694,6 @@ dependencies = [
 
 [[package]]
 name = "windows_aarch64_gnullvm"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b38e32f0abccf9987a4e3079dfb67dcd799fb61361e53e2882c3cbaf0d905d8"
-
-[[package]]
-name = "windows_aarch64_gnullvm"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a4622180e7a0ec044bb555404c800bc9fd9ec262ec147edd5989ccd0c02cd3"
@@ -5724,12 +5706,6 @@ checksum = "86b8d5f90ddd19cb4a147a5fa63ca848db3df085e25fee3cc10b39b6eebae764"
 
 [[package]]
 name = "windows_aarch64_msvc"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc35310971f3b2dbbf3f0690a219f40e2d9afcf64f9ab7cc1be722937c26b4bc"
-
-[[package]]
-name = "windows_aarch64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09ec2a7bb152e2252b53fa7803150007879548bc709c039df7627cabbd05d469"
@@ -5739,12 +5715,6 @@ name = "windows_aarch64_msvc"
 version = "0.53.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7651a1f62a11b8cbd5e0d42526e55f2c99886c77e007179efff86c2b137e66c"
-
-[[package]]
-name = "windows_i686_gnu"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a75915e7def60c94dcef72200b9a8e58e5091744960da64ec734a6c6e9b3743e"
 
 [[package]]
 name = "windows_i686_gnu"
@@ -5772,12 +5742,6 @@ checksum = "9ce6ccbdedbf6d6354471319e781c0dfef054c81fbc7cf83f338a4296c0cae11"
 
 [[package]]
 name = "windows_i686_msvc"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f55c233f70c4b27f66c523580f78f1004e8b5a8b659e05a4eb49d4166cca406"
-
-[[package]]
-name = "windows_i686_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "240948bc05c5e7c6dabba28bf89d89ffce3e303022809e73deaefe4f6ec56c66"
@@ -5787,12 +5751,6 @@ name = "windows_i686_msvc"
 version = "0.53.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "581fee95406bb13382d2f65cd4a908ca7b1e4c2f1917f143ba16efe98a589b5d"
-
-[[package]]
-name = "windows_x86_64_gnu"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53d40abd2583d23e4718fddf1ebec84dbff8381c07cae67ff7768bbf19c6718e"
 
 [[package]]
 name = "windows_x86_64_gnu"
@@ -5808,12 +5766,6 @@ checksum = "2e55b5ac9ea33f2fc1716d1742db15574fd6fc8dadc51caab1c16a3d3b4190ba"
 
 [[package]]
 name = "windows_x86_64_gnullvm"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b7b52767868a23d5bab768e390dc5f5c55825b6d30b86c844ff2dc7414044cc"
-
-[[package]]
-name = "windows_x86_64_gnullvm"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "24d5b23dc417412679681396f2b49f3de8c1473deb516bd34410872eff51ed0d"
@@ -5823,12 +5775,6 @@ name = "windows_x86_64_gnullvm"
 version = "0.53.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0a6e035dd0599267ce1ee132e51c27dd29437f63325753051e71dd9e42406c57"
-
-[[package]]
-name = "windows_x86_64_msvc"
-version = "0.48.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538"
 
 [[package]]
 name = "windows_x86_64_msvc"

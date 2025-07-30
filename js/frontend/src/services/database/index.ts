@@ -7,4 +7,5 @@ export * as gamesId from './games_identification';
 export * as playlists from './playlists';
 export * as savestates from './savestates';
 export * as screenshots from './screenshots';
+export * as sessions from './sessions';
 export * as systems from './systems';

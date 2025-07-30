@@ -85,7 +85,7 @@ pub fn bottom_bar<'a, C: PixelColor + From<Rgb888> + 'a>(
 
 pub fn text_menu_inner<
     'a,
-    Cmd,
+    C,
     Color: PixelColor + From<Rgb888> + From<BinaryColor>,
     R: MenuReturn + Copy,
     E: Debug,
@@ -96,8 +96,9 @@ pub fn text_menu_inner<
     title: &str,
     items: &'a [impl IntoTextMenuItem<'a, R>],
     options: TextMenuOptions<'a, R>,
-    context: &mut Cmd,
-    mut shortcut_handler: impl FnMut(&mut OneFpgaApp, CommandId, &mut Cmd) -> Result<(), E>,
+    context: &mut C,
+    mut shortcut_handler: impl FnMut(&mut OneFpgaApp, CommandId, &mut C) -> Result<(), E>,
+    mut idle_handler: impl FnMut(&mut OneFpgaApp, &mut C) -> Result<(), E>,
 ) -> Result<(R, OneFpgaMenuState<R>), E> {
     let TextMenuOptions {
         show_back_menu,
@@ -315,7 +316,11 @@ pub fn text_menu_inner<
                 }
             }
 
-            None
+            if let Err(e) = idle_handler(app, context) {
+                Some(Err(e))
+            } else {
+                None
+            }
         })?;
 
         if let Some(r) = result {
@@ -332,6 +337,7 @@ pub fn text_menu_osd<'a, C, R: MenuReturn + Copy, E: Debug>(
     options: TextMenuOptions<'a, R>,
     context: &mut C,
     shortcut_handler: impl FnMut(&mut OneFpgaApp, CommandId, &mut C) -> Result<(), E>,
+    idle_handler: impl FnMut(&mut OneFpgaApp, &mut C) -> Result<(), E>,
 ) -> Result<(R, OneFpgaMenuState<R>), E> {
     text_menu_inner(
         app.osd_buffer().clone(),
@@ -342,5 +348,6 @@ pub fn text_menu_osd<'a, C, R: MenuReturn + Copy, E: Debug>(
         options,
         context,
         shortcut_handler,
+        idle_handler,
     )
 }

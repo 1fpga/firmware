@@ -1,26 +1,28 @@
+import { Row } from '1fpga:db';
+
 import { sql } from '@/utils';
 
 import { User } from '../user';
 import { ExtendedGamesRow } from './games';
 
-interface ScreenshotRow {
+interface ScreenshotRow extends Row {
   id: number;
   gamesId: number;
   path: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface LookupScreenshotOptions {
   game?: ExtendedGamesRow;
 }
 
-export async function list(game?: ExtendedGamesRow): Promise<ScreenshotRow[]> {
-  return await sql<ScreenshotRow>`SELECT *
-                                  FROM Screenshots ${
-                                    game &&
-                                    sql`WHERE gamesId =
+export function list(game?: ExtendedGamesRow): Promise<ScreenshotRow[]> {
+  return sql<ScreenshotRow>`SELECT *
+                            FROM Screenshots ${
+                              game &&
+                              sql`WHERE gamesId =
                                     ${game.id}`
-                                  }`;
+                            }`;
 }
 
 /**

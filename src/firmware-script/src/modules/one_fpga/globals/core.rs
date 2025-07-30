@@ -16,7 +16,8 @@ use one_fpga::{Core, OneFpgaCore};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::str::FromStr;
-use tracing::{error, info};
+use std::time::{Duration, Instant};
+use tracing::{error, info, trace};
 
 #[derive(Debug, Clone, Trace, Finalize, TryFromJs)]
 struct LoopOptions {}
@@ -172,6 +173,15 @@ impl JsCore {
                     }
                 }
 
+                Ok(())
+            },
+            |_app, _core| -> JsResult<()> {
+                let start = Instant::now();
+                (*cx.borrow_mut()).run_jobs()?;
+                let elapsed = start.elapsed();
+                if elapsed > Duration::from_millis(1) {
+                    trace!(?elapsed, "Idle handler");
+                }
                 Ok(())
             },
         );

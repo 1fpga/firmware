@@ -2,8 +2,10 @@ import * as oneFpgaCore from '1fpga:core';
 
 import { showOsd } from '@/services/core';
 import * as db from '@/services/database';
-import * as services from '@/services/index';
+import { User } from '@/services/user';
 import { assert } from '@/utils';
+
+let sessionId: NodeJS.Timeout | undefined;
 
 let runningGame: db.games.ExtendedGamesRow | null = null;
 
@@ -61,6 +63,7 @@ export async function game(gameRow: db.games.ExtendedGamesRow) {
   // Insert last played time at.
   await db.games.setLastPlayedAt(gameRow, new Date());
 
+  const user = User.loggedInUser(true);
   const settings = await (await import('@/services/settings/user')).UserSettings.forLoggedInUser();
 
   try {
@@ -77,8 +80,22 @@ export async function game(gameRow: db.games.ExtendedGamesRow) {
       const ss = db.savestates.create(gameRow, savestate, screenshot);
       console.log('Saved state: ', JSON.stringify(ss));
     });
+
+    if (sessionId) {
+      clearInterval(sessionId);
+    }
+    // Start recording the session.
+    const id = await db.sessions.create(user, gameRow);
+    const start = Date.now();
+    sessionId = setInterval(() => {
+      db.sessions.update(id, Math.floor((Date.now() - start) / 1000));
+    }, 5000);
+
     await c.loop();
   } finally {
+    if (sessionId) {
+      clearInterval(sessionId);
+    }
     runningGame = null;
     runningCore = null;
   }

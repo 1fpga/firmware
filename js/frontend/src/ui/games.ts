@@ -10,6 +10,7 @@ const SORT_LABEL = {
   [services.db.games.GameSortOrder.NameDesc]: 'Name (Z-A)',
   [services.db.games.GameSortOrder.SystemAsc]: 'System (A-Z)',
   [services.db.games.GameSortOrder.LastPlayed]: 'Last Played',
+  [services.db.games.GameSortOrder.MostPlayed]: 'Most Played',
   [services.db.games.GameSortOrder.Favorites]: 'Favorites',
 };
 
@@ -56,6 +57,7 @@ function ellipses(max: number, end = false) {
 export async function pickGame(
   options: PickGameOptions = {},
 ): Promise<services.db.games.ExtendedGamesRow | null> {
+  const user = services.user.User.loggedInUser(true);
   const userSettings = await services.settings.UserSettings.forLoggedInUser();
   const sort = await userSettings.getGameSort();
 
@@ -75,6 +77,7 @@ export async function pickGame(
       includeUnplayed,
       sort: Object.keys(SORT_LABEL)[currentSort] as services.db.games.GameSortOrder,
       limit: PAGE_SIZE,
+      includeSecondsPlayed: { userId: user.id },
     });
 
     const gameSet: Map<String, services.db.games.ExtendedGamesRow[]> = games.reduce((acc, game) => {

@@ -18,6 +18,7 @@ fn core_loop<E: Debug>(
         usize,
         &[u8],
     ) -> Result<(), E>,
+    mut idle_handler: impl FnMut(&mut OneFpgaApp, &mut OneFpgaCore) -> Result<(), E>,
 ) -> Result<(), E> {
     let mut should_check_savestates = matches!(core.save_state(0), Ok(Some(_)));
     let mut i = 0;
@@ -120,6 +121,12 @@ fn core_loop<E: Debug>(
             return Some(Ok(()));
         }
 
+        if i % 10 == 0 {
+            if let Err(e) = idle_handler(app, core) {
+                return Some(Err(e));
+            }
+        }
+
         None
     })
 }
@@ -136,6 +143,7 @@ pub fn run_core_loop<E: Debug>(
         usize,
         &[u8],
     ) -> Result<(), E>,
+    idle_handler: impl FnMut(&mut OneFpgaApp, &mut OneFpgaCore) -> Result<(), E>,
 ) -> Result<(), E> {
     debug!("Starting core loop...");
 
@@ -143,7 +151,7 @@ pub fn run_core_loop<E: Debug>(
     app.hide_toolbar();
     app.platform_mut().core_manager_mut().hide_osd();
 
-    let result = core_loop(app, core, shortcut_handler, savestate_handler);
+    let result = core_loop(app, core, shortcut_handler, savestate_handler, idle_handler);
 
     debug!("Core loop ended");
     info!("Loading Main Menu");

@@ -249,6 +249,7 @@ mod js {
                     |app, id, (command_map, context)| -> JsResult<()> {
                         maybe_call_command(app, id, command_map, context)
                     },
+                    |_, (_, context)| context.run_jobs(),
                 )?;
                 state = new_state;
                 result

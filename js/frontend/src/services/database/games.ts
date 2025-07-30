@@ -35,6 +35,7 @@ export interface ExtendedGamesRow extends Row {
   favorite: boolean | null;
   lastPlayedAt: string | null;
   playlistPriority: number | null;
+  secondsPlayed: number | null;
 }
 
 export enum GameSortOrder {
@@ -42,6 +43,7 @@ export enum GameSortOrder {
   NameDesc = 'name DESC',
   SystemAsc = 'systemName ASC',
   LastPlayed = 'lastPlayedAt DESC',
+  MostPlayed = 'secondsPlayed DESC',
   Favorites = 'favorite DESC, lastPlayedAt DESC',
 }
 
@@ -63,17 +65,32 @@ export interface GamesListOptions {
   system?: string;
 
   playlist?: PlaylistsRow;
+
+  /**
+   * Includes the number of played seconds by a user. If the user isn't
+   * specified, will include played seconds by ALL users.
+   */
+  includeSecondsPlayed?: { userId?: number };
 }
 
 function buildSqlQuery(options: GamesListOptions) {
   return sql`
-    SELECT * ${options.playlist && sql.raw(', PlaylistsGames.priority as playlistPriority')}
+    SELECT *
+             ${options.playlist && sql.raw(', PlaylistsGames.priority as playlistPriority')}
+               ${options.includeSecondsPlayed && sql.raw(', SUM(Sessions.secondsPlayed) as secondsPlayed')}
     FROM ExtendedGamesView ${
       options.playlist !== undefined
         ? sql`
           LEFT JOIN PlaylistsGames ON PlaylistsGames.gamesId = ExtendedGamesView.id
           LEFT JOIN Playlists ON Playlists.id = PlaylistsGames.playlistsId
         `
+        : undefined
+    } ${
+      options.includeSecondsPlayed
+        ? sql`
+      LEFT JOIN Sessions ON Sessions.gamesId = ExtendedGamesView.id
+      ${options.includeSecondsPlayed.userId !== undefined ? sql`AND Sessions.usersId = ${options.includeSecondsPlayed.userId}` : undefined}
+    `
         : undefined
     }
 
@@ -90,6 +107,7 @@ function buildSqlQuery(options: GamesListOptions) {
         ${options.playlist.id}`
         : undefined,
     )}
+    GROUP BY ExtendedGamesView.id
     ORDER BY ${options.playlist && sql.raw('priority, ')} ${sql.raw(options.sort ?? GameSortOrder.NameAsc)}
     LIMIT ${options.limit ?? 100} OFFSET ${options.index ?? 0}
   `;

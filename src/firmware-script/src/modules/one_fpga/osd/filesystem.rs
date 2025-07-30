@@ -81,6 +81,7 @@ pub fn select(
                         |app, id, (command_map, context)| -> JsResult<()> {
                             maybe_call_command(app, id, command_map, context)
                         },
+                        |_, (_, context)| context.run_jobs(),
                     )
                     .map_err(|e| e.to_string())
                 })

@@ -120,6 +120,7 @@ pub fn select_file_path_menu<C, E: Debug>(
     options: FilesystemMenuOptions,
     context: &mut C,
     mut shortcut_handler: impl FnMut(&mut OneFpgaApp, CommandId, &mut C) -> Result<(), E>,
+    mut idle_handler: impl FnMut(&mut OneFpgaApp, &mut C) -> Result<(), E>,
 ) -> Result<Option<PathBuf>, E> {
     let FilesystemMenuOptions {
         allow_back,
@@ -284,6 +285,7 @@ pub fn select_file_path_menu<C, E: Debug>(
             menu_options,
             context,
             &mut shortcut_handler,
+            &mut idle_handler,
         )?;
 
         match selection {
